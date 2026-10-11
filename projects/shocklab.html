@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shock Lab — Sherif Morsi</title><meta name="description" content="A browser-based portfolio stress-testing engine by Sherif Morsi. Macro-shock scenarios, baseline and neural models, and constrained CVaR optimization.">
+<meta name="theme-color" content="#080c10"><meta name="color-scheme" content="dark">
+<meta property="og:title" content="Shock Lab — Sherif Morsi"><meta property="og:description" content="A browser-based portfolio stress-testing engine by Sherif Morsi. Macro-shock scenarios, baseline and neural models, and constrained CVaR optimization.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://shmorsi.github.io/projects/shocklab.html">
+<meta property="og:image" content="https://shmorsi.github.io/assets/shocklab-dashboard.png">
+<link rel="canonical" href="https://shmorsi.github.io/projects/shocklab.html">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css"><script src="../assets/site.js" defer></script>
+</head><body><a class="skip" href="#main">Skip to content</a><header class="site-header">
+    <div class="wrap header-inner">
+      <a class="wordmark" href="../" aria-label="Sherif Morsi home"><span class="monogram" aria-hidden="true">SM</span><span class="wordmark-name">Sherif Morsi</span></a>
+      <div class="header-right">
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href="../#experience">Experience</a>
+          <a href="../#work">Work</a>
+          <a class="desktop-link" href="../#about">About</a>
+          <a href="../#contact">Contact <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+    </div>
+  </header><main id="main" class="wrap">
+<header class="case-hero">
+  <a class="case-back" href="../#work">← Back to selected work</a>
+  <p class="eyebrow">02 / Quantitative risk · Machine learning</p>
+  <h1>Shock Lab<span class="serif" style="color:var(--accent)">.</span></h1>
+  <p class="case-lead">A macro shock. A portfolio.<br>A clearer view of risk.</p>
+  <p class="case-description">A portfolio stress-testing engine that turns a macro shock into a return distribution for 24 assets, then optimizes a portfolio against it. The live demo runs the models and optimizer directly in your browser.</p>
+  <div class="case-actions"><a class="button" href="https://shmorsi.github.io/shocklab/" target="_blank" rel="noopener noreferrer">Try live demo <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://github.com/shmorsi/shocklab" target="_blank" rel="noopener noreferrer">Explore source code <span aria-hidden="true">↗</span></a></div>
+  <p class="case-caption">Research with stated limits: the neural model did not beat the linear baseline on likelihood.</p>
+</header>
+<figure class="case-shot"><a href="../assets/shocklab-dashboard.png" aria-label="Open full Shock Lab dashboard screenshot"><img src="../assets/shocklab-dashboard.png" width="2880" height="1800" alt="Shock Lab dashboard showing user-defined macro shocks, portfolio loss distribution and factor attribution"></a><figcaption>Actual application screenshot: a macro-shock scenario, simulated loss distribution and factor attribution.</figcaption></figure>
+<div class="case-body">
+  <section aria-labelledby="shock-facts"><h2 id="shock-facts">From a scenario to<br><span class="serif">a distribution.</span></h2><div class="facts"><div><strong>24 assets</strong><p>19 US ETFs and five TSX names, across equities, bonds, commodities and sectors.</p></div><div><strong>5 factors</strong><p>Oil, Treasury yields, the US dollar, volatility and credit spreads.</p></div><div><strong>10-day windows</strong><p>Conditional return scenarios, tail-risk measures and constrained CVaR optimization.</p></div></div></section>
+  <section aria-label="Engineering case study"><dl class="spec">
+          <div class="row"><dt>Problem</dt><dd><p>Show how a 24-asset portfolio responds to a macro shock such as an oil spike or a rate jump, then build a portfolio that limits tail losses.</p></dd></div>
+          <div class="row"><dt>Data</dt><dd><p><b>24 assets:</b> 19 US ETFs (equities, sectors, Treasuries, high yield, gold, oil, airlines) and 5 TSX names. <b>5 FRED factors:</b> WTI oil, 10-year Treasury yield, broad USD index, VIX, and Moody’s Baa−10Y credit spread. Daily from 2007, built into 10-day windows.</p></dd></div>
+          <div class="row"><dt>Approach</dt><dd>
+            <ul class="bul">
+              <li><b>Baseline:</b> rolling 3-year OLS factor betas with multivariate Student-t residuals.</li>
+              <li><b>Neural model:</b> a PyTorch mixture density network with 5 Gaussian components over all 24 returns, conditioned on the factor shock plus regime features (VIX level, 60-day average cross-asset correlation). Negative log-likelihood loss, early stopping, yearly walk-forward refits.</li>
+              <li><b>Risk engine:</b> 95% VaR, CVaR, per-holding CVaR contributions, factor attribution, and replays of 5 historical shocks.</li>
+              <li><b>Optimizer:</b> Rockafellar–Uryasev CVaR minimization as a linear program in cvxpy. Long-only, 15% cap per asset, minimum expected return, a minimal-turnover mode, and a CVaR-versus-return frontier.</li>
+            </ul>
+            <div class="flow" aria-label="Pipeline"><span class="node">24 assets + 5 factors</span><span class="arrow">→</span><span class="node">10-day windows</span><span class="arrow">→</span><span class="node m">Linear baseline</span><span class="arrow">/</span><span class="node m">Neural model</span><span class="arrow">→</span><span class="node">10,000 scenarios</span><span class="arrow">→</span><span class="node">VaR · CVaR · attribution</span><span class="arrow">→</span><span class="node">CVaR optimizer</span></div>
+          </dd></div>
+          <div class="row"><dt>Evaluation</dt><dd><ul class="bul">
+            <li>No lookahead: every model is fit only on windows that ended before the evaluation date.</li>
+            <li>Date-based splits: train through 2017, validation 2018–2019, test 2020 onward, scored on non-overlapping windows.</li>
+            <li>Monthly walk-forward backtest, 2018 to Oct 2026, net of 10 bp transaction costs, against equal weight, 60/40 and minimum variance.</li>
+          </ul></dd></div>
+          <div class="row"><dt>Results</dt><dd>
+            <div class="two">
+              <div class="rv"><div class="sub">Maximum drawdown, backtest</div>
+                <div class="bars">
+                  <div class="bar"><div class="r"><span>CVaR strategy</span><b>−17.3%</b></div><div class="trk"><span class="fill hl" style="--w:49.7%;--d:0"></span></div></div>
+                  <div class="bar"><div class="r"><span>60/40</span><b>−21.3%</b></div><div class="trk"><span class="fill" style="--w:61.2%;--d:1"></span></div></div>
+                  <div class="bar"><div class="r"><span>Equal weight</span><b>−34.8%</b></div><div class="trk"><span class="fill" style="--w:100%;--d:2"></span></div></div>
+                </div>
+                <p class="cap">CAGR was 7.2% against 11.8% for equal weight. Sharpe was 0.53 against 0.63 for equal weight and 0.61 for minimum variance.</p>
+              </div>
+              <div><div class="sub">Models, 169 test windows (2020–2026)</div>
+                <div class="tblwrap"><table class="tbl"><thead><tr><th></th><th>Linear</th><th>Neural</th></tr></thead><tbody>
+                  <tr><td>Mean NLL, lower is better</td><td class="w">−60.7</td><td>−45.2</td></tr>
+                  <tr><td>95% VaR breach rate</td><td>6.5%</td><td>6.5%</td></tr>
+                  <tr><td>Portfolio mean abs. error</td><td>1.35%</td><td class="w">1.22%</td></tr>
+                </tbody></table></div>
+                <p class="cap">Walk-forward neural model shown. The static neural model scored −47.6. VaR target is 5% (Kupiec p = 0.39).</p>
+              </div>
+            </div>
+          </dd></div>
+          <div class="row"><dt>What didn’t work</dt><dd><ul class="bul">
+            <li>The neural model did not beat the linear baseline on likelihood. The baseline led in all 5 historical events.</li>
+            <li>The CVaR strategy cut the worst drawdown but trailed equal weight on return, and trailed both equal weight and minimum variance on Sharpe.</li>
+            <li>Data issues, documented in the repo: FRED now serves only 3 years of the ICE BofA high-yield spread, so credit uses Baa−10Y. The negative WTI price of April 2020 is treated as missing.</li>
+          </ul></dd></div>
+          <div class="row"><dt>Engineering</dt><dd><ul class="bul">
+            <li>FastAPI service with Pydantic models, and 28 pytest tests.</li>
+            <li>Interactive Next.js and D3 dashboard.</li>
+            <li>The static GitHub Pages demo runs both models and the optimizer in the browser: a TypeScript port of the models and the HiGHS solver compiled to WebAssembly.</li>
+          </ul></dd></div>
+        </dl></section>
+  <figure class="case-shot"><a href="../assets/shocklab-optimizer.png" aria-label="Open full Shock Lab optimizer screenshot"><img src="../assets/shocklab-optimizer.png" loading="lazy" width="2736" height="1246" alt="Shock Lab CVaR portfolio optimization and allocation comparison"></a><figcaption>Actual optimizer interface. Results depend on the selected assumptions.</figcaption></figure>
+  <section><h2>Under the hood</h2><p>PyTorch · pandas · NumPy · SciPy · cvxpy (HiGHS) · FastAPI · Pydantic · pytest · Next.js · TypeScript · D3.js · Framer Motion · WebAssembly · GitHub Actions</p></section>
+</div>
+<div class="next-project"><div><p class="eyebrow">Explore project / 01</p><a href="atlas.html">ATLAS <span class="arrow" aria-hidden="true">↗</span></a></div><a class="text-link" href="../#work">All projects</a></div>
+</main><footer class="wrap site-footer"><span>© 2026 Sherif Morsi</span><a href="../#work">← All projects</a><a href="mailto:shmorsi@outlook.com">Get in touch ↗</a></footer></body></html>
