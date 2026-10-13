@@ -2,148 +2,326 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Sherif Morsi — AI, Machine Learning &amp; Finance</title>
-  <meta name="description" content="Sherif Morsi, Computer Science student at Concordia University, building at the intersection of AI, machine learning and finance. Portfolio risk, economic research and financial data. Open to internships in Toronto and Montréal.">
-  <meta name="theme-color" content="#080c10">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Sherif Morsi · Machine Learning and Quantitative Research</title>
+  <meta name="description" content="Sherif Morsi, Computer Science student at Concordia University in Montréal. Machine learning and quantitative research projects in finance: monetary policy shocks, earnings-release language models, portfolio stress testing and economic networks. Open to internships and co-ops.">
+  <meta name="theme-color" content="#06080c">
   <meta name="color-scheme" content="dark">
-  <meta property="og:title" content="Sherif Morsi — AI &amp; machine learning. Built for finance.">
-  <meta property="og:description" content="AI, machine learning and finance. Portfolio risk tools, economic research, open source code and measured results.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://shmorsi.github.io/">
-  <meta property="og:image" content="https://shmorsi.github.io/assets/atlas-overview.png">
+  <meta property="og:title" content="Sherif Morsi · Machine Learning and Quantitative Research">
+  <meta property="og:description" content="Four research projects at the intersection of machine learning and finance, each tested against simple baselines on data it never saw.">
+  <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="canonical" href="https://shmorsi.github.io/">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Unbounded:wght@500;600&display=swap">
   <link rel="stylesheet" href="assets/site.css">
   <script src="assets/site.js" defer></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Sherif Morsi",
+    "url": "https://shmorsi.github.io/",
+    "email": "mailto:shmorsi@outlook.com",
+    "jobTitle": "Computer Science student",
+    "homeLocation": {"@type": "Place", "name": "Montréal, Quebec, Canada"},
+    "alumniOf": {"@type": "CollegeOrUniversity", "name": "Concordia University"},
+    "knowsAbout": ["Machine learning", "PyTorch", "Python", "Quantitative finance", "Natural language processing", "Econometrics"],
+    "sameAs": ["https://github.com/shmorsi", "https://www.linkedin.com/in/sherif-morsi-a17628295"]
+  }
+  </script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
+
   <header class="site-header">
     <div class="wrap header-inner">
-      <a class="wordmark" href="./" aria-label="Sherif Morsi home"><span class="monogram" aria-hidden="true">SM</span><span class="wordmark-name">Sherif Morsi</span></a>
-      <div class="header-right">
-        <nav class="site-nav" aria-label="Main navigation">
-          <a href="#experience" data-section="experience">Experience</a>
-          <a href="#work" data-section="work">Work</a>
-          <a class="desktop-link" href="#about" data-section="about">About</a>
-          <a href="#contact" data-section="contact">Contact <span aria-hidden="true">↗</span></a>
-        </nav>
-      </div>
+      <a class="brand" href="./" aria-label="Sherif Morsi, home"><span class="brand-mark" aria-hidden="true">SM</span><span class="brand-name">Sherif Morsi</span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
+      <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="#work" data-section="work">Work</a>
+        <a href="#method" data-section="method">Method</a>
+        <a href="#experience" data-section="experience">Experience</a>
+        <a href="#about" data-section="about">About</a>
+        <a class="nav-cta" href="#contact" data-section="contact">Contact</a>
+      </nav>
     </div>
   </header>
-  <main id="main" class="wrap">
+
+  <main id="main">
     <section class="hero" aria-labelledby="hero-title">
-      <svg class="hero-network" viewBox="0 0 520 460" aria-hidden="true"><defs><radialGradient id="network-glow"><stop stop-color="#95e8ee" stop-opacity=".2"/><stop offset="1" stop-color="#95e8ee" stop-opacity="0"/></radialGradient></defs><circle cx="310" cy="220" r="205" fill="url(#network-glow)"/><g fill="none" stroke="currentColor" stroke-width=".7"><ellipse cx="310" cy="220" rx="185" ry="78" transform="rotate(-28 310 220)"/><ellipse cx="310" cy="220" rx="185" ry="78" transform="rotate(38 310 220)"/><circle cx="310" cy="220" r="133" stroke-dasharray="2 10"/><path d="M153 171 265 106 384 139 461 247 350 323 221 306 153 171 310 220 384 139M265 106 310 220 350 323M221 306 310 220 461 247"/></g><g fill="currentColor"><circle cx="153" cy="171" r="3"/><circle cx="265" cy="106" r="3"/><circle cx="384" cy="139" r="3"/><circle cx="461" cy="247" r="3"/><circle cx="350" cy="323" r="3"/><circle cx="221" cy="306" r="3"/><circle cx="310" cy="220" r="5"/></g><g stroke="currentColor" stroke-width="1"><path d="M95 60h12m-6-6v12M450 375h12m-6-6v12"/></g></svg>
-      <div class="hero-top">
-        <p class="eyebrow">AI / ML × Finance</p>
-        <p class="availability">Open to internships</p>
-      </div>
-      <h1 id="hero-title">AI &amp; machine learning.<br><span class="serif">Built for finance.</span></h1>
-      <div class="hero-bottom">
-        <p class="hero-description">I’m Sherif, a Computer Science student at <strong>Concordia University</strong>. I build AI and machine learning tools for portfolio risk, economic research, and financial analysis.</p>
-        <div class="hero-actions">
-          <a class="button" href="#work">Explore my work <span aria-hidden="true">↓</span></a>
-          <a class="text-link" href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub <span class="arrow" aria-hidden="true">↗</span></a>
+      <canvas class="hero-canvas" data-shock-field aria-hidden="true"></canvas>
+      <div class="graticule" aria-hidden="true"></div>
+      <div class="wrap hero-inner">
+        <div class="hero-copy">
+          <div class="hero-status">
+            <span class="status"><span class="dot" aria-hidden="true"></span>Open to internships and co-ops · Toronto and Montréal</span>
+            <span class="status">Canadian Permanent Resident</span>
+          </div>
+          <h1 id="hero-title">Sherif Morsi<span class="accent">.</span></h1>
+          <p class="hero-lede">Computer Science student at <strong>Concordia University</strong>. I build <strong>machine learning (ML)</strong> and quantitative research tools for finance, then test them against simple baselines on data they have never seen, and publish the results that disappoint next to the ones that don't.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#work">See the work <span aria-hidden="true">↓</span></a>
+            <a class="button ghost" href="mailto:shmorsi@outlook.com">Email me</a>
+            <a class="button ghost" href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+            <a class="button ghost" href="https://www.linkedin.com/in/sherif-morsi-a17628295" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+          </div>
+          <p class="hero-hint" aria-hidden="true">Click anywhere in the field to send a shock through it.</p>
         </div>
-      </div>
-      <div class="hero-footnote"><span>Montréal + Toronto · Open to internships</span><span>Financial questions. Measured answers.</span></div>
-    </section>
-    <section class="section split-section" id="experience" aria-labelledby="experience-title">
-      <div class="section-intro"><span class="eyebrow">01 / Experience</span><h2 id="experience-title">Experience meets<br><span class="serif">perspective.</span></h2><p>Machine learning in telecommunications. Financial analysis in banking. Two perspectives that shape how I build.</p></div>
-      <div>
-        <article class="job">
-          <div class="job-top"><h3>Orange Egypt / Nokia Egypt</h3><p class="job-date">Aug — Sep 2026</p></div>
-          <p class="job-role">AI &amp; Digital Technologies Intern</p>
-          <p class="job-description">Built and trained Python and PyTorch models for energy optimization in 5G networks. Analyzed network telemetry, connected model predictions to optimization actions, and presented the team’s technical findings.</p>
-          <p class="job-meta">Hybrid Internship Program · Egypt · Team project</p>
-        </article>
-        <article class="job">
-          <div class="job-top"><h3>QNB</h3><p class="job-date">Aug — Sep 2025</p></div>
-          <p class="job-role">SME Credit Intern</p>
-          <p class="job-description">Supported creditworthiness reviews under supervision, spread clients’ financial statements, drafted sections of credit memos, and researched counterparties across technology, agriculture and other sectors.</p>
-          <p class="job-meta">Cairo, Egypt · Supervised internship</p>
-        </article>
+
+        <nav class="signal-log" aria-label="Projects at a glance">
+          <div class="signal-log-head"><span class="label signal">Signal log</span><span class="label">4 projects</span></div>
+          <ol>
+            <li><a href="#world-shock-lab"><span class="log-idx">01</span><span><span class="log-name">World Shock Lab</span><span class="log-detail">How Federal Reserve and Bank of Canada surprises move markets</span></span><span class="log-state">Live</span></a></li>
+            <li><a href="#earnings-lens"><span class="log-idx">02</span><span><span class="log-name">Earnings Lens</span><span class="log-detail">Which sentences in an earnings release move the stock</span></span><span class="log-state">Live</span></a></li>
+            <li><a href="#shocklab"><span class="log-idx">03</span><span><span class="log-name">Shock Lab</span><span class="log-detail">Portfolio stress testing across 24 assets</span></span><span class="log-state">Live</span></a></li>
+            <li><a href="#atlas"><span class="log-idx">04</span><span><span class="log-name">ATLAS</span><span class="log-detail">Global production networks in a local research terminal</span></span><span class="log-state local">Release</span></a></li>
+          </ol>
+        </nav>
       </div>
     </section>
+
     <section class="section" id="work" aria-labelledby="work-title">
-      <div class="section-heading">
-        <h2 id="work-title"><span aria-hidden="true">02 /</span> Selected work</h2>
-        <p>AI meets finance.<br>Evidence comes first.</p>
-      </div>
-      <div class="project-grid">
-        <article class="project" id="atlas">
-          <a class="project-visual" href="projects/atlas.html" aria-label="Explore the ATLAS case study">
-            <div class="visual-top" aria-hidden="true"><span>ATLAS / RESEARCH TERMINAL</span><span>LOCAL RELEASE</span></div>
-            <img src="assets/atlas-overview.png" width="1440" height="1000" alt="ATLAS world map showing country growth observations and Japan’s economic indicators">
-          </a>
-          <div class="project-head"><div><h3>ATLAS</h3><p class="project-category">Economic systems · Full-stack engineering</p></div><span class="project-number" aria-hidden="true">01</span></div>
-          <p class="project-description">An economic research terminal that connects country data, production networks and reproducible models. Explore an economy, trace its dependencies, and inspect the evidence.</p>
-          <div class="project-tags" aria-label="ATLAS technologies"><span>Python</span><span>PyTorch</span><span>FastAPI</span><span>React</span><span>TypeScript</span></div>
-          <div class="project-links">
-            <a class="text-link" href="projects/atlas.html">View case study <span class="arrow" aria-hidden="true">↗</span></a>
-            <a class="text-link" href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">Source code <span class="arrow" aria-hidden="true">↗</span></a>
-          </div>
-        </article>
-        <article class="project" id="shocklab">
-          <a class="project-visual blue" href="https://shmorsi.github.io/shocklab/" target="_blank" rel="noopener noreferrer" aria-label="Open the live Shock Lab demo">
-            <div class="visual-top" aria-hidden="true"><span>SHOCK LAB / PORTFOLIO RISK</span><span>LIVE DEMO</span></div>
-            <img src="assets/shocklab-dashboard.png" width="2880" height="1800" alt="Shock Lab macro-shock controls, portfolio loss distribution and factor attribution" loading="lazy">
-          </a>
-          <div class="project-head"><div><h3>Shock Lab</h3><p class="project-category">Quantitative risk · Machine learning</p></div><span class="project-number" aria-hidden="true">02</span></div>
-          <p class="project-description">What happens to a portfolio when the world shifts? A browser-based stress-testing engine for macro shocks, return distributions and portfolio optimization across 24 assets.</p>
-          <div class="project-tags" aria-label="Shock Lab technologies"><span>PyTorch</span><span>Next.js</span><span>D3.js</span><span>WebAssembly</span></div>
-          <div class="project-links">
-            <a class="text-link" href="https://shmorsi.github.io/shocklab/" target="_blank" rel="noopener noreferrer">Try live demo <span class="arrow" aria-hidden="true">↗</span></a>
-            <a class="text-link" href="projects/shocklab.html">View case study <span class="arrow" aria-hidden="true">↗</span></a>
-          </div>
-        </article>
-      </div>
-      <details class="research-note">
-        <summary><div><h3>Earnings Lens</h3><p class="eyebrow">Research idea · Design stage</p></div><span class="note-copy">Exploring how NLP can connect an earnings release to a stock’s reaction, with the source sentences behind each prediction.</span><span class="plus" aria-hidden="true">+</span></summary>
-        <div class="research-body">
-          <p>A proposed research project using Python, PyTorch, Hugging Face, the Claude API and SEC EDGAR.</p>
-          <ul>
-            <li>Parse 2015–2025 earnings press releases from SEC EDGAR 8-K filings and align them with 3-day market-adjusted returns.</li>
-            <li>Compare a fine-tuned FinBERT model against a TF-IDF logistic regression baseline on a time-based holdout.</li>
-            <li>Use integrated gradients to show which sentences contribute to each prediction.</li>
-            <li>Extract guidance changes with an LLM, cite the source sentences, and score against hand-labelled releases.</li>
-          </ul>
-          <p>Design stage. No model results have been measured yet.</p>
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="label signal">Selected work</span><h2 id="work-title">Four questions, measured answers.</h2></div>
+          <p>Each project starts with a question a strategist or researcher would ask, splits its data by date so nothing from the future leaks in, and reports where the model fell short.</p>
         </div>
-      </details>
+
+        <div class="projects">
+          <!-- 01 World Shock Lab -->
+          <article class="project" id="world-shock-lab" aria-labelledby="p1-title">
+            <a class="screen" href="https://shmorsi.github.io/world-shock-lab/" target="_blank" rel="noopener noreferrer" aria-label="Open the World Shock Lab live site">
+              <div class="screen-bar" aria-hidden="true"><span>shmorsi.github.io/world-shock-lab</span><span class="live">Live</span></div>
+              <img src="assets/img/world-shock-lab-scenario.webp" width="1600" height="1000" alt="World Shock Lab scenario composer: a Federal Reserve hike combined with an oil supply cut, with the response of Canadian bond yields, the Canadian dollar and Canadian stocks over 20 trading days" loading="lazy">
+            </a>
+            <div class="project-body">
+              <div class="project-meta"><span class="project-index">01</span><span class="label">Macroeconomics · Causal inference · Live forecasting</span></div>
+              <h3 id="p1-title">World Shock Lab</h3>
+              <p class="project-question">How do the world's markets, and Canada's in particular, react when the Federal Reserve (Fed) or the Bank of Canada (BoC) surprises them?</p>
+              <p class="project-summary">Measures market responses to identified shocks with event-study local projections, checked by simulation and by replicating published papers, then turns them into a scenario tool with forecasts committed before each central-bank decision.</p>
+              <div class="readouts">
+                <div class="readout"><b>−1.10%</b><span>S&amp;P/TSX Composite on the day of a 10 basis-point Fed surprise, vs −0.19% for the BoC</span></div>
+                <div class="readout"><b>11 of 13</b><span>published findings replicated (sign and 90% band)</span></div>
+                <div class="readout"><b>0 of 80</b><span>pre-registered regime tests survive false-discovery-rate control</span></div>
+              </div>
+              <div class="miss"><span class="label">What didn't work</span><p>Machine learning did not beat a linear model on 168 held-out announcements: error difference −0.003, 90% interval −0.019 to +0.014.</p></div>
+              <ul class="tags" aria-label="Technologies"><li>Python</li><li>PyTorch</li><li>statsmodels</li><li>DuckDB</li><li>React</li><li>TypeScript</li><li>D3.js</li><li>GitHub Actions</li></ul>
+              <div class="project-links">
+                <a class="button primary" href="https://shmorsi.github.io/world-shock-lab/" target="_blank" rel="noopener noreferrer">Live site <span aria-hidden="true">↗</span></a>
+                <a class="button ghost" href="projects/world-shock-lab.html">Case study <span aria-hidden="true">→</span></a>
+                <a class="text-link" href="https://github.com/shmorsi/world-shock-lab" target="_blank" rel="noopener noreferrer">Code ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 02 Earnings Lens -->
+          <article class="project" id="earnings-lens" aria-labelledby="p2-title">
+            <a class="screen" href="https://shmorsi.github.io/earnings-lens/" target="_blank" rel="noopener noreferrer" aria-label="Open the Earnings Lens live demo">
+              <div class="screen-bar" aria-hidden="true"><span>shmorsi.github.io/earnings-lens</span><span class="live">Live</span></div>
+              <img src="assets/img/earnings-lens-reader.webp" width="1600" height="1000" alt="Earnings Lens release reader: an earnings press release with sentences highlighted by how they pushed the prediction, the model's probabilities, the price path after the release and facts extracted with citations" loading="lazy">
+            </a>
+            <div class="project-body">
+              <div class="project-meta"><span class="project-index">02</span><span class="label">Natural language processing · Explainability</span></div>
+              <h3 id="p2-title">Earnings Lens</h3>
+              <p class="project-question">Which sentences in an earnings release move the stock?</p>
+              <p class="project-summary">Collected 21,101 earnings releases from 499 S&amp;P 500 companies in the Securities and Exchange Commission's (SEC) Electronic Data Gathering, Analysis, and Retrieval (EDGAR) system and compared a fine-tuned FinBERT model with Term Frequency–Inverse Document Frequency (TF-IDF) text features and the reported numbers. Integrated gradients highlight the sentences behind each prediction, and a local Large Language Model (LLM) extracts facts with verified citations.</p>
+              <div class="readouts">
+                <div class="readout"><b>21,101</b><span>releases, split by date: train 2016–2021, test 2023 to September 2026</span></div>
+                <div class="readout"><b>0.0182</b><span>lower log-loss when FinBERT text is added to the reported numbers (95% confidence interval 0.0133 to 0.0232)</span></div>
+                <div class="readout"><b>97%</b><span>of the local LLM's citations valid on 200 releases</span></div>
+              </div>
+              <div class="miss"><span class="label">What didn't work</span><p>FinBERT did not beat TF-IDF on the same input. The best trading signal earned +22.3 basis points per position before costs but only +2.3 after 20 basis points of costs.</p></div>
+              <ul class="tags" aria-label="Technologies"><li>PyTorch</li><li>Hugging Face Transformers</li><li>scikit-learn</li><li>Ollama</li><li>FastAPI</li><li>Next.js</li><li>D3.js</li></ul>
+              <div class="project-links">
+                <a class="button primary" href="https://shmorsi.github.io/earnings-lens/" target="_blank" rel="noopener noreferrer">Live demo <span aria-hidden="true">↗</span></a>
+                <a class="button ghost" href="projects/earnings-lens.html">Case study <span aria-hidden="true">→</span></a>
+                <a class="text-link" href="https://github.com/shmorsi/earnings-lens" target="_blank" rel="noopener noreferrer">Code ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 03 Shock Lab -->
+          <article class="project" id="shocklab" aria-labelledby="p3-title">
+            <a class="screen" href="https://shmorsi.github.io/shocklab/" target="_blank" rel="noopener noreferrer" aria-label="Open the Shock Lab live demo">
+              <div class="screen-bar" aria-hidden="true"><span>shmorsi.github.io/shocklab</span><span class="live">Live</span></div>
+              <img src="assets/img/shocklab-dashboard.webp" width="1600" height="1000" alt="Shock Lab dashboard: macro shock sliders for oil, yields, the dollar, volatility and credit spreads, with the portfolio's simulated 10-day loss distribution and risk measures" loading="lazy">
+            </a>
+            <div class="project-body">
+              <div class="project-meta"><span class="project-index">03</span><span class="label">Quantitative risk · Deep learning · Optimization</span></div>
+              <h3 id="p3-title">Shock Lab</h3>
+              <p class="project-question">What does a macro shock do to a portfolio, and which portfolio limits the damage?</p>
+              <p class="project-summary">A stress-testing engine for 24 assets and five macro factors. A linear factor model and a PyTorch Mixture Density Network (MDN) turn a shock into a 10-day return distribution; a risk engine reports Value at Risk (VaR) and Conditional Value at Risk (CVaR); a CVaR optimizer builds the portfolio. The live demo runs both models and the optimizer in the browser through WebAssembly.</p>
+              <div class="readouts">
+                <div class="readout"><b>−17.3%</b><span>maximum drawdown of the CVaR strategy vs −34.8% for equal weight (2018 to October 2026, after costs)</span></div>
+                <div class="readout"><b>6.5%</b><span>95% VaR breach rate on 169 test windows (target 5%)</span></div>
+                <div class="readout"><b>24 + 5</b><span>assets and macro factors, daily from 2007</span></div>
+              </div>
+              <div class="miss"><span class="label">What didn't work</span><p>The MDN did not beat the linear baseline on likelihood, and the CVaR strategy's Sharpe ratio (0.53) trailed equal weight (0.63) and minimum variance (0.61).</p></div>
+              <ul class="tags" aria-label="Technologies"><li>PyTorch</li><li>cvxpy (HiGHS)</li><li>FastAPI</li><li>Next.js</li><li>D3.js</li><li>WebAssembly</li></ul>
+              <div class="project-links">
+                <a class="button primary" href="https://shmorsi.github.io/shocklab/" target="_blank" rel="noopener noreferrer">Live demo <span aria-hidden="true">↗</span></a>
+                <a class="button ghost" href="projects/shocklab.html">Case study <span aria-hidden="true">→</span></a>
+                <a class="text-link" href="https://github.com/shmorsi/shocklab" target="_blank" rel="noopener noreferrer">Code ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- 04 ATLAS -->
+          <article class="project" id="atlas" aria-labelledby="p4-title">
+            <a class="screen" href="projects/atlas.html" aria-label="Read the ATLAS case study">
+              <div class="screen-bar" aria-hidden="true"><span>ATLAS · local research terminal</span><span class="local">Release v0.1.2</span></div>
+              <img src="assets/img/atlas-overview.webp" width="1440" height="1000" alt="ATLAS world atlas: a map of real gross domestic product growth by country, with Japan's economic indicators in a side panel" loading="lazy">
+            </a>
+            <div class="project-body">
+              <div class="project-meta"><span class="project-index">04</span><span class="label">Economic systems · Full-stack engineering</span></div>
+              <h3 id="p4-title">ATLAS</h3>
+              <p class="project-question">How does a cost shock in one industry spread through the global economy?</p>
+              <p class="project-summary">A local-first economic research terminal: 177 countries and territories with dated World Bank observations, seven Organisation for Economic Co-operation and Development (OECD) inter-country input-output tables aggregated into a production network, a cost-propagation engine, and 12 reproducible PyTorch checkpoints, served by one FastAPI process.</p>
+              <div class="readouts">
+                <div class="readout"><b>405</b><span>production-network nodes across 81 areas</span></div>
+                <div class="readout"><b>12</b><span>PyTorch checkpoints replayed by the release gate</span></div>
+                <div class="readout"><b>44 + 27</b><span>backend and browser tests passed for v0.1.2</span></div>
+              </div>
+              <div class="miss"><span class="label">What didn't work</span><p>The exploratory graph model did not beat ridge regression on its single held-out year, and ATLAS says so in the interface.</p></div>
+              <ul class="tags" aria-label="Technologies"><li>Python</li><li>PyTorch</li><li>FastAPI</li><li>DuckDB</li><li>React</li><li>TypeScript</li><li>MapLibre</li></ul>
+              <div class="project-links">
+                <a class="button primary" href="projects/atlas.html">Case study <span aria-hidden="true">→</span></a>
+                <a class="button ghost" href="https://github.com/shmorsi/atlas/releases/tag/v0.1.2" target="_blank" rel="noopener noreferrer">Download release <span aria-hidden="true">↗</span></a>
+                <a class="text-link" href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">Code ↗</a>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
     </section>
-    <section class="section split-section" id="about" aria-labelledby="about-title">
-      <div class="section-intro"><span class="eyebrow">03 / About</span><h2 id="about-title">Where AI meets<br><span class="serif">finance.</span></h2><p>My focus: using AI and machine learning to make financial problems more understandable and testable.</p></div>
-      <div>
-        <p class="about-row">I’m studying <strong>Computer Science at Concordia University</strong>, with a focus on the intersection of <strong>AI, machine learning, and finance</strong>. I’m interested in portfolio risk, economic systems, and turning financial data into useful research tools. I build models, compare them with baselines, and report what the evidence supports.</p>
-        <div class="skill-groups" id="skills">
-          <div class="skill-group"><h3>Machine learning</h3><p>PyTorch, TensorFlow, scikit-learn, MONAI, deep learning</p></div>
-          <div class="skill-group"><h3>Programming &amp; data</h3><p>Python, Java, C++, JavaScript, SQL, pandas, NumPy, data analysis &amp; preprocessing</p></div>
-          <div class="skill-group"><h3>Software engineering</h3><p>FastAPI, REST APIs, algorithms, object-oriented programming, Git, Docker, pytest, GitHub Actions</p></div>
-          <div class="skill-group"><h3>Other tools &amp; interests</h3><p>LangChain &amp; RAG (some hands-on), Figma, 5G telemetry, Excel, Power BI, PowerPoint, financial modeling &amp; credit assessment</p></div>
+
+    <section class="section" id="method" aria-labelledby="method-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="label signal">How I work</span><h2 id="method-title">Evidence first.</h2></div>
+          <p>The same four habits run through every project. They are why the numbers above can be trusted, including the disappointing ones.</p>
         </div>
-        <div class="education" id="education">
-          <h3>Concordia University</h3>
-          <p>Bachelor of Computer Science · Montréal<br>2023 — 2028 (expected)</p>
-          <details><summary>Coursework &amp; community</summary><p>Machine Learning, Artificial Intelligence, Data Structures and Algorithms, Software Engineering, Databases, Computer Systems, Probability and Statistics, Object-Oriented Programming.</p><p>Incoming member of the Quantitative Research and Competitions Club (QUARCC).</p></details>
-          <p>English &amp; Arabic fluent · Learning French</p>
+        <div class="principles">
+          <article class="principle">
+            <span class="label">Time-based holdouts</span>
+            <h3>Nothing from the future leaks in.</h3>
+            <p>Data are split by date, never at random. Earnings Lens trains on 2016–2021 and tests on 2023 to September 2026; Shock Lab fits each model only on windows that ended before the date it is evaluated on.</p>
+          </article>
+          <article class="principle">
+            <span class="label">Baselines</span>
+            <h3>Every model faces a simple rival.</h3>
+            <p>FinBERT against TF-IDF and the reported numbers. A Mixture Density Network against a linear factor model. A graph network against ridge regression. A neural network against a linear projection and a forecast of no move.</p>
+          </article>
+          <article class="principle">
+            <span class="label">Pre-registration</span>
+            <h3>The test is fixed before the result.</h3>
+            <p>In World Shock Lab the splits, metrics and decision rule were committed and tagged in git before any model was fitted, the held-out test set was scored once, and live forecasts are published before each decision and never edited.</p>
+          </article>
+          <article class="principle">
+            <span class="label">Honest reporting</span>
+            <h3>Null results are results.</h3>
+            <p>Each project publishes what did not work next to what did, and documents the bugs it found along the way, such as a filing-time error in Earnings Lens that placed some price reactions on the wrong day.</p>
+          </article>
         </div>
       </div>
     </section>
+
+    <section class="section" id="experience" aria-labelledby="experience-title">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="label signal">Experience</span><h2 id="experience-title">Industry experience.</h2></div>
+          <p>Machine learning for network energy optimization, and credit analysis for small and medium-sized businesses.</p>
+        </div>
+        <div class="timeline">
+          <article class="role">
+            <p class="role-when"><b>Aug 2026 – Sep 2026</b>Egypt (Hybrid)</p>
+            <div>
+              <h3>Artificial Intelligence (AI) &amp; Digital Technologies Intern</h3>
+              <p class="role-org">Orange Egypt / Nokia Egypt · Hybrid Internship Program</p>
+              <ul>
+                <li>Built and trained machine learning models in Python and PyTorch to guide energy optimization in fifth-generation (5G) telecommunications networks as part of a team-based industry project.</li>
+                <li>Analyzed high-velocity network telemetry to identify operational indicators, supporting predictive modeling and data analysis of energy usage and network efficiency.</li>
+                <li>Applied AI-driven automation to turn model predictions into data-driven energy-optimization actions, addressing a network-efficiency problem in the Orange/Nokia project.</li>
+                <li>Communicated model results and technical findings through presentations and collaborated with teammates across AI, data and telecommunications topics.</li>
+              </ul>
+            </div>
+          </article>
+          <article class="role">
+            <p class="role-when"><b>Aug 2025 – Sep 2025</b>Cairo, Egypt</p>
+            <div>
+              <h3>Small and Medium-sized Enterprise (SME) Credit Intern</h3>
+              <p class="role-org">Qatar National Bank (QNB) · Supervised internship</p>
+              <ul>
+                <li>Supported creditworthiness reviews under supervision and spread clients' financial statements.</li>
+                <li>Drafted sections of credit memos and researched counterparties across technology, agriculture and other sectors.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about" aria-labelledby="about-title">
+      <div class="wrap about">
+        <div class="about-copy">
+          <span class="label signal">About</span>
+          <h2 id="about-title" class="about-title">Computing, data and financial decisions.</h2>
+          <p>I'm a <strong>Computer Science student at Concordia University</strong> in Montréal, interested in applying computing and data analysis to financial decision-making and investing.</p>
+          <p>My projects follow the same path end to end: a data pipeline, models tested against simple baselines on data they never saw, and an interface people can use to explore the results.</p>
+          <dl class="facts">
+            <div><dt>Based in</dt><dd>Montréal, Quebec, Canada</dd></div>
+            <div><dt>Status</dt><dd>Canadian Permanent Resident</dd></div>
+            <div><dt>Looking for</dt><dd>Internships and co-ops in Toronto and Montréal</dd></div>
+            <div><dt>Languages</dt><dd>English (fluent) · Arabic (fluent) · French (learning)</dd></div>
+          </dl>
+        </div>
+        <div class="skills" aria-label="Skills and education">
+          <div class="skill"><h3>Programming</h3><p>Python, Java, C++, JavaScript, Structured Query Language (SQL)</p></div>
+          <div class="skill"><h3>Data</h3><p>pandas, NumPy, data analysis, predictive modeling, data preprocessing</p></div>
+          <div class="skill"><h3>Machine learning</h3><p>PyTorch, TensorFlow, scikit-learn, Medical Open Network for Artificial Intelligence (MONAI), machine learning, deep learning</p></div>
+          <div class="skill"><h3>Networks</h3><p>5G networks, telecommunications, network telemetry, automation</p></div>
+          <div class="skill wide"><h3>Software engineering</h3><p>Object-oriented programming, algorithms, FastAPI, Representational State Transfer (REST) Application Programming Interfaces (APIs), Git, GitHub, pytest, unit testing, Continuous Integration and Continuous Delivery (CI/CD) with GitHub Actions, Docker</p></div>
+          <div class="skill wide"><h3>Spreadsheets and Business Intelligence (BI)</h3><p>Excel formulas, lookup functions, PivotTables, charts, data cleaning, macros in Visual Basic for Applications (VBA), Power Query, Power BI</p></div>
+          <div class="education">
+            <span class="label">Education</span>
+            <h3>Concordia University · Bachelor of Computer Science</h3>
+            <p>Montréal, Quebec · 2023 – 2028 (expected)</p>
+            <p>Coursework: Machine Learning, Artificial Intelligence, Data Structures and Algorithms, Software Engineering, Databases, Computer Systems, Probability and Statistics, Object-Oriented Programming.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="contact" id="contact" aria-labelledby="contact-title">
-      <div class="contact-top"><span>04 / GET IN TOUCH</span><span>TORONTO + MONTRÉAL</span></div>
-      <h2 id="contact-title">Let’s solve<br><span class="serif">interesting problems.</span></h2>
-      <div class="contact-bottom">
-        <div><p>Seeking internships and co-ops in Toronto &amp; Montréal, especially where AI, machine learning, and finance meet.<br>Canadian Permanent Resident. Email is the best place to start.</p><div class="contact-email"><a href="mailto:shmorsi@outlook.com">shmorsi@outlook.com <span aria-hidden="true">↗</span></a><button class="copy-button" type="button" data-copy-email="shmorsi@outlook.com" aria-label="Copy email address">Copy</button></div></div>
-        <div class="contact-socials"><a href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a><a href="https://www.linkedin.com/in/sherif-morsi-a17628295" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a></div>
+      <div class="graticule" aria-hidden="true"></div>
+      <div class="wrap contact-inner">
+        <span class="label signal">Contact</span>
+        <h2 id="contact-title">Let's build something<br><span class="accent">measurable.</span></h2>
+        <p>I'm looking for internships and co-ops in Toronto and Montréal, especially where machine learning meets finance. Email is the fastest way to reach me.</p>
+        <div class="email-row">
+          <a class="email" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
+          <button class="copy-button" type="button" data-copy-email="shmorsi@outlook.com">Copy</button>
+        </div>
+        <div class="contact-links">
+          <a class="button ghost" href="https://www.linkedin.com/in/sherif-morsi-a17628295" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+          <a class="button ghost" href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+        </div>
       </div>
     </section>
   </main>
-  <footer class="wrap site-footer"><span>© 2026 Sherif Morsi</span><span>AI / ML × Finance · Toronto + Montréal</span><a href="#main">Back to top ↑</a></footer>
+
+  <footer class="wrap site-footer">
+    <span>© 2026 Sherif Morsi · Montréal</span>
+    <span>Every figure on this page comes from the linked project's published results</span>
+    <a href="#main">Back to top ↑</a>
+  </footer>
   <div class="copy-status" role="status" aria-live="polite" data-copy-status></div>
 </body>
 </html>

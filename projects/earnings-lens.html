@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Earnings Lens · Sherif Morsi</title>
+  <meta name="description" content="Earnings Lens by Sherif Morsi: which sentences in an earnings release move the stock? FinBERT versus text and number baselines on 21,101 releases, with explanations, cited fact extraction and an honest trading test.">
+  <meta name="theme-color" content="#06080c">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://shmorsi.github.io/projects/earnings-lens.html">
+  <meta property="og:title" content="Earnings Lens · Sherif Morsi">
+  <meta property="og:description" content="FinBERT versus simple baselines on 21,101 earnings releases, with explanations and an honest trading test.">
+  <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://shmorsi.github.io/projects/earnings-lens.html">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Unbounded:wght@500;600&display=swap">
+  <link rel="stylesheet" href="../assets/site.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="../" aria-label="Sherif Morsi, home"><span class="brand-mark" aria-hidden="true">SM</span><span class="brand-name">Sherif Morsi</span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
+      <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="../#work">Work</a>
+        <a href="../#method">Method</a>
+        <a href="../#experience">Experience</a>
+        <a href="../#about">About</a>
+        <a class="nav-cta" href="../#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="cs-hero" aria-labelledby="cs-title">
+      <div class="graticule" aria-hidden="true"></div>
+      <div class="wrap cs-hero-inner">
+        <a class="back" href="../#earnings-lens">← All projects</a>
+        <span class="label signal">02 · Natural language processing · Explainability</span>
+        <h1 id="cs-title">Earnings Lens</h1>
+        <p class="cs-question">Which sentences in an earnings release move the stock?</p>
+        <p class="cs-summary">A natural language processing (NLP) study of 21,101 earnings press releases. It compares a fine-tuned FinBERT model with simpler text and number baselines on a time-based holdout, shows which sentences drove each prediction, extracts facts with a local language model that must cite its sources, and checks whether any of it survives trading costs.</p>
+        <div class="project-links">
+          <a class="button primary" href="https://shmorsi.github.io/earnings-lens/" target="_blank" rel="noopener noreferrer">Open the live demo <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="https://github.com/shmorsi/earnings-lens" target="_blank" rel="noopener noreferrer">Code ↗</a>
+        </div>
+        <a class="screen cs-shot" href="https://shmorsi.github.io/earnings-lens/" target="_blank" rel="noopener noreferrer" aria-label="Open the Earnings Lens live demo">
+          <div class="screen-bar" aria-hidden="true"><span>shmorsi.github.io/earnings-lens · release reader</span><span class="live">Live</span></div>
+          <img src="../assets/img/earnings-lens-reader.webp" width="1600" height="1000" alt="Release reader: sentences of an earnings release highlighted by whether they pushed the prediction up or down, with FinBERT's probabilities, the stock's path after the release and extracted facts with sentence citations">
+        </a>
+      </div>
+    </section>
+
+    <div class="wrap cs-body">
+      <section class="glance" aria-label="At a glance">
+        <div class="readout"><b>21,101</b><span>releases from 499 S&amp;P 500 companies, 2016–2026</span></div>
+        <div class="readout"><b>1.0775</b><span>best test log-loss: reported numbers plus FinBERT (base rate 1.0986)</span></div>
+        <div class="readout"><b>+22.3 → +2.3</b><span>basis points per position, before and after 20 basis points of trading costs</span></div>
+        <div class="readout"><b>97%</b><span>of the local language model's citations valid on 200 releases</span></div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-data">
+        <h2 id="s-data">Data</h2>
+        <div class="prose">
+          <ul>
+            <li>Collected 21,101 earnings press releases from 499 S&amp;P 500 companies in the Securities and Exchange Commission's (SEC) Electronic Data Gathering, Analysis, and Retrieval (EDGAR) system: Form 8-K Item 2.02, exhibit 99.1, from 2016 to 2026, each with its exact filing acceptance time.</li>
+            <li>Stripped financial tables, boilerplate and contact details, and aligned each release with the stock's 3-day market-adjusted reaction, plus a separate tradable return measured from the first price after the release.</li>
+            <li>Split by date: training 2016–2021 (11,503 releases), validation 2022 (1,991) and test 2023 to September 2026 (7,607). Class cut-offs were set on training data only.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-method">
+        <h2 id="s-method">Models</h2>
+        <div class="prose">
+          <ul>
+            <li><strong>Numbers only:</strong> standardized unexpected earnings and revenue growth from eXtensible Business Reporting Language (XBRL) data, using first-filed values only so later restatements cannot leak in.</li>
+            <li><strong>Text baseline:</strong> Term Frequency–Inverse Document Frequency (TF-IDF) features with logistic regression.</li>
+            <li><strong>FinBERT:</strong> fine-tuned in PyTorch on an Apple M1 graphics processing unit (GPU) on the 256-token opening of each release, with resumable, checkpointed training after GPU crashes. Validation log-loss was best after one epoch; the second epoch overfit.</li>
+            <li><strong>Explanations:</strong> integrated gradients, implemented from scratch, highlight the sentences behind each prediction (mean completeness error 0.0037).</li>
+            <li><strong>Fact extraction:</strong> a free local Large Language Model (LLM), Qwen 2.5 with 3 billion parameters running in Ollama, extracts guidance changes, revenue against expectations and against last year, and tariff mentions, each with sentence-number citations that are verified automatically and compared with a regular-expression baseline.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-results">
+        <h2 id="s-results">Results</h2>
+        <div class="prose">
+          <p>Log-loss rewards calibrated probabilities. The area under the receiver operating characteristic curve (AUC) measures how well a model ranks releases that went up above those that went down; 0.5 means no skill. Confidence intervals are bootstrapped over announcement dates.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Test set 2023 to September 2026 · 7,607 releases">
+            <table>
+              <caption>Test set 2023 to September 2026 · 7,607 releases</caption>
+              <thead><tr><th scope="col">Model</th><th scope="col">Log-loss (lower is better)</th><th scope="col">Up-versus-down AUC</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Reported numbers + FinBERT</th><td class="best">1.0775</td><td class="best">0.559</td></tr>
+                <tr><th scope="row">TF-IDF on the opening</th><td>1.0796</td><td>0.552</td></tr>
+                <tr><th scope="row">TF-IDF on the full text</th><td>1.0811</td><td>—</td></tr>
+                <tr><th scope="row">FinBERT</th><td>1.0861</td><td>0.540</td></tr>
+                <tr><th scope="row">Reported numbers only</th><td>1.0957</td><td>0.544</td></tr>
+                <tr><th scope="row">Base rate</th><td>1.0986</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <ul>
+            <li><strong>Text adds information beyond the numbers:</strong> adding FinBERT to the numbers-only model improved log-loss by 0.0182 (95% confidence interval 0.0133 to 0.0232).</li>
+            <li><strong>Trading test:</strong> long the top third, short the bottom third, entering at the day-0 open and exiting at the day-2 close, over 5,072 positions. The best signal (TF-IDF on the opening) earned +22.3 basis points per position before costs (t = 3.31) and +2.3 after 20 basis points of round-trip costs (t = 0.34). The signal is real but small, and it does not survive trading costs.</li>
+            <li><strong>Extraction:</strong> 97% of citations were valid at 15.6 seconds per release. Accuracy against my 200 hand-labelled releases is still being measured, so it is not claimed here.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-miss">
+        <h2 id="s-miss">What didn't work</h2>
+        <div class="prose">
+          <div class="callout">
+            <span class="label">Reported as found</span>
+            <ul>
+              <li>FinBERT did not beat TF-IDF: on the same 256-token input its log-loss was worse by 0.0065 (95% confidence interval 0.0028 to 0.0100).</li>
+              <li>FinBERT's probabilities leaned toward "up" in the test period (average 0.39 for up against 0.31 for down); only its ranking was informative.</li>
+              <li>The local LLM found only 16 of the 45 releases mentioning tariffs (36% recall), so a simple keyword search beat it on that field.</li>
+              <li>A timing bug: Form 8-K filings made during market hours showed their price reaction on the filing day itself, because the press release came out before the filing. I corrected the day-0 rule; afterwards every filing-time group peaks on day 0.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-eng">
+        <h2 id="s-eng">Engineering</h2>
+        <div class="prose">
+          <ul>
+            <li>Evaluation with log-loss, AUC, rank correlation, bootstrapped 95% confidence intervals and a long-short backtest with date-clustered t-statistics.</li>
+            <li>An interactive Next.js and D3.js dashboard: live analysis through a FastAPI service locally, and a static demo on GitHub Pages precomputed for 200 test-period releases.</li>
+            <li>20 pytest tests and a labelling tool for 200 hand-labelled releases.</li>
+          </ul>
+          <p class="stack">Python · PyTorch · Hugging Face Transformers · scikit-learn · statsmodels · Ollama · SEC EDGAR and XBRL interfaces · yfinance · FastAPI · Next.js · TypeScript · Tailwind CSS · D3.js · pytest · GitHub Actions</p>
+        </div>
+      </section>
+
+      <nav class="next-project" aria-label="Next project">
+        <a class="next" href="shocklab.html"><span class="label">Next project · 03</span><strong>Shock Lab →</strong></a>
+        <a class="text-link" href="../#work">All projects</a>
+      </nav>
+    </div>
+  </main>
+
+  <footer class="wrap site-footer">
+    <span>© 2026 Sherif Morsi · Montréal</span>
+    <a href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
+    <a href="#main">Back to top ↑</a>
+  </footer>
+</body>
+</html>

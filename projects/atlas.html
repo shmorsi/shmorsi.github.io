@@ -1,58 +1,152 @@
 <!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ATLAS — Sherif Morsi</title><meta name="description" content="A local-first economic research terminal by Sherif Morsi. OECD production networks, reproducible PyTorch experiments and a guided world atlas.">
-<meta name="theme-color" content="#080c10"><meta name="color-scheme" content="dark">
-<meta property="og:title" content="ATLAS — Sherif Morsi"><meta property="og:description" content="A local-first economic research terminal by Sherif Morsi. OECD production networks, reproducible PyTorch experiments and a guided world atlas.">
-<meta property="og:type" content="website"><meta property="og:url" content="https://shmorsi.github.io/projects/atlas.html">
-<meta property="og:image" content="https://shmorsi.github.io/assets/atlas-overview.png">
-<link rel="canonical" href="https://shmorsi.github.io/projects/atlas.html">
-<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/site.css"><script src="../assets/site.js" defer></script>
-</head><body><a class="skip" href="#main">Skip to content</a><header class="site-header">
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>ATLAS · Sherif Morsi</title>
+  <meta name="description" content="ATLAS by Sherif Morsi: a local-first economic research terminal with World Bank country data, a 405-node OECD production network, cost-propagation scenarios and reproducible PyTorch experiments.">
+  <meta name="theme-color" content="#06080c">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://shmorsi.github.io/projects/atlas.html">
+  <meta property="og:title" content="ATLAS · Sherif Morsi">
+  <meta property="og:description" content="A local economic research terminal: country data, a 405-node production network and reproducible PyTorch experiments.">
+  <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://shmorsi.github.io/projects/atlas.html">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Unbounded:wght@500;600&display=swap">
+  <link rel="stylesheet" href="../assets/site.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
     <div class="wrap header-inner">
-      <a class="wordmark" href="../" aria-label="Sherif Morsi home"><span class="monogram" aria-hidden="true">SM</span><span class="wordmark-name">Sherif Morsi</span></a>
-      <div class="header-right">
-        <nav class="site-nav" aria-label="Main navigation">
-          <a href="../#experience">Experience</a>
-          <a href="../#work">Work</a>
-          <a class="desktop-link" href="../#about">About</a>
-          <a href="../#contact">Contact <span aria-hidden="true">↗</span></a>
-        </nav>
-      </div>
+      <a class="brand" href="../" aria-label="Sherif Morsi, home"><span class="brand-mark" aria-hidden="true">SM</span><span class="brand-name">Sherif Morsi</span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
+      <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="../#work">Work</a>
+        <a href="../#method">Method</a>
+        <a href="../#experience">Experience</a>
+        <a href="../#about">About</a>
+        <a class="nav-cta" href="../#contact">Contact</a>
+      </nav>
     </div>
-  </header><main id="main" class="wrap">
-<header class="case-hero">
-  <a class="case-back" href="../#work">← Back to selected work</a>
-  <p class="eyebrow">01 / Economic systems · Full-stack engineering</p>
-  <h1>ATLAS<span class="serif" style="color:var(--accent)">.</span></h1>
-  <p class="case-lead">Explore an economy. Trace its dependencies.<br>Inspect the evidence behind the model.</p>
-  <p class="case-description">A local-first economic research terminal with real country observations, OECD production networks, reproducible PyTorch experiments, and a React world atlas.</p>
-  <div class="case-actions"><a class="button" href="https://github.com/shmorsi/atlas/releases/tag/v0.1.1" target="_blank" rel="noopener noreferrer">Download local release <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">Explore source code <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://github.com/shmorsi/atlas/actions" target="_blank" rel="noopener noreferrer">See validation <span aria-hidden="true">↗</span></a></div>
-  <p class="case-caption">A project showcase. ATLAS runs locally with Python and Node; the simulator is not hosted on this page.</p>
-</header>
-<figure class="case-shot"><a href="../assets/atlas-overview.png" aria-label="Open full ATLAS overview screenshot"><img src="../assets/atlas-overview.png" width="1440" height="1000" alt="ATLAS guided exploration: world growth map, country search and Japan economic indicators"></a><figcaption>Actual application screenshot: guided country exploration with dated World Bank observations.</figcaption></figure>
-<div class="case-body">
-  <section aria-labelledby="atlas-facts"><h2 id="atlas-facts">From source tables to<br><span class="serif">an inspectable system.</span></h2>
-    <div class="facts"><div><strong>405 nodes</strong><p>Seven OECD tables, aggregated from 4,050 country-industry nodes into 81 areas and five sectors.</p></div><div><strong>12 checkpoints</strong><p>Saved CPU PyTorch experiments, with baselines, chronological evaluation and inference replay.</p></div><div><strong>40 + 22 tests</strong><p>Backend and browser tests passed locally. Backend, setup and build also passed GitHub CI on three operating systems.</p></div></div>
-  </section>
-  <section aria-label="Engineering case study"><dl class="spec">
-            <div class="row"><dt>Problem</dt><dd><p>Make global economic data and inter-industry dependencies understandable while keeping observed history, hypothetical scenarios and learned predictions distinct.</p></dd></div>
-            <div class="row"><dt>Data pipeline</dt><dd><p>Validated seven OECD ICIO tables and aggregated 4,050 country-industry nodes into <b>405 nodes across 81 areas</b>. Preserved accounting discrepancies, checked source hashes and independently verified sampled transaction totals. The country atlas adds World Bank observations and explicit missing values.</p></dd></div>
-            <div class="row"><dt>Engineering</dt><dd><p>Built a single local FastAPI service, an offline map, deterministic structural solvers, portfolio analysis and actual CPU PyTorch inference. A release gate reproduces <b>60 GRU predictions and 2,430 graph-node predictions</b> from 12 saved checkpoints. The optional population overlay loads on demand, reducing compressed initial main JavaScript by about 28%.</p></dd></div>
-            <div class="row"><dt>Validation</dt><dd><p><b>40 backend and 22 browser tests</b> passed locally, covering numerical calculations, data fidelity, responsive layouts and model replay. <a href="https://github.com/shmorsi/atlas/actions">Cross-platform CI results</a> are published separately.</p></dd></div>
-            <div class="row"><dt>Finding</dt><dd><p>The exploratory graph model did not beat ridge on its single held-out year. The interface reports this result and the small-sample limitation. Production-cost scenarios do not claim causal market returns.</p></dd></div>
-            <div class="row"><dt>Scope</dt><dd><p>A working local research application, not a hosted trading platform. An expanded ETF/event Scenario Studio is a documented future design, not a shipped feature.</p></dd></div>
-          </dl></section>
-  <section><h2>What I built</h2><ul><li>A validated data pipeline that preserves source hashes, missing values and published accounting discrepancies, with independent raw-table sample checks.</li><li>A 405-node fixed-coefficient cost-propagation engine, with direct and indirect effects, numerical residuals and a supplier exposure map.</li><li>Bond calculations, constrained portfolio analysis and walk-forward allocation with drifting weights and repeated transaction costs.</li><li>A guided interface for country exploration, alongside research views with detailed assumptions and diagnostics.</li><li>A reproducible local release that verifies data and model artifacts before startup. Optional population rendering loads on demand.</li></ul></section>
-  <figure class="case-shot"><a href="../assets/atlas-network.png" aria-label="Open full ATLAS production network screenshot"><img src="../assets/atlas-network.png" width="1440" height="1000" loading="lazy" alt="ATLAS historical OECD network: buyer country, observation year and supplier relationships"></a><figcaption>Actual OECD network workspace. Historical production relationships are separate from hypothetical financial outcomes.</figcaption></figure>
-  <section><h2>Useful results.<br><span class="serif">Visible limits.</span></h2><p>The exploratory graph model did not outperform ridge on its single held-out year. ATLAS reports that result. The GRU also lacks consistent superiority across seeds. The project demonstrates reproducible research and numerical engineering, not a claim of predictive advantage.</p><p>OECD dependencies end in 2022; newer country observations, rates and selected official releases have separate dates. Scenarios assume fixed input shares and full cost pass-through. They do not identify causal market returns.</p><p>An expanded ETF/event Scenario Studio is a <a href="https://github.com/shmorsi/atlas/blob/main/docs/SCENARIO_STUDIO_RESEARCH.md">documented future design</a>, not a shipped feature.</p></section>
-  <section><h2>Run it locally</h2><p>Download and extract the release, open its <code>atlas</code> directory, then run the commands below. Requires Node 22+, Python 3.12–3.13 and a WebGL2 browser. Installation needs Internet access; normal operation uses bundled data.</p><pre><code>npm ci
-npm run setup
-npm run atlas</code></pre><p>Open <code>http://127.0.0.1:8000</code>. See the <a href="https://github.com/shmorsi/atlas/blob/main/docs/RELEASE.md">release notes</a> and <a href="https://github.com/shmorsi/atlas/blob/main/docs/RESEARCH_REPORT.md">research report</a>.</p></section>
-  <section><h2>Under the hood</h2><p>Python · PyTorch · FastAPI · NumPy / SciPy · CVXPY · DuckDB / Parquet · React · TypeScript · MapLibre · Playwright</p></section>
-</div>
-<div class="next-project"><div><p class="eyebrow">Next project / 02</p><a href="shocklab.html">Shock Lab <span class="arrow" aria-hidden="true">↗</span></a></div><a class="text-link" href="../#work">All projects</a></div>
-</main><footer class="wrap site-footer"><span>© 2026 Sherif Morsi</span><a href="../#work">← All projects</a><a href="mailto:shmorsi@outlook.com">Get in touch ↗</a></footer></body></html>
+  </header>
+
+  <main id="main">
+    <section class="cs-hero" aria-labelledby="cs-title">
+      <div class="graticule" aria-hidden="true"></div>
+      <div class="wrap cs-hero-inner">
+        <a class="back" href="../#atlas">← All projects</a>
+        <span class="label signal">04 · Economic systems · Full-stack engineering</span>
+        <h1 id="cs-title">ATLAS</h1>
+        <p class="cs-question">How does a cost shock in one industry spread through the global economy?</p>
+        <p class="cs-summary">A local-first economic research terminal that connects country data, production networks and reproducible models. Explore an economy, trace its dependencies, run a hypothetical cost shock through them, and inspect the evidence behind every number. It runs on your own machine with bundled data; nothing is hosted.</p>
+        <div class="project-links">
+          <a class="button primary" href="https://github.com/shmorsi/atlas/releases/tag/v0.1.2" target="_blank" rel="noopener noreferrer">Download release v0.1.2 <span aria-hidden="true">↗</span></a>
+          <a class="button ghost" href="https://github.com/shmorsi/atlas/blob/main/docs/VALIDATION.md" target="_blank" rel="noopener noreferrer">Validation evidence <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">Code ↗</a>
+        </div>
+        <div class="screen cs-shot">
+          <div class="screen-bar" aria-hidden="true"><span>ATLAS · world atlas</span><span class="local">Local release</span></div>
+          <img src="../assets/img/atlas-overview.webp" width="1440" height="1000" alt="ATLAS world atlas: real gross domestic product growth by country on a map, with Japan selected and its economic indicators in a side panel">
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap cs-body">
+      <section class="glance" aria-label="At a glance">
+        <div class="readout"><b>177</b><span>countries and territories with dated World Bank observations</span></div>
+        <div class="readout"><b>405</b><span>production-network nodes across 81 areas, from seven OECD tables</span></div>
+        <div class="readout"><b>12</b><span>PyTorch checkpoints replayed by the release gate</span></div>
+        <div class="readout"><b>44 + 27</b><span>backend and browser tests passed for v0.1.2</span></div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-problem">
+        <h2 id="s-problem">Problem</h2>
+        <div class="prose">
+          <p>Make global economic data and the dependencies between industries understandable, while keeping three things clearly apart: observed history, hypothetical scenarios and learned predictions.</p>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-data">
+        <h2 id="s-data">Data pipeline</h2>
+        <div class="prose">
+          <ul>
+            <li>Validated seven Organisation for Economic Co-operation and Development (OECD) Inter-Country Input-Output (ICIO) tables and aggregated 4,050 country-industry nodes into 405 nodes across 81 areas and five sectors.</li>
+            <li>Preserved published accounting discrepancies, checked source file hashes and independently verified sampled transaction totals against the raw tables.</li>
+            <li>The country atlas adds 42,900 World Bank World Development Indicators (WDI) records from 1960 to 2024 for 177 countries and territories, with every missing value kept explicit and every observation dated.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-build">
+        <h2 id="s-build">What I built</h2>
+        <div class="prose">
+          <ul>
+            <li>A 405-node fixed-coefficient cost-propagation engine with direct and indirect effects, numerical residuals and a supplier exposure map. In the Scenario Studio, PyTorch solves and differentiates combined cost scenarios, checked against an independent SciPy solver and against finite differences.</li>
+            <li>Bond calculations, constrained portfolio analysis and walk-forward allocation with drifting weights and repeated transaction costs.</li>
+            <li>12 saved PyTorch checkpoints, six gated recurrent unit (GRU) models and six graph models, with baselines and chronological evaluation. A release gate replays 60 GRU predictions and 2,430 graph-node predictions and verifies every source and model hash before startup.</li>
+            <li>A single local FastAPI service that serves the interface and the application programming interface (API), an offline map built with MapLibre, and a guided country-exploration journey next to research views with their assumptions and diagnostics.</li>
+          </ul>
+        </div>
+      </section>
+
+      <figure class="figure">
+        <div class="screen"><div class="screen-bar" aria-hidden="true"><span>ATLAS · production network</span><span class="local">Local release</span></div>
+        <img src="../assets/img/atlas-network.webp" width="1440" height="1000" alt="ATLAS network workspace: historical production dependencies between countries and industries from the OECD tables" loading="lazy"></div>
+        <figcaption>The production-network workspace. Historical dependencies are kept separate from hypothetical outcomes.</figcaption>
+      </figure>
+
+      <section class="cs-section" aria-labelledby="s-validation">
+        <h2 id="s-validation">Validation</h2>
+        <div class="prose">
+          <ul>
+            <li>Release v0.1.2 passed 44 backend tests and a 27-test Chromium browser suite covering combined shocks, exports, live checkpoint replay, failed requests and layouts at 1,440, 820 and 390 pixels wide.</li>
+            <li>Continuous integration (CI) on Ubuntu, macOS and Windows installs the project, runs setup and artifact checks, runs every backend test, verifies model replay and builds the production interface.</li>
+            <li>On my machine, a 405-node scenario takes a median of 11 milliseconds over ten warm local requests. That is a local measurement, not a guarantee under load or on other hardware.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-miss">
+        <h2 id="s-miss">What didn't work</h2>
+        <div class="prose">
+          <div class="callout">
+            <span class="label">Reported as found</span>
+            <ul>
+              <li>The exploratory graph model did not beat ridge regression on its single held-out year, and the interface says so along with the small-sample limitation.</li>
+              <li>The GRU models were not consistently better across random seeds.</li>
+              <li>Production-cost scenarios assume fixed input shares and full cost pass-through; they do not claim causal market returns. OECD dependencies end in 2022.</li>
+              <li>An expanded Scenario Studio for exchange-traded funds and events is a documented future design, not a shipped feature.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-run">
+        <h2 id="s-run">Run it locally</h2>
+        <div class="prose">
+          <p>Download and extract the release, open its folder, then run <code class="stack">npm ci</code>, <code class="stack">npm run setup</code> and <code class="stack">npm run atlas</code>, and open <code class="stack">http://127.0.0.1:8000</code>. Requires Node 22 or later, Python 3.12 or 3.13 and a browser with WebGL2. Installation needs internet access; normal use runs on bundled data.</p>
+          <p class="stack">Python · PyTorch · FastAPI · NumPy · SciPy · CVXPY · DuckDB · Parquet · React · TypeScript · Vite · MapLibre · ECharts · Playwright</p>
+        </div>
+      </section>
+
+      <nav class="next-project" aria-label="Next project">
+        <a class="next" href="world-shock-lab.html"><span class="label">Back to the first project · 01</span><strong>World Shock Lab →</strong></a>
+        <a class="text-link" href="../#work">All projects</a>
+      </nav>
+    </div>
+  </main>
+
+  <footer class="wrap site-footer">
+    <span>© 2026 Sherif Morsi · Montréal</span>
+    <a href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
+    <a href="#main">Back to top ↑</a>
+  </footer>
+</body>
+</html>
