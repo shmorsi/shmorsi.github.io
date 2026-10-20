@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Sherif Morsi · Computer Science, Concordia</title>
+  <meta name="description" content="Sherif Morsi, third-year Computer Science student at Concordia University. Machine learning for forecasting, market shocks and economic systems. Open to co-ops across Canada.">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://shmorsi.github.io/">
+  <meta property="og:title" content="Sherif Morsi · Computer Science, Concordia">
+  <meta property="og:description" content="Future-focused computer science. Machine learning systems tested on data they have never seen.">
+  <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://shmorsi.github.io/">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+  <link rel="stylesheet" href="assets/site.css">
+  <script src="assets/site.js" defer></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Sherif Morsi",
+    "url": "https://shmorsi.github.io/",
+    "email": "mailto:shmorsi@outlook.com",
+    "jobTitle": "Computer Science student",
+    "homeLocation": {"@type": "Place", "name": "Montreal, Quebec, Canada"},
+    "alumniOf": {"@type": "CollegeOrUniversity", "name": "Concordia University"},
+    "knowsAbout": ["Machine learning", "Deep learning", "PyTorch", "Python", "Time-series forecasting", "Artificial intelligence"],
+    "sameAs": ["https://github.com/shmorsi", "https://www.linkedin.com/in/sherif-morsi-a17628295"]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <canvas class="stars" data-stars aria-hidden="true"></canvas>
+  <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="wordmark" href="./">Sherif Morsi</a>
+    <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+      <a href="#work" data-section="work">Work</a>
+      <a href="#stack" data-section="stack">Stack</a>
+      <a href="#path" data-section="path">Path</a>
+      <a href="#contact" data-section="contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span>Concordia University</span><span>Computer Science</span><span>Co-op</span></p>
+        <h1 id="hero-title">Sherif<br>Morsi</h1>
+        <p class="hero-lede">A future-focused computer science student. I build machine-learning systems and test them against data they have never seen.</p>
+        <div class="hero-actions">
+          <a class="button" href="#work">Enter the work</a>
+          <a class="text-link" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
+        </div>
+      </div>
+      <div class="hero-foot">
+        <p>Open to 4–16 month internships across Canada · Canadian Permanent Resident · Montreal</p>
+        <p class="scroll-cue" aria-hidden="true"><span>Scroll</span></p>
+      </div>
+    </section>
+
+    <section class="chapter" id="work" aria-labelledby="work-title">
+      <div class="chapter-intro" data-reveal>
+        <p class="index">01</p>
+        <h2 id="work-title">Three systems.<br>One standard.</h2>
+        <p>Each one starts with a question, holds out the future, and reports the result. Including the ones that lost to a simpler model.</p>
+      </div>
+
+      <article class="mission" id="tsfm">
+        <a class="mission-visual" href="projects/tsfm.html">
+          <img src="assets/img/tsfm-results.svg" alt="Forecast error falling as three pretrained transformers grow">
+          <span class="mission-tag">01 · Forecasting</span>
+        </a>
+        <div class="mission-copy" data-reveal>
+          <h3>A transformer, pretrained from scratch.</h3>
+          <p>Decoder, tokenizers, training loop and sampling written by hand in PyTorch. Scored zero-shot with the official GIFT-Eval code, after 801 overlapping benchmark series were removed.</p>
+          <dl class="stats">
+            <div><dt>Zero-shot CRPS</dt><dd>0.605</dd></div>
+            <div><dt>Parameters</dt><dd>10.1M</dd></div>
+            <div><dt>Overlaps removed</dt><dd>801</dd></div>
+          </dl>
+          <p class="miss">The 80% interval covers 65% of outcomes. Long forecasts feed back medians, so the bands are too narrow.</p>
+          <div class="mission-links">
+            <a class="button" href="projects/tsfm.html">Case study</a>
+            <a class="text-link" href="https://github.com/shmorsi/tsfm-from-scratch" target="_blank" rel="noopener noreferrer">Code</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="mission mission-flip" id="world-shock-lab">
+        <a class="mission-visual" href="https://shmorsi.github.io/world-shock-lab/" target="_blank" rel="noopener noreferrer">
+          <img src="assets/img/world-shock-lab-scenario.webp" alt="World Shock Lab scenario for a Federal Reserve hike and an oil supply cut">
+          <span class="mission-tag">02 · Markets · Live</span>
+        </a>
+        <div class="mission-copy" data-reveal>
+          <h3>How a surprise moves the world.</h3>
+          <p>Federal Reserve, Bank of Canada and oil shocks across 53 assets. Estimators checked by simulation and by replicating published papers. Forecasts go out before each decision.</p>
+          <dl class="stats">
+            <div><dt>TSX, 10 bp Fed surprise</dt><dd>−1.10%</dd></div>
+            <div><dt>Papers replicated</dt><dd>11 of 13</dd></div>
+            <div><dt>Regime tests that survive</dt><dd>0 of 80</dd></div>
+          </dl>
+          <p class="miss">Machine learning did not beat a linear model on 168 held-out announcements.</p>
+          <div class="mission-links">
+            <a class="button" href="https://shmorsi.github.io/world-shock-lab/" target="_blank" rel="noopener noreferrer">Live site</a>
+            <a class="text-link" href="projects/world-shock-lab.html">Case study</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="mission" id="atlas">
+        <a class="mission-visual" href="projects/atlas.html">
+          <img src="assets/img/atlas-overview.webp" alt="ATLAS map of real GDP growth with Japan selected">
+          <span class="mission-tag">03 · Economies</span>
+        </a>
+        <div class="mission-copy" data-reveal>
+          <h3>A shock, traced through the economy.</h3>
+          <p>A local research terminal. 42,900 World Bank observations, a 405-node production network, and 12 PyTorch models replayed against held-out years. It runs on your machine.</p>
+          <dl class="stats">
+            <div><dt>Network nodes</dt><dd>405</dd></div>
+            <div><dt>PyTorch checkpoints</dt><dd>12</dd></div>
+            <div><dt>Tests, release v0.1.2</dt><dd>44 + 27</dd></div>
+          </dl>
+          <p class="miss">Ridge regression beat the neural models on the 2022 graph test and on US growth.</p>
+          <div class="mission-links">
+            <a class="button" href="projects/atlas.html">Case study</a>
+            <a class="text-link" href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">Code</a>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="field" id="stack" aria-labelledby="stack-title">
+      <div class="stack-head" data-reveal>
+        <p class="index">02</p>
+        <h2 id="stack-title">The technology<br>is the point.</h2>
+        <p>Python and PyTorch at the center. The rest is whatever the system needs to leave the notebook.</p>
+      </div>
+      <ul class="tech" aria-label="Technologies">
+        <li>PyTorch</li><li>Python</li><li>TensorFlow</li><li>scikit-learn</li>
+        <li>NumPy</li><li>pandas</li><li>DuckDB</li><li>Parquet</li>
+        <li>TypeScript</li><li>JavaScript</li><li>React</li><li>Next.js</li>
+        <li>FastAPI</li><li>D3.js</li><li>Java</li><li>C++</li>
+        <li>SQL</li><li>CVXPY</li><li>pytest</li><li>GitHub Actions</li>
+      </ul>
+    </section>
+
+    <section class="path" id="path" aria-labelledby="path-title">
+      <div class="path-head" data-reveal>
+        <p class="index">03</p>
+        <h2 id="path-title">Concordia,<br>then the field.</h2>
+      </div>
+      <div class="path-grid">
+        <article data-reveal>
+          <p class="index">Education</p>
+          <h3>Bachelor of Computer Science</h3>
+          <p>Gina Cody School of Engineering and Computer Science. Co-op. Expected May 2028.</p>
+          <p>Machine Learning, Artificial Intelligence, Financial Markets, Data Structures, Linear Algebra, Multivariable Calculus.</p>
+        </article>
+        <article data-reveal>
+          <p class="index">Aug 2026 – Sep 2026 · Egypt</p>
+          <h3>AI &amp; Digital Technologies Intern</h3>
+          <p>Orange Egypt × Nokia. Trained PyTorch models for energy actions on a team 5G project, and presented the results.</p>
+        </article>
+        <article data-reveal>
+          <p class="index">Aug 2025 – Sep 2025 · Cairo</p>
+          <h3>SME Credit Analyst Intern</h3>
+          <p>Qatar National Bank. Credit proposals, financial spreading and memo drafts, mainly agriculture and technology clients.</p>
+        </article>
+        <article data-reveal>
+          <p class="index">Montreal · now</p>
+          <h3>Outside the lab</h3>
+          <p>Cofounder, Arab Run Club Montreal, 4,500+ followers. QUARCC market-making rounds. John Molson Book Club.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="contact" id="contact" aria-labelledby="contact-title">
+      <p class="index">04</p>
+      <h2 id="contact-title">The next<br>system.</h2>
+      <p>Internships and co-ops of 4 to 16 months, anywhere in Canada. Willing to relocate.</p>
+      <a class="email" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
+      <div class="contact-links">
+        <a class="text-link" href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a class="text-link" href="https://www.linkedin.com/in/sherif-morsi-a17628295" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <button class="text-link as-button" type="button" data-copy-email="shmorsi@outlook.com">Copy email</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© 2026 Sherif Morsi · Montreal</span>
+    <a href="#main">Back to top</a>
+  </footer>
+  <div class="copy-status" role="status" aria-live="polite" data-copy-status></div>
+</body>
+</html>

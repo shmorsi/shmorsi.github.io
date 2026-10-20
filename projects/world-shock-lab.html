@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>World Shock Lab · Sherif Morsi</title>
+  <meta name="description" content="World Shock Lab by Sherif Morsi: how Federal Reserve, Bank of Canada and oil supply surprises move world and Canadian markets, with a pre-registered machine learning test and live forecasts.">
+  <meta name="theme-color" content="#06080c">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://shmorsi.github.io/projects/world-shock-lab.html">
+  <meta property="og:title" content="World Shock Lab · Sherif Morsi">
+  <meta property="og:description" content="Identified monetary policy and oil shocks, a Canada lens, a pre-registered machine learning test and live forecasts.">
+  <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://shmorsi.github.io/projects/world-shock-lab.html">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+  <link rel="stylesheet" href="../assets/site.css">
+  <script src="../assets/site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="../" aria-label="Sherif Morsi, home"><span class="brand-mark" aria-hidden="true">SM</span><span class="brand-name">Sherif Morsi</span></a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
+      <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="../#work">Work</a>
+        <a href="../#stack">Stack</a>
+        <a href="../#path">Path</a>
+        <a class="nav-cta" href="../#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="cs-hero" aria-labelledby="cs-title">
+      <div class="graticule" aria-hidden="true"></div>
+      <div class="wrap cs-hero-inner">
+        <a class="back" href="../#world-shock-lab">← All projects</a>
+        <span class="label signal">02 · Rates and macro research · Causal inference · Live forecasting</span>
+        <h1 id="cs-title">World Shock Lab</h1>
+        <p class="cs-question">How do the world's markets, and Canada's in particular, react when the Federal Reserve (Fed) or the Bank of Canada (BoC) surprises them?</p>
+        <p class="cs-summary">An open-source research platform that measures how identified shocks move 53 global assets, checks its estimators by simulation and by replicating published papers, tests in advance whether machine learning (ML) adds anything, and serves the results as a scenario tool with forecasts committed before each central-bank decision.</p>
+        <div class="project-links">
+          <a class="button primary" href="https://shmorsi.github.io/world-shock-lab/" target="_blank" rel="noopener noreferrer">Open the live site <span aria-hidden="true">↗</span></a>
+          <a class="button ghost" href="https://github.com/shmorsi/world-shock-lab/blob/main/docs/RESEARCH_NOTE.pdf" target="_blank" rel="noopener noreferrer">Read the research note <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="https://github.com/shmorsi/world-shock-lab" target="_blank" rel="noopener noreferrer">Code ↗</a>
+        </div>
+        <a class="screen cs-shot" href="https://shmorsi.github.io/world-shock-lab/" target="_blank" rel="noopener noreferrer" aria-label="Open the World Shock Lab live site">
+          <div class="screen-bar" aria-hidden="true"><span>shmorsi.github.io/world-shock-lab · scenario composer</span><span class="live">Live</span></div>
+          <img src="../assets/img/world-shock-lab-scenario.webp" width="1600" height="1000" alt="Scenario composer: a Fed hike combined with an oil supply cut, showing the response of six Canadian assets over 20 trading days with 68% and 90% bands">
+        </a>
+      </div>
+    </section>
+
+    <div class="wrap cs-body">
+      <section class="glance" aria-label="At a glance">
+        <div class="readout"><b>−1.10%</b><span>S&amp;P/TSX Composite on the day of a Fed surprise that lifts the US 2-year yield 10 basis points; −0.19% for an equal BoC surprise</span></div>
+        <div class="readout"><b>11 of 13</b><span>published findings replicated, including 6 of the 7 that are not true almost by construction</span></div>
+        <div class="readout"><b>0 of 80</b><span>pre-registered regime tests survive false-discovery-rate control</span></div>
+        <div class="readout"><b>−0.003</b><span>neural network minus linear model error on 168 held-out announcements (90% interval −0.019 to +0.014)</span></div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-problem">
+        <h2 id="s-problem">Problem</h2>
+        <div class="prose">
+          <p>Markets move for many reasons at once, so a simple correlation between a central-bank decision and a stock index says little about cause and effect. The project measures the <strong>causal</strong> response of world and Canadian markets to monetary policy surprises from the Fed and the BoC and to oil supply news from the Organization of the Petroleum Exporting Countries (OPEC). It also measures the reduced-form link with geopolitical and trade-policy risk, asks whether the same shock matters more in some economic regimes, and tests whether machine learning forecasts announcement-day moves better than a linear model.</p>
+          <p>Every output is labelled as one of four kinds of evidence: identified causal, reduced form, model forecast or hypothetical scenario.</p>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-data">
+        <h2 id="s-data">Data and identification</h2>
+        <div class="prose">
+          <ul>
+            <li><strong>Fed surprises:</strong> the change in interest-rate futures in a 30-minute window around each Federal Open Market Committee (FOMC) announcement since 1990, split into a policy surprise and an information surprise (Jarociński and Karadi, 2020).</li>
+            <li><strong>BoC surprises:</strong> no free intraday Canadian data exist, so I built a list of 195 scheduled decisions from the BoC's own press releases and used the announcement-day change in the 2-year Government of Canada yield as a proxy. Before using it, I validated it: its variance on announcement days is 2.82 times that on matched control days (90% confidence interval 1.99 to 4.00), and 5.71 times after removing the same-day US move.</li>
+            <li><strong>Oil and risk:</strong> oil supply news from OPEC announcements (Känzig, 2021); geopolitical risk and trade-policy uncertainty indices, labelled reduced form because they measure news coverage rather than exogenous shocks.</li>
+            <li><strong>Markets:</strong> yields and exchange rates from Federal Reserve Economic Data (FRED), Canadian yields from the BoC, prices for Canadian banks and country exchange-traded funds (ETFs). Every download is stored once, read-only, with its Secure Hash Algorithm (SHA-256) fingerprint pinned, so a revised source can never silently change a result.</li>
+            <li><strong>Timing:</strong> each series is measured at its own observation time, so a 14:00 statement shows up in noon-fixed exchange rates one day later than in 16:00 stock closes.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-method">
+        <h2 id="s-method">Method</h2>
+        <div class="prose">
+          <ul>
+            <li><strong>Event-study local projections (LP):</strong> for each horizon from 0 to 20 trading days, the cumulative move from just before an announcement is regressed on its surprise, with heteroskedasticity-consistent standard errors. In simulation, its 90% bands contain the true response 90% of the time; a zero-filled time-series alternative manages only 86%, so it is used only as a robustness check.</li>
+            <li><strong>Monthly macro effects:</strong> local projections with instrumental variables (LP-IV), reported with the effective first-stage F statistic and Anderson–Rubin sets, which stay valid when instruments are weak, next to a proxy Bayesian vector autoregression (BVAR).</li>
+            <li><strong>State dependence:</strong> a stacked regression interacts each surprise with a regime measured beforehand (high volatility, the policy cycle, inflation above 3%), with wild cluster bootstrap p-values and Benjamini–Hochberg false discovery rate (FDR) control over all 80 tests.</li>
+            <li><strong>Pre-registration:</strong> time splits, metrics, the regime tests, the robustness rule and the rule for whether ML "adds value" were committed and tagged in git before any model was fitted. The held-out test set was scored once.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-results">
+        <h2 id="s-results">Results</h2>
+        <div class="prose">
+          <p><strong>Canadian stocks react more to the Fed than to the BoC.</strong> Each surprise is scaled to lift its own country's 2-year yield by 10 basis points. A second BoC estimator (Rigobon–Sack), which does not assume the proxy is pure BoC news, narrows the gap: the size of the Fed's lead depends on the method, its direction does not.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Announcement-day response, 90% interval in brackets">
+            <table>
+              <caption>Announcement-day response, 90% interval in brackets</caption>
+              <thead><tr><th scope="col">Canadian asset</th><th scope="col">Fed surprise</th><th scope="col">BoC surprise</th><th scope="col">BoC, Rigobon–Sack</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">S&amp;P/TSX Composite (%)</th><td class="best">−1.10 [−1.59, −0.61]</td><td>−0.19 [−0.33, −0.04]</td><td>−0.75 [−1.42, −0.37]</td></tr>
+                <tr><th scope="row">Big-Six Canadian banks (%)</th><td class="best">−0.76 [−1.32, −0.19]</td><td>0.00 [−0.16, +0.15]</td><td>−0.63 [−1.36, −0.20]</td></tr>
+                <tr><th scope="row">10-year Government of Canada yield (basis points)</th><td>+4.40 [+2.99, +5.81]</td><td>+4.64 [+3.75, +5.52]</td><td>+2.47 [+0.67, +3.75]</td></tr>
+                <tr><th scope="row">Canadian dollars per US dollar (%)</th><td>+0.40 [+0.23, +0.57]</td><td>−0.37 [−0.53, −0.21]</td><td>−0.49 [−0.85, −0.24]</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <ul>
+            <li><strong>Credibility:</strong> 11 of 13 published findings replicate. When the real surprises are moved to 1,000 sets of random non-announcement days, no placebo draw is as large as the real Fed effects on the US 2-year yield and US stocks. 24 of 30 headline responses keep their sign in every pre-registered robustness variant and stay significant in at least two thirds of them.</li>
+            <li><strong>Spillovers:</strong> 126 of 318 shock-to-asset responses survive false-discovery control, led by hawkish Fed surprises lowering equity prices around the world.</li>
+            <li><strong>Regimes:</strong> 15 of 80 regime tests have p ≤ 0.10 before correction, against about 8 expected by chance, and none survives. The sample can only detect large regime differences, and the minimum detectable effect is reported for every test.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-ml">
+        <h2 id="s-ml">Does machine learning help?</h2>
+        <div class="prose">
+          <p>Six models predict the 1-day and 5-day move of eight assets after each FOMC, BoC and OPEC announcement, using only the announcement's own surprise and the state of the economy before it, refit every year on earlier data. The validation years chose the linear projection and the neural network as the two candidates; the test set from 2019 to 2026 was then scored once.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="168 held-out announcements · pooled scaled error, lower is better">
+            <table>
+              <caption>168 held-out announcements · pooled scaled error, lower is better</caption>
+              <thead><tr><th scope="col">Model</th><th scope="col">Error</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Neural network (multilayer perceptron)</th><td class="best">1.139</td></tr>
+                <tr><th scope="row">Linear local projection</th><td>1.142</td></tr>
+                <tr><th scope="row">Gradient boosting</th><td>1.147</td></tr>
+                <tr><th scope="row">Ridge regression</th><td>1.160</td></tr>
+                <tr><th scope="row">Predict no move</th><td>1.195</td></tr>
+                <tr><th scope="row">State-dependent local projection</th><td>1.212</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The neural network's error minus the linear model's is −0.003, with a 90% interval of −0.019 to +0.014 that includes zero. By the rule fixed in advance, the verdict is <strong>no evidence that ML adds value</strong>. Permutation importance shows the ML models rely almost entirely on the surprise itself.</p>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-miss">
+        <h2 id="s-miss">What didn't work</h2>
+        <div class="prose">
+          <div class="callout">
+            <span class="label">Reported as found</span>
+            <ul>
+              <li>Machine learning did not beat the linear model, and no regime effect survived correction.</li>
+              <li>The BoC proxy passed validation but still carries some common North American rate news, so every BoC result is shown next to the Rigobon–Sack estimate.</li>
+              <li>Monthly macro effects rest on weak instruments (first-stage F of 3.1), so they are labelled suggestive.</li>
+              <li>The proxy BVAR's bootstrap bands are too narrow in simulation; I documented this rather than tuning it away.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-live">
+        <h2 id="s-live">Live forecasts</h2>
+        <div class="prose">
+          <p>Before each Fed and BoC decision, a conditional forecast is committed to the public repository: if the announcement moves the bank's own 2-year yield by −10, 0 or +10 basis points, here is the expected move in the Canadian 2-year yield, the Canadian dollar and Canadian banks, with 68% and 90% ranges. Forecasts are never edited, and each is scored against what happened once the outcomes are published. The first forecasts, for the decisions of 2026-10-28, were published on 2026-10-13.</p>
+        </div>
+      </section>
+
+      <figure class="figure">
+        <div class="screen"><div class="screen-bar" aria-hidden="true"><span>World reaction map</span><span class="live">Live</span></div>
+        <img src="../assets/img/world-shock-lab-map.webp" width="1600" height="1000" alt="World map coloured by each country's equity response to a 10 basis-point Fed policy surprise on the announcement day" loading="lazy"></div>
+        <figcaption>World reaction map: each country's equity response to a Fed policy surprise, with uncertainty bands one click away.</figcaption>
+      </figure>
+
+      <section class="cs-section" aria-labelledby="s-eng">
+        <h2 id="s-eng">Engineering</h2>
+        <div class="prose">
+          <ul>
+            <li>The whole pipeline reruns from the pinned downloads with one command; a full rerun took 11 minutes and reproduced every result.</li>
+            <li>145 automated Python tests, including Monte Carlo recovery of known responses, run in continuous integration (CI) on every push.</li>
+            <li>The strategist brief and the research note are generated from the results by templates, and tests fail if either contains a number that is not in the data.</li>
+            <li>The static site loads every view in under 3 seconds on a throttled phone profile, and an automated accessibility check finds no violations.</li>
+          </ul>
+          <p class="stack">Python 3.12 · pandas · NumPy · SciPy · statsmodels · scikit-learn · PyTorch · DuckDB · Parquet · pandera · Typer · pytest · Hypothesis · ruff · mypy · uv · React · TypeScript · Vite · D3.js · Vitest · axe-core · GitHub Actions · GitHub Pages</p>
+        </div>
+      </section>
+
+      <nav class="next-project" aria-label="Next project">
+        <a class="next" href="atlas.html"><span class="label">Next project · 03</span><strong>ATLAS →</strong></a>
+        <a class="text-link" href="../#work">All projects</a>
+      </nav>
+    </div>
+  </main>
+
+  <footer class="wrap site-footer">
+    <span>© 2026 Sherif Morsi · Montréal</span>
+    <a href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
+    <a href="#main">Back to top ↑</a>
+  </footer>
+</body>
+</html>
