@@ -44,7 +44,9 @@ h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 600; letter-sp
   position: fixed; top: 0; left: 0; right: 0; z-index: 30;
   display: flex; align-items: center; justify-content: space-between;
   padding: 22px var(--gutter);
-  mix-blend-mode: difference;
+  background: rgba(0, 0, 0, 0.86);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 .wordmark, .brand-name {
   font: 600 22px/1 var(--display); letter-spacing: 0.08em; text-transform: uppercase;
@@ -225,7 +227,7 @@ main, .site-footer { position: relative; z-index: 1; }
     flex-direction: column; padding: 8px var(--gutter) 20px; background: #000;
     mix-blend-mode: normal; border-bottom: 1px solid var(--line);
   }
-  .site-header { mix-blend-mode: normal; background: rgba(0,0,0,0.72); backdrop-filter: blur(10px); }
+  .site-header { background: rgba(0, 0, 0, 0.92); }
   .site-nav.open { display: flex; }
   .site-nav a { padding: 14px 0; }
   .mission, .mission-flip { grid-template-columns: 1fr; min-height: 0; }
