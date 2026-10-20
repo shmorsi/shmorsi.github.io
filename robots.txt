@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://shmorsi.github.io/sitemap.xml

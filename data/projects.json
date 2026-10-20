@@ -1,0 +1,583 @@
+{
+  "instructions": "Edit this file to update every measured figure on the site. Do not add a number unless it is in the resume or in a committed result file. The home page, case studies, and tables all read from here. Search this file for the old value and update every place it appears, including caveat text. The Macro Analyst Agent stays empty until its repository publishes results.",
+  "updated": "2026-10-20",
+  "projects": [
+    {
+      "id": "tsfm",
+      "mission": "01",
+      "code": "TSFM",
+      "role": "featured",
+      "badge": "Validation",
+      "kicker": "Deep learning",
+      "title": "Time-series foundation model",
+      "summary": "A decoder-only transformer pretrained from scratch in PyTorch, then scored zero-shot on datasets held out of training after overlapping benchmark series were removed.",
+      "caveat": "The headline CRPS is a validation result on 16 held-out configurations and one seed. The 80% intervals cover 65% of outcomes. The test split was not scored, and no comparison to published models is claimed.",
+      "image": {
+        "src": "assets/img/tsfm-results.svg",
+        "alt": "Validation chart of CRPS relative to Seasonal Naive for three pretrained transformers of increasing size.",
+        "width": 1600,
+        "height": 1000
+      },
+      "tags": ["Python", "PyTorch", "pytest", "GitHub Actions"],
+      "links": [
+        {"label": "Case study", "href": "projects/tsfm.html", "primary": true},
+        {"label": "Code", "href": "https://github.com/shmorsi/tsfm-from-scratch", "external": true},
+        {"label": "Research note", "href": "https://github.com/shmorsi/tsfm-from-scratch/blob/main/RESEARCH_NOTE.md", "external": true}
+      ],
+      "homeMetricIds": ["crps", "params", "series", "flagged"],
+      "glanceIds": ["crps", "params", "flagged", "tests"],
+      "stats": {
+        "crps": {
+          "label": "Zero-shot validation CRPS",
+          "display": "0.605×",
+          "count": 0.605,
+          "decimals": 3,
+          "suffix": "×",
+          "source": "Resume: 0.605× Seasonal Naive zero-shot validation CRPS for the 10.1M-parameter model. Case study: patch_s2 on 16 held-out configurations (MASE 0.840). Validation only."
+        },
+        "mase": {
+          "label": "Zero-shot validation MASE",
+          "display": "0.840",
+          "count": 0.84,
+          "decimals": 3,
+          "source": "tsfm-from-scratch case study, patch_s2, score relative to Seasonal Naive on 16 held-out configurations."
+        },
+        "params": {
+          "label": "Parameters",
+          "display": "10.1M",
+          "count": 10.1,
+          "decimals": 1,
+          "suffix": "M",
+          "source": "Resume: 10.1M-parameter PyTorch transformer, trained in fp16 on a single T4 GPU."
+        },
+        "series": {
+          "label": "Series audited",
+          "display": "443,258",
+          "count": 443258,
+          "decimals": 0,
+          "source": "Resume: 443,258 series validated across 77 datasets to keep evaluation benchmarks leakage-free."
+        },
+        "datasets": {
+          "label": "Datasets audited",
+          "display": "77",
+          "count": 77,
+          "decimals": 0,
+          "source": "Resume: 77 datasets in the leakage audit."
+        },
+        "flagged": {
+          "label": "Series excluded",
+          "display": "801",
+          "count": 801,
+          "decimals": 0,
+          "source": "Resume: 801 flagged series excluded before training. Case study: removed from the pretraining corpus; a re-run on the final corpus finds no matches."
+        },
+        "configs": {
+          "label": "Held-out configurations",
+          "display": "16",
+          "count": 16,
+          "decimals": 0,
+          "source": "tsfm-from-scratch case study: zero-shot scores on 16 configurations from datasets held out of pretraining."
+        },
+        "tests": {
+          "label": "Automated tests",
+          "display": "138",
+          "count": 138,
+          "decimals": 0,
+          "source": "Resume: 138 automated tests running in GitHub Actions CI."
+        },
+        "coverage": {
+          "label": "80% interval coverage",
+          "display": "65%",
+          "count": 65,
+          "decimals": 0,
+          "suffix": "%",
+          "source": "Portfolio case study of tsfm-from-scratch results: the nominal 80% intervals cover 65% of outcomes because longer forecasts feed back medians."
+        },
+        "nominalInterval": {
+          "label": "Nominal interval",
+          "display": "80%",
+          "source": "Same coverage note as coverage. The interval was meant to cover 80% of outcomes."
+        },
+        "points": {
+          "label": "Pretraining points",
+          "display": "1,087,018,264",
+          "source": "tsfm-from-scratch case study: 77 datasets (1,087,018,264 points) from GiftEvalPretrain, plus synthetic Gaussian-process series."
+        },
+        "power": {
+          "label": "Validation-loss power-law exponent",
+          "display": "0.058",
+          "source": "tsfm-from-scratch case study: validation loss falls with training compute as a power law with exponent 0.058 (95% bootstrap interval 0.051 to 0.064) across 3 patch-model sizes."
+        },
+        "powerCi": {
+          "label": "Power-law exponent interval",
+          "display": "0.051 to 0.064",
+          "source": "tsfm-from-scratch case study, 95% bootstrap interval on the power-law exponent."
+        },
+        "modelSizes": {
+          "label": "Patch-model sizes in the power law",
+          "display": "3",
+          "source": "tsfm-from-scratch case study: three patch-model sizes."
+        },
+        "volHorizon": {
+          "label": "Volatility forecast horizon",
+          "display": "22",
+          "source": "tsfm-from-scratch case study: daily realized volatility forecast 22 days ahead."
+        }
+      },
+      "tables": {
+        "validation": {
+          "caption": "Validation split, datasets held out of pretraining. Score divided by Seasonal Naive. Lower is better.",
+          "headers": ["Run", "Parameters", "CRPS", "MASE"],
+          "rows": [
+            ["patch_s0", "0.9M", "0.740", "1.139"],
+            ["patch_s1", "2.9M", "0.636", "0.910"],
+            ["patch_s2", "10.1M", "0.605", "0.840"]
+          ],
+          "source": "tsfm-from-scratch case study. These are validation scores, not the official test split."
+        },
+        "overlaps": {
+          "caption": "Pretraining series that matched GIFT-Eval series and were removed.",
+          "headers": ["Pretraining data", "Benchmark series", "Flagged series"],
+          "rows": [
+            ["beijing_air_quality", "kdd_cup_2018_with_missing/H", "59"],
+            ["fred_md", "m4_monthly", "8"],
+            ["m1_monthly", "m4_monthly", "2"],
+            ["pedestrian_counts", "m4_hourly", "46"],
+            ["tourism_monthly", "m4_monthly", "28"],
+            ["weather", "temperature_rain_with_missing", "499"]
+          ],
+          "source": "tsfm-from-scratch case study. The resume total excluded is 801 series; this table is the named pairs reported on the case study."
+        },
+        "volatility": {
+          "caption": "Daily realized volatility, BTC and ETH, 2020–2026. Weighted quantile loss versus a random walk, with a 95% interval.",
+          "headers": ["Model", "Loss ratio", "80% coverage"],
+          "rows": [
+            ["Random walk", "1 (reference)", "0.80"],
+            ["HAR-RV", "0.755 [0.731, 0.783]", "0.81"]
+          ],
+          "source": "tsfm-from-scratch case study. Baselines only. No trading performance is claimed, and the transformer is not given a volatility score on this page."
+        }
+      }
+    },
+    {
+      "id": "world-shock-lab",
+      "mission": "02",
+      "code": "World Shock Lab",
+      "role": "featured",
+      "badge": "Live site",
+      "kicker": "Macro shocks and machine learning",
+      "title": "World Shock Lab",
+      "summary": "Event studies of Federal Reserve, Bank of Canada, and OPEC surprises across global assets, with a pre-registered test of whether machine learning adds anything, and a scenario tool published before each decision.",
+      "caveat": "On the original benchmark, a neural net did not beat the linear model across 168 held-out announcements (gap −0.003, 90% interval −0.019 to +0.014). A second pre-registered study, ml-study-v1, is on an open pull request and is not merged: quantile gradient boosting cut 5% pinball loss to 1.446 versus 1.558 for the Gaussian linear baseline (difference −0.112, 90% interval −0.228 to −0.010). The temporal CNN did not beat the linear model on the mean (+0.015, 90% interval −0.006 to +0.037). None of 80 regime tests survived false-discovery control.",
+      "image": {
+        "src": "assets/img/world-shock-lab-scenario.webp",
+        "alt": "World Shock Lab scenario for a Federal Reserve hike and an oil supply cut, with bands around six Canadian assets.",
+        "width": 1600,
+        "height": 1000
+      },
+      "tags": ["Python", "PyTorch", "statsmodels", "React", "TypeScript"],
+      "links": [
+        {"label": "Live site", "href": "https://shmorsi.github.io/world-shock-lab/", "external": true, "primary": true},
+        {"label": "Case study", "href": "projects/world-shock-lab.html"},
+        {"label": "Code", "href": "https://github.com/shmorsi/world-shock-lab", "external": true}
+      ],
+      "homeMetricIds": ["tsxFed", "tsxBoc", "replications", "assets"],
+      "glanceIds": ["tsxFed", "replications", "regime", "announcements"],
+      "stats": {
+        "tsxFed": {
+          "label": "TSX, 10 bp Fed surprise",
+          "display": "−1.10%",
+          "count": -1.1,
+          "decimals": 2,
+          "suffix": "%",
+          "source": "Resume: a 10 bp Fed surprise moves the TSX −1.10% on the announcement day."
+        },
+        "tsxBoc": {
+          "label": "TSX, 10 bp BoC surprise",
+          "display": "−0.19%",
+          "count": -0.19,
+          "decimals": 2,
+          "suffix": "%",
+          "source": "Resume: an equal Bank of Canada surprise moves the TSX −0.19%."
+        },
+        "assets": {
+          "label": "Global assets",
+          "display": "53",
+          "count": 53,
+          "decimals": 0,
+          "source": "Resume: Fed, Bank of Canada, and OPEC surprise effects estimated on 53 global assets."
+        },
+        "replications": {
+          "label": "Published findings replicated",
+          "display": "11 of 13",
+          "source": "Resume: replicated 11 of 13 published findings. Case study: including 6 of the 7 that are not true almost by construction."
+        },
+        "nonMechanical": {
+          "label": "Replications that are not mechanical",
+          "display": "6 of 7",
+          "source": "World Shock Lab case study: 6 of the 7 published findings that are not true almost by construction."
+        },
+        "regime": {
+          "label": "Regime tests that survive FDR",
+          "display": "0 of 80",
+          "source": "World Shock Lab case study: 0 of 80 pre-registered regime tests survive false-discovery-rate control. 15 of 80 had p ≤ 0.10 before correction."
+        },
+        "regimeRaw": {
+          "label": "Regime tests with p ≤ 0.10 before correction",
+          "display": "15 of 80",
+          "source": "World Shock Lab case study. About 8 would be expected by chance. None survives false-discovery control."
+        },
+        "announcements": {
+          "label": "Held-out announcements",
+          "display": "168",
+          "count": 168,
+          "decimals": 0,
+          "source": "Resume: pre-registered machine-learning test on 168 announcements. The original case-study benchmark and ml-study-v1 (results/mlstudy/final.json, n_test 168, years 2019–2026) both use that held-out count."
+        },
+        "mlGap": {
+          "label": "Neural net minus linear error",
+          "display": "−0.003",
+          "source": "World Shock Lab case study: −0.003 on 168 held-out announcements, 90% interval −0.019 to +0.014, which includes zero."
+        },
+        "mlGapCi": {
+          "label": "90% interval on the ML gap",
+          "display": "−0.019 to +0.014",
+          "source": "World Shock Lab case study. The pre-registered rule says there is no evidence that machine learning adds value."
+        },
+        "pinballQgbm": {
+          "label": "5% pinball, quantile gradient boosting",
+          "display": "1.446",
+          "source": "results/mlstudy/final.json on branch cursor/ml-study-layer-8c97 (git d0dc395c530d37d225381b3bd7391ee54f83c223, protocol ml-study-v1, generated 20261020T183639Z). Quantile gradient boosting (max depth 2) pooled scaled pinball 1.4455223913308346 at tau 0.05, shown as 1.446. https://github.com/shmorsi/world-shock-lab/pull/1 is an open draft and is not merged."
+        },
+        "pinballGauss": {
+          "label": "5% pinball, Gaussian linear baseline",
+          "display": "1.558",
+          "source": "results/mlstudy/final.json on branch cursor/ml-study-layer-8c97. Gaussian linear baseline pooled scaled pinball 1.5580062579531035, shown as 1.558. Pull request 1 is an open draft and is not merged."
+        },
+        "pinballGap": {
+          "label": "Pinball, boosting minus Gaussian linear",
+          "display": "−0.112",
+          "source": "results/mlstudy/final.json difference_ml_minus_gauss point −0.11248386662226895, shown as −0.112. Verdict in the file: ML adds value on the 5% tail. This is pinball loss, not a calibration claim. Pull request 1 is an open draft and is not merged."
+        },
+        "pinballCi": {
+          "label": "90% interval on the pinball gap",
+          "display": "−0.228 to −0.010",
+          "source": "results/mlstudy/final.json difference_ml_minus_gauss ci90 [−0.2280172224402263, −0.010335754412836245], shown as −0.228 to −0.010. Pull request 1 is an open draft and is not merged."
+        },
+        "tcnMae": {
+          "label": "Mean scaled error, temporal CNN",
+          "display": "1.157",
+          "source": "results/mlstudy/final.json on branch cursor/ml-study-layer-8c97. Temporal CNN (16 channels, weight decay 0.001) pooled scaled MAE 1.1571277532978215, shown as 1.157. Pull request 1 is an open draft and is not merged."
+        },
+        "lpMae": {
+          "label": "Mean scaled error, linear projection",
+          "display": "1.142",
+          "source": "results/mlstudy/final.json pooled scaled MAE for the linear projection baseline 1.1420847324581223, shown as 1.142. Pull request 1 is an open draft and is not merged."
+        },
+        "tcnGap": {
+          "label": "Mean error, temporal CNN minus linear",
+          "display": "+0.015",
+          "source": "results/mlstudy/final.json difference_ml_minus_lp point 0.015043020839699217, shown as +0.015. Verdict in the file: no evidence ML adds value. Pull request 1 is an open draft and is not merged."
+        },
+        "tcnCi": {
+          "label": "90% interval on the mean gap",
+          "display": "−0.006 to +0.037",
+          "source": "results/mlstudy/final.json difference_ml_minus_lp ci90 [−0.006025486483002209, 0.03684541655024226], shown as −0.006 to +0.037. The interval includes zero. Pull request 1 is an open draft and is not merged."
+        },
+        "bocDecisions": {
+          "label": "BoC decisions dated from press releases",
+          "display": "195",
+          "count": 195,
+          "decimals": 0,
+          "source": "World Shock Lab case study: 195 scheduled Bank of Canada decisions."
+        },
+        "varianceRatio": {
+          "label": "BoC proxy variance vs control days",
+          "display": "2.82×",
+          "source": "World Shock Lab case study: announcement-day variance of the 2-year Government of Canada yield is 2.82 times matched control days (90% interval 1.99 to 4.00)."
+        },
+        "varianceCi": {
+          "label": "90% interval on that variance ratio",
+          "display": "1.99 to 4.00",
+          "source": "World Shock Lab case study."
+        },
+        "varianceExUs": {
+          "label": "Variance ratio after removing the US move",
+          "display": "5.71×",
+          "source": "World Shock Lab case study: 5.71 times after removing the same-day US move."
+        },
+        "simCoverage": {
+          "label": "Simulation coverage of the event-study bands",
+          "display": "90%",
+          "source": "World Shock Lab case study: in simulation the 90% bands contain the true response 90% of the time."
+        },
+        "simAlt": {
+          "label": "Coverage of the zero-filled alternative",
+          "display": "86%",
+          "source": "World Shock Lab case study: a zero-filled time-series alternative covers the true response 86% of the time in simulation."
+        },
+        "placebos": {
+          "label": "Placebo date sets",
+          "display": "1,000",
+          "source": "World Shock Lab case study: surprises moved to 1,000 sets of random non-announcement days."
+        },
+        "signStable": {
+          "label": "Headline responses stable in robustness checks",
+          "display": "24 of 30",
+          "source": "World Shock Lab case study: 24 of 30 headline responses keep their sign in every pre-registered robustness variant and stay significant in at least two thirds of them."
+        },
+        "fdrAssets": {
+          "label": "Shock-to-asset responses that survive FDR",
+          "display": "126 of 318",
+          "source": "World Shock Lab case study."
+        },
+        "firstStageF": {
+          "label": "First-stage F for monthly macro effects",
+          "display": "3.1",
+          "source": "World Shock Lab case study: monthly macro effects rest on weak instruments (first-stage F of 3.1) and are labelled suggestive."
+        },
+        "tests": {
+          "label": "Automated Python tests",
+          "display": "145",
+          "count": 145,
+          "decimals": 0,
+          "source": "World Shock Lab case study: 145 automated Python tests, including Monte Carlo recovery of known responses, in GitHub Actions on every push."
+        },
+        "rerunMinutes": {
+          "label": "Full rerun time",
+          "display": "11 min",
+          "source": "World Shock Lab case study: a full rerun from the pinned downloads took 11 minutes and reproduced every result."
+        },
+        "phoneSeconds": {
+          "label": "Scenario tool on a throttled phone",
+          "display": "under 3 s",
+          "source": "Resume: the React/TypeScript scenario tool loads in under 3 seconds on a throttled phone. Tests fail if the page shows a number that is not in the results."
+        },
+        "forecastPublished": {
+          "label": "First forecasts published",
+          "display": "2026-10-13",
+          "source": "World Shock Lab case study: the first forecasts, for the decisions of 2026-10-28, were published on 2026-10-13."
+        },
+        "forecastDecision": {
+          "label": "First forecasted decision date",
+          "display": "2026-10-28",
+          "source": "World Shock Lab case study."
+        }
+      },
+      "tables": {
+        "announcement": {
+          "caption": "Announcement-day response. Each surprise is scaled to a 10 basis-point move in that country's 2-year yield. 90% interval in brackets.",
+          "headers": ["Canadian asset", "Fed surprise", "BoC surprise", "BoC, Rigobon–Sack"],
+          "rows": [
+            ["S&P/TSX Composite (%)", "−1.10 [−1.59, −0.61]", "−0.19 [−0.33, −0.04]", "−0.75 [−1.42, −0.37]"],
+            ["Big-Six Canadian banks (%)", "−0.76 [−1.32, −0.19]", "0.00 [−0.16, +0.15]", "−0.63 [−1.36, −0.20]"],
+            ["10-year Government of Canada yield (basis points)", "+4.40 [+2.99, +5.81]", "+4.64 [+3.75, +5.52]", "+2.47 [+0.67, +3.75]"],
+            ["Canadian dollars per US dollar (%)", "+0.40 [+0.23, +0.57]", "−0.37 [−0.53, −0.21]", "−0.49 [−0.85, −0.24]"]
+          ],
+          "source": "World Shock Lab case study, generated from committed results."
+        },
+        "ml": {
+          "caption": "168 held-out announcements. Pooled scaled error. Lower is better. The pre-registered verdict is that machine learning does not add value.",
+          "headers": ["Model", "Error"],
+          "rows": [
+            ["Neural network (multilayer perceptron)", "1.139"],
+            ["Linear local projection", "1.142"],
+            ["Gradient boosting", "1.147"],
+            ["Ridge regression", "1.160"],
+            ["Predict no move", "1.195"],
+            ["State-dependent local projection", "1.212"]
+          ],
+          "source": "World Shock Lab case study. Neural-network error minus linear error is −0.003, and the 90% interval includes zero."
+        },
+        "mlStudy": {
+          "caption": "ml-study-v1 on 168 held-out announcements, 2019–2026. Pooled scaled scores, lower is better. Read from results/mlstudy/final.json on branch cursor/ml-study-layer-8c97. Pull request 1 is an open draft and is not merged. The earlier benchmark above is unchanged.",
+          "headers": ["Target", "Model", "Score", "Difference vs baseline", "90% interval"],
+          "rows": [
+            ["Mean (scaled MAE)", "Temporal CNN, 16 channels", "1.157", "+0.015 vs linear 1.142", "−0.006 to +0.037"],
+            ["5% tail (pinball)", "Quantile gradient boosting, depth 2", "1.446", "−0.112 vs Gaussian linear 1.558", "−0.228 to −0.010"]
+          ],
+          "source": "results/mlstudy/final.json (protocol ml-study-v1, git d0dc395c530d37d225381b3bd7391ee54f83c223, generated 20261020T183639Z) on https://github.com/shmorsi/world-shock-lab/pull/1. File verdicts: no evidence the temporal CNN adds value on the mean; quantile gradient boosting adds value on the 5% tail by pinball loss. Not a calibration claim, and not a comparison to a published model."
+        }
+      }
+    },
+    {
+      "id": "macro-analyst-agent",
+      "mission": "03",
+      "code": "Macro Analyst",
+      "role": "placeholder",
+      "badge": "Placeholder",
+      "kicker": "AI agents and LLMs",
+      "title": "Macro Analyst Agent",
+      "summary": "A local LLM agent for macro questions, with an evaluation harness and LoRA fine-tuning on an open-weight model. The repository link is pending, so this card is a placeholder.",
+      "caveat": "No measured results yet. Task scores, tool-call accuracy, and latency will be added here only after they are in the repository. Nothing on this card is an estimate.",
+      "image": null,
+      "tags": ["LLMs", "AI agents", "Evaluation", "LoRA", "Local"],
+      "links": [
+        {"label": "Status", "href": "projects/macro-analyst-agent.html", "primary": true},
+        {"label": "Repo link pending", "href": null, "disabled": true}
+      ],
+      "homeMetricIds": [],
+      "glanceIds": [],
+      "stats": {},
+      "tables": {}
+    },
+    {
+      "id": "atlas",
+      "mission": "04",
+      "code": "ATLAS",
+      "role": "secondary",
+      "badge": "Local",
+      "kicker": "Research terminal",
+      "title": "ATLAS",
+      "summary": "A local research terminal for World Bank country data, an OECD production network, and PyTorch forecasts. It runs on one machine: no hosted service and no credentials.",
+      "caveat": "Ridge regression beat the graph neural models on the 2022 test. On US growth, one GRU seed beat ridge and two did not, on 10 held-out years. This is not a tradable backtest.",
+      "image": {
+        "src": "assets/img/atlas-overview.webp",
+        "alt": "ATLAS map of real GDP growth by country, with Japan selected.",
+        "width": 1440,
+        "height": 1000
+      },
+      "tags": ["Python", "PyTorch", "FastAPI", "React", "DuckDB"],
+      "links": [
+        {"label": "Case study", "href": "projects/atlas.html", "primary": true},
+        {"label": "Code", "href": "https://github.com/shmorsi/atlas", "external": true},
+        {"label": "Release v0.1.2", "href": "https://github.com/shmorsi/atlas/releases/tag/v0.1.2", "external": true}
+      ],
+      "homeMetricIds": ["records", "checkpoints", "tests"],
+      "glanceIds": ["records", "nodes", "checkpoints", "tests"],
+      "stats": {
+        "records": {
+          "label": "World Bank records",
+          "display": "42,900",
+          "count": 42900,
+          "decimals": 0,
+          "source": "Resume: Parquet/SQLite pipelines for 42,900 World Bank records. Case study: 177 countries and territories, 1960–2024."
+        },
+        "countries": {
+          "label": "Countries and territories",
+          "display": "177",
+          "count": 177,
+          "decimals": 0,
+          "source": "ATLAS case study: 177 Natural Earth geographies."
+        },
+        "yearSpan": {
+          "label": "World Bank year span",
+          "display": "1960–2024",
+          "source": "ATLAS case study, plus a 2025 cache of 660 records."
+        },
+        "cache2025": {
+          "label": "2025 cache",
+          "display": "660",
+          "source": "ATLAS case study: a 2025 cache of 660 records."
+        },
+        "nodes": {
+          "label": "Production-network nodes",
+          "display": "405",
+          "count": 405,
+          "decimals": 0,
+          "source": "ATLAS case study: 405 nodes across 81 areas, from seven OECD ICIO tables for 2016–2022."
+        },
+        "areas": {
+          "label": "Areas in the network",
+          "display": "81",
+          "source": "ATLAS case study: 81 areas × 5 groups."
+        },
+        "checkpoints": {
+          "label": "PyTorch checkpoints",
+          "display": "12",
+          "count": 12,
+          "decimals": 0,
+          "source": "Resume: 12 PyTorch GRU and graph forecasting checkpoints compared on held-out baselines. Case study: release v0.1.2 replays all 12."
+        },
+        "backendTests": {
+          "label": "Backend tests",
+          "display": "44",
+          "source": "Resume: 44 backend tests for the FastAPI/DuckDB services."
+        },
+        "uiTests": {
+          "label": "Playwright UI tests",
+          "display": "27",
+          "source": "Resume: 27 Playwright UI tests."
+        },
+        "tests": {
+          "label": "Backend + UI tests",
+          "display": "44 + 27",
+          "source": "Resume: 44 backend tests and 27 Playwright UI tests, release v0.1.2, with cross-platform CI."
+        },
+        "gruParams": {
+          "label": "GRU parameters",
+          "display": "354",
+          "source": "ATLAS case study: compact PyTorch GRU models with Gaussian outputs, 354 parameters."
+        },
+        "curves": {
+          "label": "Treasury par curves",
+          "display": "694",
+          "source": "ATLAS case study: 694 observed daily Treasury par curves (2024–2026)."
+        },
+        "releases": {
+          "label": "Dated Fed and ECB releases in the app",
+          "display": "30",
+          "source": "ATLAS case study: 30 dated Federal Reserve and ECB releases with source links."
+        },
+        "scenarioMs": {
+          "label": "405-node scenario, local median",
+          "display": "11.00 ms",
+          "source": "ATLAS case study: local latency median on one machine, 11.00 milliseconds for a 405-node scenario."
+        },
+        "gruMs": {
+          "label": "GRU replay, local median",
+          "display": "40.51 ms",
+          "source": "ATLAS case study: 40.51 milliseconds for a GRU replay on one machine."
+        },
+        "bundleBefore": {
+          "label": "Compressed JS before the overlay split",
+          "display": "777.24 KB",
+          "source": "ATLAS case study: main JavaScript bundle, compressed."
+        },
+        "bundleAfter": {
+          "label": "Compressed JS after the overlay split",
+          "display": "561.01 KB",
+          "source": "ATLAS case study: loading the population overlay on demand cut the bundle from 777.24 to 561.01 kilobytes compressed, about 28% smaller."
+        },
+        "bundleCut": {
+          "label": "Bundle reduction",
+          "display": "about 28%",
+          "source": "ATLAS case study, from 777.24 KB to 561.01 KB compressed."
+        },
+        "heldoutYears": {
+          "label": "Held-out years, US growth",
+          "display": "10",
+          "source": "ATLAS case study: US annual real GDP growth, 10 held-out years (2015–2024)."
+        },
+        "graphSeedWins": {
+          "label": "Seeds where the graph model beat the no-graph model",
+          "display": "1 of 3",
+          "source": "ATLAS case study: the graph beat the no-graph version on 1 of 3 seeds."
+        }
+      },
+      "tables": {
+        "gdp": {
+          "caption": "US annual real GDP growth. 10 held-out years, 2015–2024. Mean absolute error in percentage points. Lower is better. Not a tradable backtest.",
+          "headers": ["Model", "MAE"],
+          "rows": [
+            ["GRU, best of three seeds", "1.1803"],
+            ["Ridge regression", "1.3091"],
+            ["Training-period mean", "1.3626"],
+            ["GRU, other two seeds", "1.3959 · 1.4982"],
+            ["Persistence (last year's growth)", "2.0002"]
+          ],
+          "source": "ATLAS case study. One GRU seed beat ridge; two did not."
+        },
+        "graph": {
+          "caption": "OECD graph experiment. 405 nodes. Test year 2022. Mean absolute error. Lower is better.",
+          "headers": ["Model", "MAE"],
+          "rows": [
+            ["Ridge regression", "9.3973"],
+            ["Graph models, three seeds", "9.4850 · 10.2392 · 10.9011"]
+          ],
+          "source": "ATLAS case study. Ridge was best. One test year, so this is feasibility evidence only."
+        }
+      }
+    }
+  ]
+}
