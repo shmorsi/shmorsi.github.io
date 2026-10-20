@@ -15,7 +15,7 @@ Portfolio of Sherif Morsi, a third-year Computer Science student at Concordia Un
 
 Edit **[data/projects.json](data/projects.json)** only. The home page and the case studies read every figure from that file. Do not add a number unless it is in the resume or in a committed result file. The Macro Analyst Agent record stays empty until its repository publishes results.
 
-The resume link points at `resume/Sherif_Morsi_Resume.pdf`, which is a placeholder. Replace that file with the current one-page PDF.
+The resume link points at `resume/Sherif_Morsi_Resume.pdf`, the current one-page resume.
 
 World Shock Lab's live site is served from the `world-shock-lab` repository at `https://shmorsi.github.io/world-shock-lab/`. Do not add a `world-shock-lab/` directory to this repo.
 

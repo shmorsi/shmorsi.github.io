@@ -42,30 +42,32 @@
 
   const countdown = document.querySelector("[data-countdown]");
   const countdownState = document.querySelector("[data-countdown-state]");
-  const countdownFill = document.querySelector("[data-countdown-bar] span");
-  const checks = [...document.querySelectorAll("[data-check]")];
-  const TOTAL = 5;
-  const paintCountdown = (left) => {
-    if (!countdown) return;
-    const clamped = Math.max(0, left);
-    countdown.textContent = `00:00:0${clamped}`;
-    if (countdownFill) countdownFill.style.width = `${((TOTAL - clamped) / TOTAL) * 100}%`;
-    if (countdownState) countdownState.textContent = clamped === 0 ? "Window open" : "Stand by";
+  const WINTER_2027 = Date.parse("2027-01-01T05:00:00Z");
+  const pad = (value) => String(value).padStart(2, "0");
+  const paintCountdown = () => {
+    if (!countdown) return true;
+    const remaining = WINTER_2027 - Date.now();
+    if (remaining <= 0) {
+      countdown.textContent = "T− 00d 00:00:00";
+      if (countdownState) countdownState.textContent = "Window open";
+      return true;
+    }
+    const total = Math.floor(remaining / 1000);
+    const days = Math.floor(total / 86400);
+    const hours = Math.floor((total % 86400) / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const seconds = total % 60;
+    countdown.textContent = `T− ${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    if (countdownState) countdownState.textContent = "Jan 1 · Montreal";
+    return false;
   };
-  if (reduce || !countdown) {
-    checks.forEach((item) => item.classList.add("on"));
-    paintCountdown(0);
-  } else {
-    let left = TOTAL;
-    paintCountdown(left);
-    const timer = window.setInterval(() => {
-      left -= 1;
-      paintCountdown(left);
-      if (left <= 0) window.clearInterval(timer);
-    }, 1000);
-    checks.forEach((item, index) => {
-      window.setTimeout(() => item.classList.add("on"), 350 * (index + 1));
-    });
+  if (countdown) {
+    const done = paintCountdown();
+    if (!reduce && !done) {
+      const timer = window.setInterval(() => {
+        if (paintCountdown()) window.clearInterval(timer);
+      }, 1000);
+    }
   }
 
   const menuButton = document.querySelector("[data-menu-button]");

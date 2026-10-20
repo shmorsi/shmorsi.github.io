@@ -102,10 +102,14 @@ for path in TEXT_PATHS:
         if re.search(pattern, lowered):
             errors.append(f"{path.relative_to(ROOT)} matches forbidden pattern /{pattern}/")
 
-if not (ROOT / "resume" / "Sherif_Morsi_Resume.pdf").exists():
-    errors.append("resume placeholder PDF is missing")
-if "PLACEHOLDER" not in (ROOT / "resume" / "Sherif_Morsi_Resume.pdf").read_bytes().decode("latin1"):
-    errors.append("resume PDF no longer looks like the placeholder; update the site note if the real resume was added")
+resume_pdf = ROOT / "resume" / "Sherif_Morsi_Resume.pdf"
+resume_bytes = resume_pdf.read_bytes() if resume_pdf.exists() else b""
+if not resume_bytes.startswith(b"%PDF"):
+    errors.append("resume/Sherif_Morsi_Resume.pdf is missing or is not a PDF")
+if b"PLACEHOLDER" in resume_bytes:
+    errors.append("resume PDF is still a placeholder")
+if "The resume PDF is a placeholder." in (ROOT / "index.html").read_text(encoding="utf-8"):
+    errors.append("hero still says the resume PDF is a placeholder")
 
 if errors:
     print("\n".join(errors))
