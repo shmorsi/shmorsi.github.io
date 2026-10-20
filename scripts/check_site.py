@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""Fail if the portfolio states a title or claim it must not, or if a figure bind is broken."""
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA = json.loads((ROOT / "data" / "projects.json").read_text())
+TEXT_PATHS = [
+    *ROOT.glob("*.html"),
+    *ROOT.glob("*.md"),
+    *ROOT.glob("projects/*.html"),
+    ROOT / "assets" / "site.js",
+    ROOT / "data" / "projects.json",
+]
+
+FORBIDDEN = [
+    r"software engineer",
+    r"\bml engineer\b",
+    r"machine learning engineer",
+    r"\bai engineer\b",
+    r"full-stack engineer",
+    r"research engineer",
+    r"ai engineering",
+    r"fluent in french",
+    r"french \(fluent\)",
+    r"\baws\b",
+    r"amazon web services",
+    r"\bjira\b",
+    r"production deployment",
+    r"deployed to production",
+    r"beat a published",
+    r"beats a published",
+    r"beat timesfm",
+    r"better than timesfm",
+    r"outperformed",
+    r"github\.com/shmorsi/shocklab\b",
+]
+
+errors: list[str] = []
+
+if (ROOT / "world-shock-lab").exists():
+    errors.append("world-shock-lab/ must not exist in this repo; the live site is served from the other repository")
+
+projects = {project["id"]: project for project in DATA["projects"]}
+placeholder = projects["macro-analyst-agent"]
+if placeholder.get("stats") or placeholder.get("tables") or placeholder.get("homeMetricIds"):
+    errors.append("Macro Analyst Agent must not carry metrics until its repository publishes them")
+if placeholder.get("role") != "placeholder":
+    errors.append("Macro Analyst Agent role must stay 'placeholder'")
+
+for project in DATA["projects"]:
+    stats = project.get("stats") or {}
+    for key, stat in stats.items():
+        for field in ("label", "display", "source"):
+            if not str(stat.get(field, "")).strip():
+                errors.append(f"{project['id']}.stats.{key} is missing {field}")
+    for key in project.get("homeMetricIds") or []:
+        if key not in stats:
+            errors.append(f"{project['id']} homeMetricIds references missing stat {key}")
+    for key in project.get("glanceIds") or []:
+        if key not in stats:
+            errors.append(f"{project['id']} glanceIds references missing stat {key}")
+    for name, table in (project.get("tables") or {}).items():
+        if not table.get("rows") or not table.get("source"):
+            errors.append(f"{project['id']}.tables.{name} needs rows and a source")
+
+bind_re = re.compile(r'data-(?:bind|table)="([^"]+)"')
+for path in ROOT.glob("*.html"):
+    pass
+html_files = list(ROOT.glob("*.html")) + list((ROOT / "projects").glob("*.html"))
+for path in html_files:
+    text = path.read_text()
+    for raw in bind_re.findall(text):
+        project_id, _, rest = raw.partition(".")
+        cursor = projects.get(project_id)
+        if cursor is None:
+            errors.append(f"{path.name} bind {raw} has unknown project")
+            continue
+        for part in rest.split("."):
+            if isinstance(cursor, dict) and part in cursor:
+                cursor = cursor[part]
+            else:
+                errors.append(f"{path.name} bind {raw} does not resolve")
+                break
+        else:
+            if raw.startswith(tuple()) is False and "data-bind" in text:
+                pass
+    for glance in re.findall(r'data-glance="([^"]+)"', text):
+        if glance not in projects:
+            errors.append(f"{path.name} glance {glance} is unknown")
+
+for path in TEXT_PATHS:
+    if not path.exists():
+        continue
+    lowered = path.read_text(encoding="utf-8").lower()
+    for pattern in FORBIDDEN:
+        if re.search(pattern, lowered):
+            errors.append(f"{path.relative_to(ROOT)} matches forbidden pattern /{pattern}/")
+
+if not (ROOT / "resume" / "Sherif_Morsi_Resume.pdf").exists():
+    errors.append("resume placeholder PDF is missing")
+if "PLACEHOLDER" not in (ROOT / "resume" / "Sherif_Morsi_Resume.pdf").read_bytes().decode("latin1"):
+    errors.append("resume PDF no longer looks like the placeholder; update the site note if the real resume was added")
+
+if errors:
+    print("\n".join(errors))
+    sys.exit(1)
+print(f"ok — {len(projects)} projects, placeholder has no metrics")
