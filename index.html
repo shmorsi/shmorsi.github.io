@@ -47,8 +47,8 @@
     <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
     <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
       <a href="#work" data-section="work">Work</a>
-      <a href="#stack" data-section="stack">Stack</a>
-      <a href="#path" data-section="path">Path</a>
+      <a href="#experience" data-section="experience">Experience</a>
+      <a href="#about" data-section="about">About</a>
       <a href="#contact" data-section="contact">Contact</a>
     </nav>
   </header>
@@ -60,8 +60,10 @@
         <h1 id="hero-title">Sherif<br>Morsi</h1>
         <p class="hero-lede">A future-focused computer science student. I build machine-learning systems and test them against data they have never seen.</p>
         <div class="hero-actions">
-          <a class="button" href="#work">Enter the work</a>
-          <a class="text-link" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
+          <a class="button" href="#work">View work</a>
+          <a class="text-link" href="mailto:shmorsi@outlook.com">Email</a>
+          <a class="text-link" href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a class="text-link" href="https://www.linkedin.com/in/sherif-morsi-a17628295" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         </div>
       </div>
       <div class="hero-foot">
@@ -83,14 +85,16 @@
           <span class="mission-tag">01 · Forecasting</span>
         </a>
         <div class="mission-copy" data-reveal>
-          <h3>A transformer, pretrained from scratch.</h3>
-          <p>Decoder, tokenizers, training loop and sampling written by hand in PyTorch. Scored zero-shot with the official GIFT-Eval code, after 801 overlapping benchmark series were removed.</p>
+          <p class="kicker">Deep learning · Forecasting</p>
+          <h3>Time-series foundation model</h3>
+          <p>A transformer pretrained from scratch in PyTorch, scored zero-shot with the official GIFT-Eval code after 801 overlapping benchmark series were removed.</p>
           <dl class="stats">
             <div><dt>Zero-shot CRPS</dt><dd>0.605</dd></div>
             <div><dt>Parameters</dt><dd>10.1M</dd></div>
             <div><dt>Overlaps removed</dt><dd>801</dd></div>
           </dl>
           <p class="miss">The 80% interval covers 65% of outcomes. Long forecasts feed back medians, so the bands are too narrow.</p>
+          <ul class="tags" aria-label="Technologies"><li>Python</li><li>PyTorch</li><li>GluonTS</li><li>pytest</li></ul>
           <div class="mission-links">
             <a class="button" href="projects/tsfm.html">Case study</a>
             <a class="text-link" href="https://github.com/shmorsi/tsfm-from-scratch" target="_blank" rel="noopener noreferrer">Code</a>
@@ -104,14 +108,16 @@
           <span class="mission-tag">02 · Markets · Live</span>
         </a>
         <div class="mission-copy" data-reveal>
-          <h3>How a surprise moves the world.</h3>
-          <p>Federal Reserve, Bank of Canada and oil shocks across 53 assets. Estimators checked by simulation and by replicating published papers. Forecasts go out before each decision.</p>
+          <p class="kicker">Macro · Causal inference · Live forecasts</p>
+          <h3>World Shock Lab</h3>
+          <p>How Federal Reserve, Bank of Canada and oil surprises move 53 assets. Estimators checked by simulation and by replicating published papers. Forecasts go out before each decision.</p>
           <dl class="stats">
             <div><dt>TSX, 10 bp Fed surprise</dt><dd>−1.10%</dd></div>
             <div><dt>Papers replicated</dt><dd>11 of 13</dd></div>
             <div><dt>Regime tests that survive</dt><dd>0 of 80</dd></div>
           </dl>
           <p class="miss">Machine learning did not beat a linear model on 168 held-out announcements.</p>
+          <ul class="tags" aria-label="Technologies"><li>Python</li><li>PyTorch</li><li>statsmodels</li><li>React</li><li>D3.js</li></ul>
           <div class="mission-links">
             <a class="button" href="https://shmorsi.github.io/world-shock-lab/" target="_blank" rel="noopener noreferrer">Live site</a>
             <a class="text-link" href="projects/world-shock-lab.html">Case study</a>
@@ -125,14 +131,16 @@
           <span class="mission-tag">03 · Economies</span>
         </a>
         <div class="mission-copy" data-reveal>
-          <h3>A shock, traced through the economy.</h3>
-          <p>A local research terminal. 42,900 World Bank observations, a 405-node production network, and 12 PyTorch models replayed against held-out years. It runs on your machine.</p>
+          <p class="kicker">Economics · Machine learning · Full stack</p>
+          <h3>ATLAS</h3>
+          <p>A local research terminal. 42,900 World Bank observations, a 405-node production network, and 12 PyTorch models replayed against held-out years.</p>
           <dl class="stats">
             <div><dt>Network nodes</dt><dd>405</dd></div>
             <div><dt>PyTorch checkpoints</dt><dd>12</dd></div>
             <div><dt>Tests, release v0.1.2</dt><dd>44 + 27</dd></div>
           </dl>
           <p class="miss">Ridge regression beat the neural models on the 2022 graph test and on US growth.</p>
+          <ul class="tags" aria-label="Technologies"><li>Python</li><li>PyTorch</li><li>FastAPI</li><li>React</li><li>DuckDB</li></ul>
           <div class="mission-links">
             <a class="button" href="projects/atlas.html">Case study</a>
             <a class="text-link" href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">Code</a>
@@ -141,48 +149,67 @@
       </article>
     </section>
 
-    <section class="field" id="stack" aria-labelledby="stack-title">
-      <div class="stack-head" data-reveal>
+    <section class="record" id="experience" aria-labelledby="experience-title">
+      <div class="chapter-intro" data-reveal>
         <p class="index">02</p>
-        <h2 id="stack-title">The technology<br>is the point.</h2>
-        <p>Python and PyTorch at the center. The rest is whatever the system needs to leave the notebook.</p>
+        <h2 id="experience-title">Experience.</h2>
+        <p>Machine learning on a live network, then credit work on real files. Concordia co-op, expected May 2028.</p>
       </div>
-      <ul class="tech" aria-label="Technologies">
-        <li>PyTorch</li><li>Python</li><li>TensorFlow</li><li>scikit-learn</li>
-        <li>NumPy</li><li>pandas</li><li>DuckDB</li><li>Parquet</li>
-        <li>TypeScript</li><li>JavaScript</li><li>React</li><li>Next.js</li>
-        <li>FastAPI</li><li>D3.js</li><li>Java</li><li>C++</li>
-        <li>SQL</li><li>CVXPY</li><li>pytest</li><li>GitHub Actions</li>
-      </ul>
+      <article class="role" data-reveal>
+        <p class="when"><b>Aug 2026 – Sep 2026</b>Egypt · hybrid</p>
+        <div>
+          <h3>AI &amp; Digital Technologies Intern</h3>
+          <p class="org">Orange Egypt × Nokia</p>
+          <ul>
+            <li>Built and trained machine-learning models in Python and PyTorch, and applied the predictions to energy actions on a team 5G project.</li>
+            <li>Analyzed network telemetry for predictive modeling of energy use and network efficiency.</li>
+            <li>Led the team presenting the proposal, then presented the model results across AI, data and telecommunications.</li>
+          </ul>
+        </div>
+      </article>
+      <article class="role" data-reveal>
+        <p class="when"><b>Aug 2025 – Sep 2025</b>Cairo, Egypt</p>
+        <div>
+          <h3>SME Credit Analyst Intern</h3>
+          <p class="org">Qatar National Bank</p>
+          <ul>
+            <li>Worked with the SME credit team across the credit process, mainly on agriculture and technology companies.</li>
+            <li>Studied credit proposals and the business plans behind them, and shadowed the first review of facility proposals.</li>
+            <li>Spread financial statements, drafted sections of credit memos, and researched counterparties.</li>
+          </ul>
+        </div>
+      </article>
+      <article class="role" data-reveal>
+        <p class="when"><b>Expected May 2028</b>Montreal</p>
+        <div>
+          <h3>Bachelor of Computer Science</h3>
+          <p class="org">Concordia University · Gina Cody School · Co-op</p>
+          <p class="course">Machine Learning, Artificial Intelligence, Financial Markets, Data Structures, Linear Algebra, Multivariable Calculus.</p>
+        </div>
+      </article>
     </section>
 
-    <section class="path" id="path" aria-labelledby="path-title">
-      <div class="path-head" data-reveal>
-        <p class="index">03</p>
-        <h2 id="path-title">Concordia,<br>then the field.</h2>
-      </div>
-      <div class="path-grid">
-        <article data-reveal>
-          <p class="index">Education</p>
-          <h3>Bachelor of Computer Science</h3>
-          <p>Gina Cody School of Engineering and Computer Science. Co-op. Expected May 2028.</p>
-          <p>Machine Learning, Artificial Intelligence, Financial Markets, Data Structures, Linear Algebra, Multivariable Calculus.</p>
-        </article>
-        <article data-reveal>
-          <p class="index">Aug 2026 – Sep 2026 · Egypt</p>
-          <h3>AI &amp; Digital Technologies Intern</h3>
-          <p>Orange Egypt × Nokia. Trained PyTorch models for energy actions on a team 5G project, and presented the results.</p>
-        </article>
-        <article data-reveal>
-          <p class="index">Aug 2025 – Sep 2025 · Cairo</p>
-          <h3>SME Credit Analyst Intern</h3>
-          <p>Qatar National Bank. Credit proposals, financial spreading and memo drafts, mainly agriculture and technology clients.</p>
-        </article>
-        <article data-reveal>
-          <p class="index">Montreal · now</p>
-          <h3>Outside the lab</h3>
-          <p>Cofounder, Arab Run Club Montreal, 4,500+ followers. QUARCC market-making rounds. John Molson Book Club.</p>
-        </article>
+    <section class="record" id="about" aria-labelledby="about-title">
+      <div class="about-grid">
+        <div data-reveal>
+          <p class="index">03</p>
+          <h2 id="about-title">About.</h2>
+          <p class="lede">Third-year Computer Science student at Concordia University in Montreal. I build machine-learning systems for forecasting, market shocks and economic networks, and I publish the result next to the baseline.</p>
+          <dl class="facts">
+            <div><dt>Based</dt><dd>Montreal, Quebec, Canada</dd></div>
+            <div><dt>Status</dt><dd>Canadian Permanent Resident · UAE Golden Visa</dd></div>
+            <div><dt>Open to</dt><dd>4, 8, 12 or 16-month co-ops anywhere in Canada</dd></div>
+            <div><dt>Languages</dt><dd>English · Arabic · French (learning)</dd></div>
+          </dl>
+        </div>
+        <div class="skill-grid" data-reveal aria-label="Skills">
+          <article><h3>Machine learning</h3><p>PyTorch, TensorFlow, scikit-learn, deep learning</p></article>
+          <article><h3>Programming</h3><p>Python, Java, C++, TypeScript, JavaScript, SQL</p></article>
+          <article><h3>Data</h3><p>pandas, NumPy, DuckDB, Parquet</p></article>
+          <article><h3>Systems</h3><p>FastAPI, React, Next.js, D3.js, pytest, GitHub Actions</p></article>
+          <article><h3>Finance</h3><p>Financial modeling, SME credit, statement spreading</p></article>
+          <article><h3>Now</h3><p>Arab Run Club Montreal, 4,500+ followers. QUARCC market-making rounds. John Molson Book Club.</p></article>
+        </div>
       </div>
     </section>
 
