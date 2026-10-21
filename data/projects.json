@@ -401,8 +401,55 @@
       }
     },
     {
-      "id": "macro-analyst-agent",
+      "id": "orbit",
       "mission": "03",
+      "code": "ORBIT",
+      "role": "featured",
+      "badge": "Replay",
+      "kicker": "AI agents",
+      "title": "Multi-Agent Mission Control",
+      "summary": "A local multi-agent AI team: planner, worker, critic; tool use; QLoRA fine-tuning. Mission Control replays saved engine traces in the browser.",
+      "caveat": "Evaluation pending: single agent vs team vs fine-tuned team on a frozen test set. No language-model score is shown. Bundled replays are labeled scripted harness and are not model scores.",
+      "image": {
+        "src": "assets/img/orbit-mission.webp",
+        "alt": "Mission Control replay with planner, worker, and critic, a scripted harness label, and a tool module on the worker.",
+        "width": 1280,
+        "height": 800
+      },
+      "tags": ["Python", "PyTorch", "QLoRA", "Local"],
+      "links": [
+        {"label": "Mission page", "href": "orbit/", "primary": true},
+        {"label": "Code", "href": "https://github.com/shmorsi/orbit-multi-agent", "external": true}
+      ],
+      "homeMetricIds": ["team", "tools", "eval", "host"],
+      "glanceIds": ["team", "tools", "eval", "host"],
+      "stats": {
+        "team": {
+          "label": "Team",
+          "display": "Planner, worker, critic",
+          "source": "Orbit README: a local planner, a worker, and a critic. The worker calls tools. The critic sends a bad claim back."
+        },
+        "tools": {
+          "label": "Tools",
+          "display": "On device",
+          "source": "Orbit README: sandboxed Python, a calculator, corpus file read, a per-run file write, keyword retrieval, and an offline web cache. Nothing in the tool path opens a socket."
+        },
+        "eval": {
+          "label": "Frozen-test evaluation",
+          "display": "Pending",
+          "source": "Orbit README results table: single base model, team base model, team plus adapter, and the paired comparison are pending runs. No language-model score has been measured."
+        },
+        "host": {
+          "label": "Where a live run goes",
+          "display": "Your machine",
+          "source": "Orbit README: Mission Control replays a saved trace, and a task you start runs on your own machine. GitHub Pages replays the saved traces. The run form needs the local server."
+        }
+      },
+      "tables": {}
+    },
+    {
+      "id": "macro-analyst-agent",
+      "mission": "04",
       "code": "Macro Analyst",
       "role": "placeholder",
       "badge": "Placeholder",
@@ -423,7 +470,7 @@
     },
     {
       "id": "atlas",
-      "mission": "04",
+      "mission": "05",
       "code": "ATLAS",
       "role": "secondary",
       "badge": "Local",

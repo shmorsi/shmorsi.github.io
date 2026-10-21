@@ -358,6 +358,55 @@ th:first-child, td:first-child { text-align: left; }
 .next-project a.next strong { font: 650 clamp(28px, 4vw, 52px)/0.95 var(--display); text-transform: uppercase; }
 .back { margin-bottom: 18px; }
 
+.demo-video, .demo-gif {
+  width: 100%;
+  height: auto;
+  background: #070707;
+  border: 1px solid var(--line);
+}
+.demo-gif { margin-top: 12px; }
+.demo-motion-note { display: none; }
+.replay-embed {
+  border: 1px solid var(--line);
+  background: #000;
+}
+.replay-embed iframe {
+  display: block;
+  width: 100%;
+  height: min(1280px, 92vh);
+  min-height: 720px;
+  border: 0;
+  background: #000;
+}
+.pending-banner {
+  margin: 0;
+  border: 1px solid #fff;
+  padding: 16px 18px;
+  color: var(--ink);
+  font: 650 clamp(18px, 2.1vw, 26px)/1.35 var(--display);
+  letter-spacing: -0.03em;
+  text-transform: none;
+}
+.arch-diagram { max-width: 640px; }
+.arch-diagram svg { display: block; width: 100%; height: auto; }
+.quickstart {
+  margin: 0;
+  padding: 16px 18px;
+  overflow-x: auto;
+  background: #070707;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-family: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.os-block { display: grid; gap: 10px; }
+.os-block h3 {
+  font-size: clamp(26px, 3vw, 40px);
+  text-transform: none;
+  letter-spacing: -0.03em;
+}
+
 @media (max-width: 980px) {
   .menu-button { display: inline-flex; }
   .site-nav {
@@ -411,4 +460,6 @@ th:first-child, td:first-child { text-align: left; }
     scroll-behavior: auto !important;
   }
   .mission-media:hover img { transform: none; }
+  .demo-gif { display: none; }
+  .demo-motion-note { display: block; }
 }
