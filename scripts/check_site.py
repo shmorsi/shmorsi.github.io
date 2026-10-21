@@ -14,6 +14,7 @@ TEXT_PATHS = [
     *ROOT.glob("*.html"),
     *ROOT.glob("*.md"),
     *ROOT.glob("projects/*.html"),
+    *ROOT.glob("orbit/**/*.html"),
     ROOT / "assets" / "site.js",
     ROOT / "data" / "projects.json",
 ]
@@ -72,7 +73,7 @@ for project in DATA["projects"]:
 bind_re = re.compile(r'data-(?:bind|table)="([^"]+)"')
 for path in ROOT.glob("*.html"):
     pass
-html_files = list(ROOT.glob("*.html")) + list((ROOT / "projects").glob("*.html"))
+html_files = list(ROOT.glob("*.html")) + list((ROOT / "projects").glob("*.html")) + list(ROOT.glob("orbit/**/*.html"))
 for path in html_files:
     text = path.read_text()
     for raw in bind_re.findall(text):
@@ -110,6 +111,22 @@ if b"PLACEHOLDER" in resume_bytes:
     errors.append("resume PDF is still a placeholder")
 if "The resume PDF is a placeholder." in (ROOT / "index.html").read_text(encoding="utf-8"):
     errors.append("hero still says the resume PDF is a placeholder")
+
+orbit_page = (ROOT / "orbit" / "index.html").read_text(encoding="utf-8")
+if "Evaluation pending: single agent vs team vs fine-tuned team on a frozen test set" not in orbit_page:
+    errors.append("orbit page must mark the frozen-test evaluation as pending")
+replay_html = (ROOT / "orbit" / "replay" / "index.html").read_text(encoding="utf-8")
+if "Scripted harness" not in replay_html:
+    errors.append("mission replay must keep the Scripted harness label")
+for name in ("quotient.jsonl", "abort.jsonl", "revise.jsonl", "index.json"):
+    trace = ROOT / "orbit" / "replay" / "traces" / name
+    if not trace.exists():
+        errors.append(f"missing bundled trace {name}")
+orbit_project = projects.get("orbit")
+if orbit_project is None or orbit_project.get("role") != "featured":
+    errors.append("Orbit must be a featured project")
+if projects["atlas"].get("role") != "secondary":
+    errors.append("ATLAS stays a secondary mission")
 
 if errors:
     print("\n".join(errors))
