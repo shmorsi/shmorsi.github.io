@@ -1,6 +1,6 @@
 {
   "instructions": "Edit this file to update every measured figure on the site. Do not add a number unless it is in the resume or in a committed result file. The home page, case studies, and tables all read from here. Search this file for the old value and update every place it appears, including caveat text. The Macro Analyst Agent stays empty until its repository publishes results.",
-  "updated": "2026-10-20",
+  "updated": "2026-10-22",
   "projects": [
     {
       "id": "tsfm",
@@ -80,10 +80,10 @@
         },
         "tests": {
           "label": "Automated tests",
-          "display": "138",
-          "count": 138,
+          "display": "150",
+          "count": 150,
           "decimals": 0,
-          "source": "Resume: 138 automated tests running in GitHub Actions CI."
+          "source": "Resume: 150 automated tests running in GitHub Actions CI."
         },
         "coverage": {
           "label": "80% interval coverage",
@@ -168,7 +168,7 @@
       "kicker": "Macro shocks and machine learning",
       "title": "World Shock Lab",
       "summary": "Event studies of Federal Reserve, Bank of Canada, and OPEC surprises across global assets, with a pre-registered test of whether machine learning adds anything, and a scenario tool published before each decision.",
-      "caveat": "On the original benchmark, a neural net did not beat the linear model across 168 held-out announcements (gap −0.003, 90% interval −0.019 to +0.014). A second pre-registered study, ml-study-v1, is on an open pull request and is not merged: quantile gradient boosting cut 5% pinball loss to 1.446 versus 1.558 for the Gaussian linear baseline (difference −0.112, 90% interval −0.228 to −0.010). The temporal CNN did not beat the linear model on the mean (+0.015, 90% interval −0.006 to +0.037). None of 80 regime tests survived false-discovery control.",
+      "caveat": "On the original benchmark, a neural net did not beat the linear model across 168 held-out announcements (gap −0.003, 90% interval −0.019 to +0.014). A second pre-registered study, ml-study-v1, is on main (merge commit c955cc1, 2026-10-20): quantile gradient boosting cut 5% pinball loss to 1.446 versus 1.558 for the Gaussian linear baseline (difference −0.112, 90% interval −0.228 to −0.010). The temporal CNN did not beat the linear model on the mean (+0.015, 90% interval −0.006 to +0.037). None of 80 regime tests survived false-discovery control.",
       "image": {
         "src": "assets/img/world-shock-lab-scenario.webp",
         "alt": "World Shock Lab scenario for a Federal Reserve hike and an oil supply cut, with bands around six Canadian assets.",
@@ -247,42 +247,42 @@
         "pinballQgbm": {
           "label": "5% pinball, quantile gradient boosting",
           "display": "1.446",
-          "source": "results/mlstudy/final.json on branch cursor/ml-study-layer-8c97 (git d0dc395c530d37d225381b3bd7391ee54f83c223, protocol ml-study-v1, generated 20261020T183639Z). Quantile gradient boosting (max depth 2) pooled scaled pinball 1.4455223913308346 at tau 0.05, shown as 1.446. https://github.com/shmorsi/world-shock-lab/pull/1 is an open draft and is not merged."
+          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20; file git_sha d0dc395c530d37d225381b3bd7391ee54f83c223, protocol ml-study-v1, generated 20261020T183639Z). Quantile gradient boosting (max depth 2) pooled scaled pinball 1.4455223913308346 at tau 0.05, shown as 1.446. Merged in https://github.com/shmorsi/world-shock-lab/pull/1."
         },
         "pinballGauss": {
           "label": "5% pinball, Gaussian linear baseline",
           "display": "1.558",
-          "source": "results/mlstudy/final.json on branch cursor/ml-study-layer-8c97. Gaussian linear baseline pooled scaled pinball 1.5580062579531035, shown as 1.558. Pull request 1 is an open draft and is not merged."
+          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). Gaussian linear baseline pooled scaled pinball 1.5580062579531035, shown as 1.558."
         },
         "pinballGap": {
           "label": "Pinball, boosting minus Gaussian linear",
           "display": "−0.112",
-          "source": "results/mlstudy/final.json difference_ml_minus_gauss point −0.11248386662226895, shown as −0.112. Verdict in the file: ML adds value on the 5% tail. This is pinball loss, not a calibration claim. Pull request 1 is an open draft and is not merged."
+          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). difference_ml_minus_gauss point −0.11248386662226895, shown as −0.112. Verdict in the file: ML adds value on the 5% tail. This is pinball loss, not a calibration claim."
         },
         "pinballCi": {
           "label": "90% interval on the pinball gap",
           "display": "−0.228 to −0.010",
-          "source": "results/mlstudy/final.json difference_ml_minus_gauss ci90 [−0.2280172224402263, −0.010335754412836245], shown as −0.228 to −0.010. Pull request 1 is an open draft and is not merged."
+          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). difference_ml_minus_gauss ci90 [−0.2280172224402263, −0.010335754412836245], shown as −0.228 to −0.010."
         },
         "tcnMae": {
           "label": "Mean scaled error, temporal CNN",
           "display": "1.157",
-          "source": "results/mlstudy/final.json on branch cursor/ml-study-layer-8c97. Temporal CNN (16 channels, weight decay 0.001) pooled scaled MAE 1.1571277532978215, shown as 1.157. Pull request 1 is an open draft and is not merged."
+          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). Temporal CNN (16 channels, weight decay 0.001) pooled scaled MAE 1.1571277532978215, shown as 1.157."
         },
         "lpMae": {
           "label": "Mean scaled error, linear projection",
           "display": "1.142",
-          "source": "results/mlstudy/final.json pooled scaled MAE for the linear projection baseline 1.1420847324581223, shown as 1.142. Pull request 1 is an open draft and is not merged."
+          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). Pooled scaled MAE for the linear projection baseline 1.1420847324581223, shown as 1.142."
         },
         "tcnGap": {
           "label": "Mean error, temporal CNN minus linear",
           "display": "+0.015",
-          "source": "results/mlstudy/final.json difference_ml_minus_lp point 0.015043020839699217, shown as +0.015. Verdict in the file: no evidence ML adds value. Pull request 1 is an open draft and is not merged."
+          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). difference_ml_minus_lp point 0.015043020839699217, shown as +0.015. Verdict in the file: no evidence ML adds value."
         },
         "tcnCi": {
           "label": "90% interval on the mean gap",
           "display": "−0.006 to +0.037",
-          "source": "results/mlstudy/final.json difference_ml_minus_lp ci90 [−0.006025486483002209, 0.03684541655024226], shown as −0.006 to +0.037. The interval includes zero. Pull request 1 is an open draft and is not merged."
+          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). difference_ml_minus_lp ci90 [−0.006025486483002209, 0.03684541655024226], shown as −0.006 to +0.037. The interval includes zero."
         },
         "bocDecisions": {
           "label": "BoC decisions dated from press releases",
@@ -390,13 +390,13 @@
           "source": "World Shock Lab case study. Neural-network error minus linear error is −0.003, and the 90% interval includes zero."
         },
         "mlStudy": {
-          "caption": "ml-study-v1 on 168 held-out announcements, 2019–2026. Pooled scaled scores, lower is better. Read from results/mlstudy/final.json on branch cursor/ml-study-layer-8c97. Pull request 1 is an open draft and is not merged. The earlier benchmark above is unchanged.",
+          "caption": "ml-study-v1 on 168 held-out announcements, 2019–2026. Pooled scaled scores, lower is better. Read from results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). The earlier benchmark above is unchanged.",
           "headers": ["Target", "Model", "Score", "Difference vs baseline", "90% interval"],
           "rows": [
             ["Mean (scaled MAE)", "Temporal CNN, 16 channels", "1.157", "+0.015 vs linear 1.142", "−0.006 to +0.037"],
             ["5% tail (pinball)", "Quantile gradient boosting, depth 2", "1.446", "−0.112 vs Gaussian linear 1.558", "−0.228 to −0.010"]
           ],
-          "source": "results/mlstudy/final.json (protocol ml-study-v1, git d0dc395c530d37d225381b3bd7391ee54f83c223, generated 20261020T183639Z) on https://github.com/shmorsi/world-shock-lab/pull/1. File verdicts: no evidence the temporal CNN adds value on the mean; quantile gradient boosting adds value on the 5% tail by pinball loss. Not a calibration claim, and not a comparison to a published model."
+          "source": "results/mlstudy/final.json (protocol ml-study-v1, git d0dc395c530d37d225381b3bd7391ee54f83c223, generated 20261020T183639Z) on main at merge commit c955cc1 (https://github.com/shmorsi/world-shock-lab/commit/c955cc1527f915c9227f65e1ccbca058ce32d9a6), merged from https://github.com/shmorsi/world-shock-lab/pull/1 on 2026-10-20. File verdicts: no evidence the temporal CNN adds value on the mean; quantile gradient boosting adds value on the 5% tail by pinball loss. Not a calibration claim, and not a comparison to a published model."
         }
       }
     },
@@ -498,7 +498,7 @@
           "display": "42,900",
           "count": 42900,
           "decimals": 0,
-          "source": "Resume: Parquet/SQLite pipelines for 42,900 World Bank records. Case study: 177 countries and territories, 1960–2024."
+          "source": "ATLAS repository (https://github.com/shmorsi/atlas): Parquet/SQLite pipelines for 42,900 World Bank records. Case study: 177 countries and territories, 1960–2024."
         },
         "countries": {
           "label": "Countries and territories",
@@ -534,22 +534,22 @@
           "display": "12",
           "count": 12,
           "decimals": 0,
-          "source": "Resume: 12 PyTorch GRU and graph forecasting checkpoints compared on held-out baselines. Case study: release v0.1.2 replays all 12."
+          "source": "ATLAS repository (https://github.com/shmorsi/atlas): 12 PyTorch GRU and graph forecasting checkpoints compared on held-out baselines. Case study: release v0.1.2 replays all 12."
         },
         "backendTests": {
           "label": "Backend tests",
           "display": "44",
-          "source": "Resume: 44 backend tests for the FastAPI/DuckDB services."
+          "source": "ATLAS repository (https://github.com/shmorsi/atlas): 44 backend tests for the FastAPI/DuckDB services."
         },
         "uiTests": {
           "label": "Playwright UI tests",
           "display": "27",
-          "source": "Resume: 27 Playwright UI tests."
+          "source": "ATLAS repository (https://github.com/shmorsi/atlas): 27 Playwright UI tests."
         },
         "tests": {
           "label": "Backend + UI tests",
           "display": "44 + 27",
-          "source": "Resume: 44 backend tests and 27 Playwright UI tests, release v0.1.2, with cross-platform CI."
+          "source": "ATLAS repository (https://github.com/shmorsi/atlas): 44 backend tests and 27 Playwright UI tests, release v0.1.2, with cross-platform CI."
         },
         "gruParams": {
           "label": "GRU parameters",
