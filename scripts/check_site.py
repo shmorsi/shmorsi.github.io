@@ -48,11 +48,12 @@ if (ROOT / "world-shock-lab").exists():
     errors.append("world-shock-lab/ must not exist in this repo; the live site is served from the other repository")
 
 projects = {project["id"]: project for project in DATA["projects"]}
-placeholder = projects["macro-analyst-agent"]
-if placeholder.get("stats") or placeholder.get("tables") or placeholder.get("homeMetricIds"):
-    errors.append("Macro Analyst Agent must not carry metrics until its repository publishes them")
-if placeholder.get("role") != "placeholder":
-    errors.append("Macro Analyst Agent role must stay 'placeholder'")
+for project_id in ("atlas", "macro-analyst-agent"):
+    if project_id in projects:
+        errors.append(f"{project_id} must not be listed on the site")
+for name in ("atlas.html", "macro-analyst-agent.html"):
+    if (ROOT / "projects" / name).exists():
+        errors.append(f"projects/{name} must not be served")
 
 for project in DATA["projects"]:
     stats = project.get("stats") or {}
@@ -125,10 +126,14 @@ for name in ("quotient.jsonl", "abort.jsonl", "revise.jsonl", "index.json"):
 orbit_project = projects.get("orbit")
 if orbit_project is None or orbit_project.get("role") != "featured":
     errors.append("Orbit must be a featured project")
-if projects["atlas"].get("role") != "secondary":
-    errors.append("ATLAS stays a secondary mission")
+for path in [*html_files, ROOT / "README.md", ROOT / "sitemap.xml", ROOT / "data" / "projects.json"]:
+    if not path.exists():
+        continue
+    page = path.read_text(encoding="utf-8")
+    if re.search(r"\bATLAS\b|macro-analyst-agent|Macro Analyst", page):
+        errors.append(f"{path.relative_to(ROOT)} still mentions ATLAS or the Macro Analyst Agent")
 
 if errors:
     print("\n".join(errors))
     sys.exit(1)
-print(f"ok — {len(projects)} projects, placeholder has no metrics")
+print(f"ok — {len(projects)} projects")
