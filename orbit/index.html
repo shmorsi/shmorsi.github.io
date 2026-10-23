@@ -65,9 +65,9 @@
     <div class="wrap">
       <section class="scene" id="scene" aria-labelledby="scene-title" data-scene="replay/">
         <h2 id="scene-title" class="visually-hidden">Mission control replay</h2>
-        <div class="scene-bar" data-tags><span class="scene-tag">Replay of a saved engine trace</span><span class="scene-tag warn">Scripted harness</span><span class="scene-tag">Not live</span><span class="scene-tag">Not a model score</span></div>
-        <p class="scene-q">How many jobs in the jobs table used machine printer-a?</p>
-        <div class="stage" role="img" aria-label="Mission control: agent stations, a tools rack and a grounding gate. The caption below describes each step as it plays.">
+        <div class="scene-bar" data-tags><span class="scene-tag">Replay of a saved engine trace</span><span class="scene-tag warn">Scripted harness</span><span class="scene-tag">Not live</span><span class="scene-tag">Not a model score</span><span class="scene-tag">Team v2, 6 roles</span></div>
+        <p class="scene-q">How many laser jobs ran longer than the second-person limit written in the laser note?</p>
+        <div class="stage" role="img" aria-label="Mission control: one station per role, a tools rack, and a gate that checks each claim. The caption below describes each step as it plays.">
           <div class="grid-bg"></div>
         </div>
         <div class="caption" aria-live="off">
@@ -80,9 +80,16 @@
           <button class="text-link" type="button" data-restart>Restart</button>
           <label>Trace
             <select data-trace>
-              <option value="revise.jsonl">dev-001: critic sends it back</option>
-              <option value="quotient.jsonl">dev-012: three tool calls</option>
-              <option value="abort.jsonl">dev-015: nothing to prove, refuse</option>
+              <optgroup label="Team v2, six roles">
+                <option value="v2/revise.jsonl" selected>dev-008: critic sends it back</option>
+                <option value="v2/accept.jsonl">dev-012: three tool calls, accepted</option>
+                <option value="v2/refuse.jsonl">dev-009: auditor refuses</option>
+              </optgroup>
+              <optgroup label="Team v1, three roles">
+                <option value="revise.jsonl">dev-001: critic sends it back</option>
+                <option value="quotient.jsonl">dev-012: three tool calls</option>
+                <option value="abort.jsonl">dev-015: nothing to prove, refuse</option>
+              </optgroup>
             </select>
           </label>
           <div class="progress" aria-hidden="true"><i></i></div>
@@ -91,7 +98,7 @@
           <summary>Read every step as text</summary>
           <ol data-transcript></ol>
         </details>
-        <p class="file-note">Each step is read from a JSONL trace the engine wrote. The clock is a replay clock, not measured latency. The scripted harness is a fixed check of the tools, not a language model.</p>
+        <p class="file-note">Each step is read from a JSONL trace the engine wrote. The clock is a replay clock, not measured latency. The scripted harness is a fixed check of the tools that follows each task's oracle, not a language model, so these replays show the protocol, not model skill.</p>
       </section>
     </div>
 
@@ -109,11 +116,21 @@
         <div class="prose">
           <p class="big">Every claim has to point at evidence. If the evidence does not hold, the claim does not ship.</p>
           <ul>
-            <li><strong>Roles.</strong> A planner writes at most four steps, or an empty plan when the notes cannot answer. A worker takes one step at a time. A critic accepts grounded claims and sends the rest back, at most twice.</li>
+            <li><strong>Roles, v1.</strong> A planner writes at most four steps, or an empty plan when the notes cannot answer. A worker takes one step at a time. A critic accepts grounded claims and sends the rest back, at most twice. Every measured number on this page is from this three-role team.</li>
             <li><strong>Tools, on device.</strong> Six sandboxed tools: a Python cell, a calculator, file read, a per-run file write, keyword search over the bundled notes, and an offline web cache. Nothing in the tool path opens a network connection.</li>
             <li><strong>The grounding gate.</strong> After the critic, a gate keeps a claim only when the cited tool result contains it, or a successful Python call printed it. Otherwise it refuses.</li>
             <li><strong>Frozen tests.</strong> Dev questions train and tune. The 12-task test file stays frozen and is scored once per model. A leakage check rejects any test id, question or snippet in the training files.</li>
           </ul>
+          <h3>Six roles, v2</h3>
+          <p>The same tasks, tools and gate, with narrower seats. Each turn is one JSON object checked against that role's schema, so a tool outside a role's list fails validation and never runs.</p>
+          <dl class="facts roles">
+            <div><dt>Commander</dt><dd>No tools. Assigns at most four steps, each to the scout, engineer or analyst.</dd></div>
+            <div><dt>Scout</dt><dd>retrieve, read_file, web_search. Reads the corpus. Cannot run code or answer.</dd></div>
+            <div><dt>Engineer</dt><dd>python, write_file. One sandboxed cell or one workspace write per step. Cannot answer.</dd></div>
+            <div><dt>Analyst</dt><dd>calculator. The only seat that drafts the final answer, citing tool results.</dd></div>
+            <div><dt>Critic</dt><dd>No tools. Accepts the draft or sends it back, at most twice.</dd></div>
+            <div><dt>Auditor</dt><dd>No tools, and not a model. Code that applies the grounding gate to a frozen copy of the trace and marks each claim and number as supported or not.</dd></div>
+          </dl>
           <p>QLoRA fine-tunes a small open model on dev-split dialogues. A separate teacher pass can distill dialogues through the Claude API with hard request and dollar caps, and never sees the frozen test.</p>
         </div>
       </section>
@@ -126,10 +143,10 @@
           <div class="table-wrap" tabindex="0" role="region" aria-label="v1 results" data-table="orbit.tables.v1"></div>
           <div class="table-wrap" tabindex="0" role="region" aria-label="v1 paired comparison" data-table="orbit.tables.v1Pairs"></div>
           <p class="file-note">Evaluation pending: single agent vs team vs fine-tuned team on a frozen test set, under harness v3. The harness changed after the v1 run, so all four configurations must be scored again before any new comparison. Until then, the v1 numbers above stand alone.</p>
-          <div class="slot-empty" aria-label="v2 results slot">
-            <span class="label">v2, larger team</span>
+          <div class="slot-empty" aria-label="v2 results slot" data-slot="orbit-v2" data-source="">
+            <span class="label">v2, six roles</span>
             <strong>Not yet scored</strong>
-            <p>A larger team is in progress and has no score. This slot stays empty until its frozen-test result file exists.</p>
+            <p>The six-role team is built and its traces replay above, but it has no frozen-test score. This slot stays empty until its result file exists.</p>
           </div>
         </div>
       </section>
@@ -138,7 +155,7 @@
         <h2 id="s-vision">Where this goes</h2>
         <div class="prose">
           <p class="big">Teams of agents will do real work. The ones worth trusting will show their receipts.</p>
-          <p>Orbit is a small, honest version of that idea: roles that check each other, tools that cannot reach the internet, a gate that refuses what it cannot cite, and a trace you can replay step by step. The next step is more roles, each with a narrower job and its own checks, scored the same way on the same frozen test.</p>
+          <p>Orbit is a small, honest version of that idea: roles that check each other, tools that cannot reach the internet, a gate that refuses what it cannot cite, and a trace you can replay step by step. The six-role team is the next step: narrower jobs, each with its own checks. It gets scored the same way, on the same frozen test, before any claim about it.</p>
           <p>If an AI team can be audited like this, a company can measure it, improve it, and decide when to rely on it.</p>
         </div>
       </section>
@@ -146,11 +163,11 @@
       <section class="cs-section" id="replay" aria-labelledby="s-replay">
         <h2 id="s-replay">Full replay</h2>
         <div class="prose">
-          <p>The full Mission Control console from the repository, with the mission log and flight rules. It loads the same three saved traces. The run form at the bottom needs the local server; on this site it says so, and the saved traces still play.</p>
+          <p>The full Mission Control console from the repository, with the mission log and flight rules. It loads the same saved traces, three per team. The run form at the bottom needs the local server; on this site it says so, and the saved traces still play.</p>
           <div class="replay-embed">
-            <iframe src="replay/index.html" title="Mission Control replay of saved Orbit traces" loading="lazy"></iframe>
+            <iframe src="replay/index.html?trace=v2/revise.jsonl" title="Mission Control replay of saved Orbit traces" loading="lazy"></iframe>
           </div>
-          <p><a class="text-link" href="replay/index.html">Open the replay full screen</a></p>
+          <p><a class="text-link" href="replay/index.html?trace=v2/revise.jsonl">Open the replay full screen</a></p>
         </div>
       </section>
 
@@ -189,7 +206,7 @@
                 </g>
               </svg>
             </div>
-            <figcaption>The revise arrow is the critic sending work back to the worker.</figcaption>
+            <figcaption>Team v1, three roles. The revise arrow is the critic sending work back to the worker. In v2 the analyst drafts, and the auditor applies the same gate.</figcaption>
           </figure>
         </div>
       </section>

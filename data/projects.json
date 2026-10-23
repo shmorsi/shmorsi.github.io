@@ -660,8 +660,8 @@
       "badge": "Replay",
       "kicker": "AI agents",
       "title": "Orbit",
-      "summary": "A local planner, worker and critic over a fictional makerspace corpus. The worker calls sandboxed tools, the critic sends weak claims back, and a grounding gate refuses what the cited tool result does not contain.",
-      "caveat": "Measured once on a frozen 12-task test (3 agents, harness v2). Task success went from 2 to 3 of 12, and that gain is not significant: the paired interval includes zero. The harness has since changed to v3, and the rescore under v3 is pending.",
+      "summary": "A local planner, worker and critic over a fictional makerspace corpus. The worker calls sandboxed tools, the critic sends weak claims back, and a grounding gate refuses what the cited tool result does not contain. A six-role v2 team now runs the same tasks and gate, and replays on the mission page.",
+      "caveat": "Measured once on a frozen 12-task test (3 agents, harness v2). Task success went from 2 to 3 of 12, and that gain is not significant: the paired interval includes zero. The harness has since changed to v3, and the rescore under v3 is pending. The six-role v2 team has not been scored.",
       "image": {
         "src": "assets/img/orbit-mission.webp",
         "alt": "Mission Control replay of a saved engine trace, with planner, worker and critic, marked scripted harness.",
@@ -705,9 +705,9 @@
           "source": "orbit-multi-agent results/v2_qwen1.5b: team_lora 3 of 12, team_base 2 of 12. Paired bootstrap −0.16666666666666666 to 0.3333333333333333 includes zero: not significant."
         },
         "team": {
-          "label": "Agents",
+          "label": "Agents in the scored team",
           "display": "3",
-          "source": "orbit-multi-agent README: planner, worker and critic. A six-role team is planned and not yet scored."
+          "source": "orbit-multi-agent README: v1 is planner, worker and critic, and every measured number is a v1 team result. The v2 team (commander, scout, engineer, analyst, critic, auditor) is built in PR #11 and has not been scored."
         },
         "toolCount": {
           "label": "Sandboxed tools",

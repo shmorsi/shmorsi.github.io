@@ -12,11 +12,57 @@ const state = {
   live: false,
 };
 
-const seats = {
+const V1_SEATS = {
   planner: document.getElementById("seat-planner"),
   worker: document.getElementById("seat-worker"),
   critic: document.getElementById("seat-critic"),
 };
+let seats = V1_SEATS;
+let team = "v1";
+
+// Team v2: six seats around the ring, clockwise in the order work flows.
+const V2_ROLES = [
+  ["commander", "Commander", "Assign"],
+  ["scout", "Scout", "Read"],
+  ["engineer", "Engineer", "Code"],
+  ["analyst", "Analyst", "Draft"],
+  ["critic", "Critic", "Check"],
+  ["auditor", "Auditor", "Audit"],
+];
+
+function teamOf(mission, events) {
+  const rules = (mission && mission.flight_rules) || {};
+  if ((mission && mission.team) === "v2" || rules.team === "v2") return "v2";
+  return events.some((event) => event.kind === "assign" || event.kind === "audit") ? "v2" : "v1";
+}
+
+function setTeam(next) {
+  team = next;
+  document.body.dataset.team = next;
+  const stage = document.getElementById("stage");
+  stage.querySelectorAll(".seat.v2").forEach((node) => node.remove());
+  for (const seat of Object.values(V1_SEATS)) seat.hidden = next === "v2";
+  if (next !== "v2") {
+    seats = V1_SEATS;
+    return;
+  }
+  seats = {};
+  const anchor = document.getElementById("pulse-trail");
+  V2_ROLES.forEach(([key, label, verb], index) => {
+    const angle = -Math.PI / 2 + (index * Math.PI) / 3;
+    const seat = document.createElement("div");
+    seat.className = `seat v2 ${key}`;
+    seat.id = `seat-${key}`;
+    seat.style.left = `${50 + Math.cos(angle) * 38}%`;
+    seat.style.top = `${50 + Math.sin(angle) * 38}%`;
+    seat.append(label);
+    const small = document.createElement("small");
+    small.textContent = verb;
+    seat.append(small);
+    stage.insertBefore(seat, anchor);
+    seats[key] = seat;
+  });
+}
 
 if (params.get("shot")) document.body.classList.add("shot");
 if (params.get("record")) document.body.classList.add("record");
@@ -70,8 +116,20 @@ function setNotice(text) {
   document.getElementById("notice").textContent = text || "";
 }
 
+function finding(item) {
+  const name = item.claim != null ? item.claim : `number ${item.number}`;
+  return `${item.ok ? "✓" : "✗"} ${name}${item.citation ? ` ${item.citation}` : ""}`;
+}
+
 function summarize(event) {
   const payload = event.payload;
+  if (event.kind === "assign") return `Step ${event.step_number} to ${event.role}: ${event.goal}${event.tool ? ` (${event.tool})` : ""}`;
+  if (event.kind === "draft") return `Draft: ${event.answer || event.status}`;
+  if (event.kind === "audit") {
+    const items = (event.findings || []).map(finding).join(" · ");
+    return `${event.verdict === "pass" ? "Pass" : "Refuse"}: ${items}`;
+  }
+  if (event.kind === "final") return `${event.status === "refuse" ? "Refused" : "Final"}: ${event.answer || ""}`;
   if (payload && Array.isArray(payload.steps)) {
     const tools = payload.steps.map((step) => step.tool).filter(Boolean);
     return tools.length ? tools.join(" · ") : "Empty plan";
@@ -86,7 +144,25 @@ function summarize(event) {
   return event.kind;
 }
 
+function routeV2(event) {
+  const name = (key) => (key === "tool" ? "Tool" : key.charAt(0).toUpperCase() + key.slice(1));
+  const action = event.payload && event.payload.action;
+  const verdict = event.payload && event.payload.verdict;
+  if (event.kind === "assign") return `Commander → ${name(event.role)}`;
+  if (event.kind === "result") return `Tool → ${name(event.by || "analyst")}`;
+  if (event.kind === "draft") return "Analyst → Critic";
+  if (event.kind === "revise") return "Critic → Analyst";
+  if (event.kind === "audit") return "Auditor · claim check";
+  if (event.kind === "final") return "Auditor → Trace";
+  if (event.agent === "critic") return verdict === "accept" ? "Critic → Auditor" : "Critic → Analyst";
+  if (event.agent === "commander") return "Commander · plan";
+  if (action === "tool") return `${name(event.agent)} → Tool`;
+  if (action === "final") return `${name(event.agent)} → Critic`;
+  return event.agent ? name(event.agent) : "Bus";
+}
+
 function route(event) {
+  if (team === "v2") return routeV2(event);
   if (event.agent === "planner") return "Planner → Worker";
   if (event.agent === "tool") return "Tool → Worker";
   if (event.agent === "critic") return "Critic → Worker";
@@ -101,10 +177,16 @@ function renderRules(rules) {
   const root = document.getElementById("rules");
   root.replaceChildren();
   if (!rules) return;
+  const v2 = rules.team === "v2";
+  const tools = (key) => {
+    const list = (rules.permissions && rules.permissions[key]) || [];
+    return list.length ? ` Tools: ${list.join(", ")}.` : "";
+  };
+  const roleCards = v2
+    ? V2_ROLES.map(([key, label]) => [label, rules[key] ? `${rules[key]}${tools(key)}` : ""])
+    : [["Planner", rules.planner], ["Worker", rules.worker], ["Critic", rules.critic]];
   const cards = [
-    ["Planner", rules.planner],
-    ["Worker", rules.worker],
-    ["Critic", rules.critic],
+    ...roleCards,
     ["Limits", `At most ${rules.max_turns} turns, ${rules.max_critic_retries} revise passes, and ${rules.max_schema_tries} schema tries on a turn.`],
   ];
   for (const [title, body] of cards) {
@@ -159,8 +241,28 @@ function pulse(fromName, toName) {
   if (trail) moveDot(trail, start, end, quiet, 90);
 }
 
+function focusAgentV2(event) {
+  const verdict = event.payload && event.payload.verdict;
+  const action = event.payload && event.payload.action;
+  const lit = event.agent === "tool" ? event.by : event.agent;
+  if (seats[lit]) seats[lit].classList.add("lit");
+  if (event.kind === "message") return;
+  if (event.kind === "assign") pulse("commander", event.role);
+  else if (event.kind === "result") pulse("tool", event.by || "analyst");
+  else if (action === "tool") pulse(event.agent, "tool");
+  else if (event.kind === "draft") pulse("analyst", "critic");
+  else if (event.kind === "revise" || verdict === "revise") pulse("critic", "analyst");
+  else if (verdict === "accept") pulse("critic", "auditor");
+  const auditor = seats.auditor;
+  if (event.kind === "audit" && auditor) auditor.dataset.verdict = event.verdict;
+}
+
 function focusAgent(event) {
   for (const seat of Object.values(seats)) seat.classList.remove("lit");
+  if (team === "v2") {
+    focusAgentV2(event);
+    return;
+  }
   const name = event.agent === "tool" ? "worker" : event.agent;
   if (seats[name]) seats[name].classList.add("lit");
   if (event.kind === "message") return;
@@ -175,6 +277,7 @@ function focusAgent(event) {
 
 function render() {
   const shown = state.events.slice(0, state.cursor);
+  if (seats.auditor && !shown.some((event) => event.kind === "audit")) delete seats.auditor.dataset.verdict;
   const steps = shown.reduce((max, event) => Math.max(max, event.step || 0), 0);
   const retries = shown.filter((event) => event.kind === "revise").length;
   const tools = shown.filter((event) => event.kind === "result").length;
@@ -269,6 +372,7 @@ function loadMission(mission, events) {
   state.events = events;
   state.cursor = 0;
   state.live = false;
+  setTeam(teamOf(mission, events));
   document.getElementById("question").textContent = mission && mission.question ? mission.question : "Saved trace";
   applyHarness(mission);
   renderRules(mission && mission.flight_rules);
@@ -313,6 +417,28 @@ async function loadIndex() {
     option.value = item.file;
     option.textContent = `${item.task_id} · ${item.status}`;
     select.append(option);
+  }
+  // Team v2 traces live in traces/v2/. A missing index there leaves the v1 list as it was.
+  try {
+    const v2Response = await fetch("traces/v2/index.json");
+    if (v2Response.ok) {
+      const v2Index = await v2Response.json();
+      const v1Group = document.createElement("optgroup");
+      v1Group.label = "Team v1, three roles";
+      v1Group.append(...select.children);
+      const v2Group = document.createElement("optgroup");
+      v2Group.label = "Team v2, six roles";
+      for (const item of v2Index) {
+        const option = document.createElement("option");
+        option.value = `v2/${item.file}`;
+        option.textContent = `${item.task_id} · ${item.outcome || item.status}`;
+        v2Group.append(option);
+        index.push({ file: option.value });
+      }
+      select.append(v1Group, v2Group);
+    }
+  } catch (error) {
+    setNotice("");
   }
   const requested = params.get("trace");
   const choice = index.some((item) => item.file === requested) ? requested : "revise.jsonl";
