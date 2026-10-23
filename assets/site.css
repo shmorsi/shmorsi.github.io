@@ -444,13 +444,47 @@ tr.is-best th, tr.is-best td { color: var(--ink); font-weight: 600; }
 .station.lit, .rack.lit, .gate.lit { color: var(--ink); }
 .station.lit .glow, .rack.lit .glow, .gate.lit .glow { opacity: 1; }
 .station.lit .name { color: var(--role, var(--accent)); }
-.gate .state { min-height: 1.4em; font-size: 12px; font-weight: 650; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+.station .state, .rack .state, .gate .state {
+  min-height: 1.4em; font-size: 11px; font-weight: 650; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--role, var(--ink)); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.rack .state { color: var(--muted); text-transform: none; letter-spacing: 0.02em; font-family: var(--mono); font-weight: 500; }
+.gate .state { font-size: 12px; color: var(--ink); }
+.station.assigned { color: var(--muted); }
+.station.assigned .glow { opacity: 0.55; }
+.station.assigned .name { color: var(--role, var(--accent)); }
+.stage[data-team="v2"] .station svg, .stage[data-team="v2"] .rack svg, .stage[data-team="v2"] .gate svg { width: 92px; height: 64px; }
+.stage[data-team="v2"] .station, .stage[data-team="v2"] .rack, .stage[data-team="v2"] .gate { gap: 4px; }
+.stage.compact .station, .stage.compact .rack, .stage.compact .gate { width: 112px; }
+.stage.compact .station svg, .stage.compact .rack svg, .stage.compact .gate svg { width: 80px; height: 56px; }
+.stage.compact .verb { font-size: 11px; line-height: 1.3; }
+.stage.compact .state { font-size: 10px; }
+.ledger {
+  position: absolute; display: grid; gap: 6px; padding: 10px 12px 12px; font-size: 12px; line-height: 1.35;
+  background: var(--bg); border: 1px solid var(--line); transition: border-color 0.35s;
+}
+.ledger[data-verdict="pass"] { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.ledger[data-verdict="refuse"] { border-color: color-mix(in srgb, var(--r-critic) 70%, transparent); }
+.ledger-title { font-size: 11px; font-weight: 650; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.ledger .wait { margin: 0; color: var(--dim); }
+.ledger ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ledger li { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 8px; align-items: center; min-height: 20px; }
+.ledger li svg { width: 14px; height: 14px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ledger li.ok svg { stroke: var(--accent); }
+.ledger li.no svg { stroke: var(--r-critic); }
+.ledger li .what { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ledger li .src { color: var(--dim); font-family: var(--mono); font-size: 11px; white-space: nowrap; }
+.ledger li.no .src { color: var(--r-critic); }
+@media (prefers-reduced-motion: no-preference) {
+  .ledger.animate li { opacity: 0; animation: tick-in 0.4s var(--ease) forwards; animation-delay: calc(var(--k) * 280ms + 120ms); }
+}
+@keyframes tick-in { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
 .gate[data-verdict="revise"] .state { color: var(--r-worker); }
 .gate[data-verdict="refuse"] .state { color: var(--r-critic); }
 .gate[data-verdict="accept"] .state, .gate[data-verdict="answer"] .state { color: var(--accent); }
 .pulse {
   position: absolute; left: 0; top: 0; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent), 0 0 18px var(--accent);
+  background: var(--pulse, var(--accent)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--pulse, var(--accent)) 25%, transparent), 0 0 18px var(--pulse, var(--accent));
   opacity: 0; will-change: transform, opacity; pointer-events: none;
 }
 .links-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
