@@ -1,7 +1,9 @@
 /* Orbit mission-control scene.
-   Plays a saved engine trace from replay/traces/. Stations come from the roles present in the
-   trace, so a trace with more roles needs only an entry in ROLES, not new layout code.
-   Motion uses transform and opacity only. Reduced motion shows the final frame, still. */
+   Plays a saved engine trace from replay/traces/. Stations come from the roles in the trace:
+   v1 traces have three (planner, worker, critic) and a grounding gate; v2 traces have six,
+   and the auditor is the gate. Each v2 event kind (assign, draft, revise, audit, final) has
+   its own visual state. Motion uses transform and opacity only. Reduced motion shows the
+   final frame, still. */
 (() => {
   const mount = document.querySelector("[data-scene]");
   if (!mount) return;
@@ -9,14 +11,19 @@
   const ROLES = {
     planner: { label: "Planner", verb: "Writes the plan", color: "var(--r-planner)" },
     worker: { label: "Worker", verb: "Calls tools", color: "var(--r-worker)", usesTools: true },
-    critic: { label: "Critic", verb: "Checks each claim", color: "var(--r-critic)", judges: true },
-    commander: { label: "Commander", verb: "Sets the plan", color: "var(--r-planner)" },
-    scout: { label: "Scout", verb: "Finds the data", color: "var(--r-scout)", usesTools: true },
-    engineer: { label: "Engineer", verb: "Runs the tools", color: "var(--r-worker)", usesTools: true },
-    analyst: { label: "Analyst", verb: "Works the numbers", color: "var(--r-analyst)", usesTools: true },
-    auditor: { label: "Auditor", verb: "Signs off", color: "var(--r-auditor)", judges: true }
+    critic: { label: "Critic", verb: "Checks each claim", verbV2: "Accepts or revises", color: "var(--r-critic)", judges: true },
+    commander: { label: "Commander", verb: "Assigns steps", color: "var(--r-planner)" },
+    scout: { label: "Scout", verb: "Reads the corpus", color: "var(--r-scout)", usesTools: true },
+    engineer: { label: "Engineer", verb: "Runs code", color: "var(--r-worker)", usesTools: true },
+    analyst: { label: "Analyst", verb: "Drafts the answer", color: "var(--r-analyst)", usesTools: true },
+    auditor: { label: "Auditor", verb: "Code, not a model", color: "var(--r-auditor)", judges: true }
   };
   const ORDER = ["commander", "planner", "scout", "engineer", "worker", "analyst", "critic", "auditor"];
+  const V2_EDGES = [
+    ["commander", "scout"], ["commander", "engineer"], ["commander", "analyst"],
+    ["scout", "tool"], ["engineer", "tool"], ["analyst", "tool"],
+    ["analyst", "critic"], ["critic", "auditor"]
+  ];
   const fallbackRole = (name) => ({ label: name.charAt(0).toUpperCase() + name.slice(1), verb: "Agent", color: "var(--ink)" });
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -57,136 +64,266 @@
       <path d="M16 62V10h60v52M28 62V22h36v40" fill="none" stroke="currentColor" stroke-width="1.25"/>
       <path d="M10 10h72" stroke="currentColor" stroke-width="1.25"/>
     </svg>`;
+  const TICK = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 4.5"/></svg>`;
+  const CROSS = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>`;
 
   let mission = null;
+  let team = "v1";
+  let roles = [];
   let events = [];
   let cursor = 0;
   let playing = false;
   let timer = null;
   let nodes = {};
   let centers = {};
+  let iconDy = {};
+  let ledger = null;
   let pulse = null;
   const STEP_MS = Number(params.get("stepms")) || 1900;
-  let ICON_DY = 20;
 
   const esc = (value) => String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
   const pad = (n) => String(n).padStart(2, "0");
   const clock = (s) => `T+${pad(Math.floor(s / 60))}:${pad(Math.round(s) % 60)}`;
   const role = (name) => ROLES[name] || fallbackRole(name);
+  const verbFor = (name) => (team === "v2" && role(name).verbV2) || role(name).verb;
+  const clip = (text, n) => (text.length > n ? `${text.slice(0, n - 1)}…` : text);
+  const rank = (name) => (ORDER.indexOf(name) < 0 ? 99 : ORDER.indexOf(name));
 
   function codeLine(code) {
     const lines = String(code || "").split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
     return lines[lines.length - 1] || "";
   }
 
+  function resultText(r) {
+    if (r.stdout != null) return String(r.stdout).trim();
+    if (r.result != null) return String(r.result);
+    if (r.value != null) return String(r.value);
+    if (Array.isArray(r.matches)) return r.matches.length ? `"${clip(String(r.matches[0].text || ""), 90)}"` : "no match";
+    if (Array.isArray(r.results)) return r.results.length ? `"${clip(String(r.results[0].snippet || r.results[0].title || ""), 90)}"` : "no result";
+    if (r.text != null) return `"${clip(String(r.text), 90)}"`;
+    return r.ok === false ? "an error" : "done";
+  }
+
+  function findingLabel(f) {
+    if (f.claim != null && f.value != null) return `${f.claim} = ${f.value}`;
+    if (f.claim != null && f.text != null) return `${f.claim}: "${f.text}"`;
+    if (f.claim != null) return f.claim;
+    return `Number ${f.number}`;
+  }
+
+  function findingSource(f) {
+    if (f.ok) return f.citation || "in trace";
+    return f.citation ? `not in ${f.citation}` : "in no result";
+  }
+
+  function cites(claims) {
+    const list = (claims || []).map((c) => c.citation).filter(Boolean);
+    return list.length ? ` (cites ${list.join(", ")})` : "";
+  }
+
   function describe(event) {
     const p = event.payload || {};
+    const name = role(event.agent || "agent").label;
     if (event.kind === "result") {
-      const r = event.result || {};
-      const out = r.stdout != null ? String(r.stdout).trim() : r.value != null ? String(r.value) : r.ok === false ? "error" : "done";
-      return { who: "Tools", text: `${event.tool} returned ${out || "nothing"}`, key: "tool" };
+      return { who: "Tools", text: `${event.tool} returned ${resultText(event.result || {}) || "nothing"}${event.call ? `, as ${event.call}` : ""}`, key: "tool" };
     }
-    if (event.kind === "revise") return { who: role(event.agent).label, text: `Sent back: ${event.reason || "revise"}`, key: event.agent, verdict: "revise" };
-    if (event.kind === "invalid") return { who: role(event.agent).label, text: `Schema error: ${event.error || "invalid"}`, key: event.agent };
+    if (event.kind === "assign") {
+      return { who: name, text: `Assigns step ${event.step_number} to the ${role(event.role).label.toLowerCase()}: ${event.goal}${event.tool ? ` (${event.tool})` : ""}`, key: event.agent };
+    }
+    if (event.kind === "draft") {
+      return { who: name, text: `Drafts ${event.status === "refuse" ? "a refusal" : "an answer"}: ${event.answer}${cites(event.claims)}`, key: event.agent };
+    }
+    if (event.kind === "revise") return { who: name, text: `Sends it back: ${event.reason || "revise"}`, key: event.agent, verdict: "revise" };
+    if (event.kind === "audit") {
+      const findings = event.findings || [];
+      const bad = findings.filter((f) => !f.ok);
+      const ok = findings.length - bad.length;
+      const miss = bad.length ? ` ${bad.map((f) => (f.claim != null ? f.claim : f.number)).join(", ")}: ${bad[0].reason}.` : "";
+      return { who: name, text: `Checks ${findings.length} items against the tool results. ${ok} of ${findings.length} supported.${miss} ${event.verdict === "pass" ? "Pass." : "Refuse."}`, key: event.agent };
+    }
+    if (event.kind === "final") {
+      return { who: name, text: `${event.status === "refuse" ? "Refused" : "Final answer"}: ${event.answer}`, key: event.agent, final: true };
+    }
+    if (event.kind === "invalid") return { who: name, text: `Schema error: ${event.error || "invalid"}`, key: event.agent };
     if (Array.isArray(p.steps)) {
-      const text = p.steps.length ? `Plan: ${p.steps.map((s) => `${s.goal}${s.tool ? ` (${s.tool})` : ""}`).join("; ")}` : "Plan: none. The corpus cannot answer this.";
-      return { who: role(event.agent).label, text, key: event.agent };
+      const text = p.steps.length
+        ? `Plan: ${p.steps.map((s) => `${s.goal}${s.role || s.tool ? ` (${[s.role, s.tool].filter(Boolean).join(", ")})` : ""}`).join("; ")}`
+        : "Plan: none. The corpus cannot answer this.";
+      return { who: name, text, key: event.agent };
     }
     if (p.action === "tool") {
       const args = p.arguments || {};
       const detail = args.code ? codeLine(args.code) : args.expression || args.path || args.query || "";
-      return { who: role(event.agent).label, text: `Calls ${p.tool}: ${detail}`, key: event.agent, toTools: true };
+      return { who: name, text: `Calls ${p.tool}: ${detail}`, key: event.agent, toTools: true };
     }
     if (p.action === "final") {
-      const claims = (p.claims || []).map((c) => `cites ${c.citation}`).join(", ");
-      return { who: role(event.agent).label, text: `${p.status === "refuse" ? "Refuses" : "Answers"}: ${p.answer}${claims ? ` (${claims})` : ""}`, key: event.agent, final: true };
+      return { who: name, text: `${p.status === "refuse" ? "Refuses" : "Answers"}: ${p.answer}${cites(p.claims)}`, key: event.agent, final: true };
     }
-    if (p.verdict) return { who: role(event.agent).label, text: `${p.verdict === "accept" ? "Accepts" : p.verdict === "refuse" ? "Refuses" : "Revise"}: ${p.reason || ""}`, key: event.agent, verdict: p.verdict };
-    return { who: role(event.agent || "agent").label, text: event.kind, key: event.agent };
+    if (p.verdict) return { who: name, text: `${p.verdict === "accept" ? "Accepts" : p.verdict === "refuse" ? "Refuses" : "Revise"}: ${p.reason || ""}`, key: event.agent, verdict: p.verdict };
+    return { who: name, text: event.kind, key: event.agent };
+  }
+
+  /* v2 writes a parsed turn and then the event it becomes (draft, revise). Show the event once. */
+  function compact(rows) {
+    const list = rows.filter((r) => r.kind !== "mission" && r.kind !== "message");
+    if (team !== "v2") return list;
+    return list.filter((e, i) => {
+      const next = list[i + 1];
+      return !(e.kind === "parsed" && next && next.agent === e.agent && (next.kind === "draft" || next.kind === "revise"));
+    });
+  }
+
+  function make(cls, art, name, verb, color) {
+    const el = document.createElement("div");
+    el.className = cls;
+    if (color) el.style.setProperty("--role", color);
+    el.innerHTML = `${art}<span class="name">${esc(name)}</span><span class="verb">${esc(verb)}</span><span class="state"></span>`;
+    stage.append(el);
+    return el;
+  }
+
+  function makeLedger() {
+    const el = document.createElement("div");
+    el.className = "ledger";
+    el.setAttribute("aria-hidden", "true");
+    el.innerHTML = `<span class="ledger-title">Claim check</span><p class="wait">Runs after the critic accepts</p><ol></ol>`;
+    stage.append(el);
+    return el;
+  }
+
+  function maxFindings() {
+    return events.reduce((n, e) => (e.kind === "audit" ? Math.max(n, (e.findings || []).length) : n), 0);
   }
 
   function layout() {
-    const roles = [...new Set(events.map((e) => e.agent).filter((a) => a && a !== "tool"))]
-      .sort((a, b) => (ORDER.indexOf(a) + 99 * (ORDER.indexOf(a) < 0)) - (ORDER.indexOf(b) + 99 * (ORDER.indexOf(b) < 0)));
-    stage.querySelectorAll(".station, .rack, .gate, .links-layer, .pulse").forEach((n) => n.remove());
+    stage.querySelectorAll(".station, .rack, .gate, .ledger, .links-layer, .pulse").forEach((n) => n.remove());
     nodes = {};
-    const make = (cls, art, name, verb, color) => {
-      const el = document.createElement("div");
-      el.className = cls;
-      if (color) el.style.setProperty("--role", color);
-      el.innerHTML = `${art}<span class="name">${esc(name)}</span><span class="verb">${esc(verb)}</span>`;
-      stage.append(el);
-      return el;
-    };
-    roles.forEach((r) => { const info = role(r); nodes[r] = make("station", consoleArt, info.label, info.verb, info.color); });
+    ledger = null;
+    const v2 = team === "v2";
+    roles.forEach((r) => {
+      const info = role(r);
+      nodes[r] = v2 && r === "auditor"
+        ? make("gate auditor", gateArt, info.label, verbFor(r), info.color)
+        : make("station", consoleArt, info.label, verbFor(r), info.color);
+    });
     nodes.tool = make("rack", rackArt, "Tools", "Sandboxed, on device");
-    nodes.gate = make("gate", gateArt, "Grounding gate", "");
-    const state = document.createElement("span");
-    state.className = "state";
-    nodes.gate.querySelector(".verb").replaceWith(state);
-
-    const w = stage.clientWidth;
-    const narrow = w < 600;
-    ICON_DY = narrow ? 20 : 26;
-    const pos = {};
-    if (narrow) {
-      const perRow = roles.length > 4 ? 3 : Math.min(roles.length, 3);
-      const rows = Math.ceil(roles.length / perRow);
-      const rowH = 132;
-      roles.forEach((r, i) => {
-        const row = Math.floor(i / perRow);
-        const inRow = Math.min(perRow, roles.length - row * perRow);
-        const col = i % perRow;
-        pos[r] = [(col + 0.5) * (w / inRow), 78 + row * rowH];
-      });
-      const y = 78 + rows * rowH + 18;
-      pos.tool = [w * 0.27, y];
-      pos.gate = [w * 0.73, y];
-      stage.style.height = `${y + 92}px`;
+    if (v2 && nodes.auditor) {
+      nodes.gate = nodes.auditor;
+      ledger = makeLedger();
     } else {
-      stage.style.height = "";
-      const h = stage.clientHeight;
-      const n = roles.length;
-      const span = Math.min(150, 46 + n * 22) * (Math.PI / 180);
-      roles.forEach((r, i) => {
-        const t = n === 1 ? 0.5 : i / (n - 1);
-        const ang = -Math.PI / 2 - span / 2 + t * span;
-        pos[r] = [w / 2 + Math.cos(ang) * Math.min(w * 0.34, 460), h * 0.9 + Math.sin(ang) * h * 0.64];
-      });
-      const inner = n > 3 ? Math.min(w * 0.11, 150) : Math.min(w * 0.17, 230);
-      pos.tool = [w / 2 - inner, h * 0.8];
-      pos.gate = [w / 2 + inner, h * 0.8];
+      nodes.gate = make("gate", gateArt, "Grounding gate", "Keeps cited claims");
     }
+
+    /* The reduced-motion stylesheet gives every property a tiny transition; height must apply at once. */
+    stage.style.transitionProperty = "none";
+    stage.style.height = "";
+    const w = stage.clientWidth;
+    stage.dataset.team = team;
+    stage.classList.toggle("compact", w < 820);
+    const pos = {};
+    let ledgerBox = null;
+    if (v2) {
+      const ledgerH = 44 + Math.max(2, maxFindings()) * 24;
+      if (w < 820) {
+        /* Commander on top, the three specialists fan out below it, then tools, critic, auditor. */
+        const rowH = 144;
+        const col = (c) => (c + 0.5) * (w / 3);
+        const grid = { commander: [1, 0], scout: [0, 1], engineer: [1, 1], analyst: [2, 1], critic: [1, 2], auditor: [2, 2] };
+        roles.forEach((r, i) => { const at = grid[r] || [i % 3, 3]; pos[r] = [col(at[0]), 80 + at[1] * rowH]; });
+        pos.tool = [col(0), 80 + 2 * rowH];
+        const top = 80 + 2 * rowH + 92;
+        ledgerBox = { left: 12, top, width: w - 24 };
+        stage.style.height = `${top + ledgerH + 16}px`;
+      } else {
+        if (stage.clientHeight < 560) stage.style.height = "560px";
+        const h = stage.clientHeight;
+        const ax = Math.min(w * 0.875, w - 118);
+        const place = { commander: [0.085, 0.5], scout: [0.29, 0.19], engineer: [0.29, 0.5], analyst: [0.29, 0.81], critic: [0.68, 0.81] };
+        roles.forEach((r, i) => { const at = place[r]; pos[r] = at ? [w * at[0], h * at[1]] : [w * (0.1 + 0.15 * i), h * 0.19]; });
+        if (nodes.auditor) pos.auditor = [ax, h * 0.81];
+        pos.tool = [w * 0.5, h * 0.5];
+        ledgerBox = { left: ax - 108, top: Math.max(16, h * 0.81 - 92 - ledgerH), width: 216 };
+      }
+    } else {
+      const narrow = w < 600;
+      if (narrow) {
+        const perRow = roles.length > 4 ? 3 : Math.min(roles.length, 3);
+        const rows = Math.ceil(roles.length / perRow);
+        const rowH = 140;
+        roles.forEach((r, i) => {
+          const row = Math.floor(i / perRow);
+          const inRow = Math.min(perRow, roles.length - row * perRow);
+          pos[r] = [((i % perRow) + 0.5) * (w / inRow), 82 + row * rowH];
+        });
+        const y = 82 + rows * rowH + 10;
+        pos.tool = [w * 0.27, y];
+        pos.gate = [w * 0.73, y];
+        stage.style.height = `${y + 96}px`;
+      } else {
+        const h = stage.clientHeight;
+        const n = roles.length;
+        const span = Math.min(150, 46 + n * 22) * (Math.PI / 180);
+        roles.forEach((r, i) => {
+          const t = n === 1 ? 0.5 : i / (n - 1);
+          const ang = -Math.PI / 2 - span / 2 + t * span;
+          pos[r] = [w / 2 + Math.cos(ang) * Math.min(w * 0.34, 460), h * 0.9 + Math.sin(ang) * h * 0.64];
+        });
+        const inner = n > 3 ? Math.min(w * 0.11, 150) : Math.min(w * 0.17, 230);
+        pos.tool = [w / 2 - inner, h * 0.8];
+        pos.gate = [w / 2 + inner, h * 0.8];
+      }
+    }
+    if (v2 && nodes.auditor) pos.gate = pos.auditor;
+    Object.entries(pos).forEach(([k, [x, y]]) => { if (nodes[k]) { nodes[k].style.left = `${x}px`; nodes[k].style.top = `${y}px`; } });
+    if (ledger && ledgerBox) {
+      ledger.style.left = `${ledgerBox.left}px`;
+      ledger.style.top = `${ledgerBox.top}px`;
+      ledger.style.width = `${ledgerBox.width}px`;
+    }
+    iconDy = {};
+    Object.entries(nodes).forEach(([k, node]) => {
+      const art = node.querySelector("svg");
+      iconDy[k] = node.offsetHeight / 2 - (art ? art.getBoundingClientRect().height / 2 : 0);
+    });
+
     const svg = document.createElementNS(svgNS, "svg");
     svg.setAttribute("class", "links-layer");
     svg.setAttribute("aria-hidden", "true");
     const line = (a, b) => {
+      if (!pos[a] || !pos[b]) return;
       const l = document.createElementNS(svgNS, "line");
-      l.setAttribute("x1", a[0]); l.setAttribute("y1", a[1] - ICON_DY); l.setAttribute("x2", b[0]); l.setAttribute("y2", b[1] - ICON_DY);
+      l.setAttribute("x1", pos[a][0]); l.setAttribute("y1", pos[a][1] - iconDy[a]);
+      l.setAttribute("x2", pos[b][0]); l.setAttribute("y2", pos[b][1] - iconDy[b]);
       svg.append(l);
     };
-    for (let i = 1; i < roles.length; i += 1) line(pos[roles[i - 1]], pos[roles[i]]);
-    roles.forEach((r) => {
-      if (role(r).usesTools) line(pos[r], pos.tool);
-      if (role(r).judges) line(pos[r], pos.gate);
-    });
+    if (v2) {
+      V2_EDGES.forEach(([a, b]) => line(a, b));
+    } else {
+      for (let i = 1; i < roles.length; i += 1) line(roles[i - 1], roles[i]);
+      roles.forEach((r) => {
+        if (role(r).usesTools) line(r, "tool");
+        if (role(r).judges) line(r, "gate");
+      });
+    }
     stage.prepend(svg);
     centers = pos;
-    Object.entries(pos).forEach(([k, [x, y]]) => { nodes[k].style.left = `${x}px`; nodes[k].style.top = `${y}px`; });
     pulse = document.createElement("span");
     pulse.className = "pulse";
     stage.append(pulse);
   }
 
   function travel(from, to) {
-    if (!pulse || !centers[from] || !centers[to] || reduce) return;
+    if (!pulse || !centers[from] || !centers[to] || from === to || reduce) return;
     const [x1, y1] = centers[from];
     const [x2, y2] = centers[to];
+    const d1 = iconDy[from] || 0;
+    const d2 = iconDy[to] || 0;
+    pulse.style.setProperty("--pulse", from === "tool" ? "var(--accent)" : role(from).color);
     pulse.animate([
-      { transform: `translate(${x1}px, ${y1 - ICON_DY}px)`, opacity: 0 },
-      { transform: `translate(${x1}px, ${y1 - ICON_DY}px)`, opacity: 1, offset: 0.12 },
-      { transform: `translate(${x2}px, ${y2 - ICON_DY}px)`, opacity: 1, offset: 0.88 },
-      { transform: `translate(${x2}px, ${y2 - ICON_DY}px)`, opacity: 0 }
+      { transform: `translate(${x1}px, ${y1 - d1}px)`, opacity: 0 },
+      { transform: `translate(${x1}px, ${y1 - d1}px)`, opacity: 1, offset: 0.12 },
+      { transform: `translate(${x2}px, ${y2 - d2}px)`, opacity: 1, offset: 0.88 },
+      { transform: `translate(${x2}px, ${y2 - d2}px)`, opacity: 0 }
     ], { duration: Math.min(1100, STEP_MS * 0.6), easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards" });
   }
 
@@ -199,40 +336,102 @@
     return "gate";
   }
 
+  function setState(key, text) {
+    const node = nodes[key];
+    const slot = node && node.querySelector(".state");
+    if (slot) slot.textContent = text;
+  }
+
+  function fillLedger(event, animate) {
+    if (!ledger) return;
+    const findings = event.findings || [];
+    ledger.querySelector(".wait").hidden = true;
+    ledger.dataset.verdict = event.verdict;
+    ledger.classList.toggle("animate", Boolean(animate) && !reduce);
+    ledger.querySelector("ol").innerHTML = findings.map((f, k) => `<li class="${f.ok ? "ok" : "no"}" style="--k:${k}">${f.ok ? TICK : CROSS}<span class="what">${esc(findingLabel(f))}</span><span class="src">${esc(findingSource(f))}</span></li>`).join("");
+  }
+
+  function finish(status, answer, by) {
+    const final = status === "refuse" ? "refuse" : "answer";
+    nodes.gate.dataset.verdict = final;
+    setState("gate", final === "refuse" ? "Refused" : "Answer kept");
+    nodes.gate.classList.add("lit");
+    if (answer) {
+      who.textContent = by;
+      caption.style.setProperty("--role", final === "refuse" ? "var(--r-critic)" : "var(--accent)");
+      what.textContent = `${final === "refuse" ? "Refused" : team === "v2" ? "Final answer" : "Kept"}: ${answer}`;
+    }
+  }
+
   function apply(i, animate) {
     const e = events[i];
     const d = describe(e);
+    const p = e.payload || {};
+    const v2 = team === "v2";
     Object.values(nodes).forEach((n) => n.classList.remove("lit"));
     const key = e.kind === "result" ? "tool" : e.agent;
     if (nodes[key]) nodes[key].classList.add("lit");
+    if (nodes[key] && key !== "tool") nodes[key].classList.remove("assigned");
     caption.style.setProperty("--role", key === "tool" ? "var(--ink)" : role(key).color);
     who.textContent = d.who;
     what.textContent = d.text;
     when.textContent = `${clock(e.t_sec ?? i * 4)} replay clock, event ${i + 1} of ${events.length}`;
-    const gateState = nodes.gate.querySelector(".state");
-    if (d.verdict) {
-      nodes.gate.dataset.verdict = d.verdict;
-      gateState.textContent = d.verdict === "accept" ? "Accepted" : d.verdict === "refuse" ? "Refused" : "Revise";
-      nodes.gate.classList.add("lit");
+
+    if (e.kind === "assign") {
+      if (nodes[e.role]) nodes[e.role].classList.add("assigned");
+      setState(e.role, `Step ${e.step_number}${e.tool ? ` · ${e.tool}` : ""}`);
+      setState(e.agent, `Step ${e.step_number} out`);
+    } else if (Array.isArray(p.steps)) {
+      setState(e.agent, p.steps.length ? `Plan · ${p.steps.length} step${p.steps.length > 1 ? "s" : ""}` : "Empty plan");
+    } else if (p.action === "tool") {
+      setState(e.agent, p.tool);
+    } else if (e.kind === "result") {
+      setState("tool", `${e.call || ""} ${e.tool}`.trim());
+      if (e.by) setState(e.by, `${e.call || e.tool} back`);
+    } else if (e.kind === "draft") {
+      const n = events.slice(0, i + 1).filter((x) => x.kind === "draft").length;
+      setState(e.agent, `Draft ${n}`);
+    } else if (p.action === "final") {
+      setState(e.agent, p.status === "refuse" ? "Refusal" : "Answer");
     }
-    if (i === events.length - 1 && mission) {
-      const final = mission.status === "refuse" ? "refuse" : "answer";
-      nodes.gate.dataset.verdict = final;
-      gateState.textContent = final === "refuse" ? "Refused" : "Answer kept";
-      nodes.gate.classList.add("lit");
-      if (mission.answer) {
-        who.textContent = "Grounding gate";
-        caption.style.setProperty("--role", "var(--accent)");
-        what.textContent = `${final === "refuse" ? "Refused" : "Kept"}: ${mission.answer}`;
+
+    if (d.verdict && !(v2 && key === "auditor")) {
+      setState(e.agent, d.verdict === "accept" ? "Accept" : d.verdict === "refuse" ? "Refuse" : "Revise");
+      if (!v2) {
+        nodes.gate.dataset.verdict = d.verdict;
+        setState("gate", d.verdict === "accept" ? "Accepted" : d.verdict === "refuse" ? "Refused" : "Revise");
+        nodes.gate.classList.add("lit");
       }
     }
-    if (bar) bar.style.transform = `scaleX(${(i + 1) / events.length})`;
-    if (animate) {
-      if (d.toTools) travel(e.agent, "tool");
-      else if (e.kind === "result") travel("tool", nextActor(i));
-      else if (d.verdict === "accept" || d.verdict === "refuse") travel(e.agent, "gate");
-      else travel(e.agent, nextActor(i));
+    if (e.kind === "audit") {
+      nodes.gate.dataset.verdict = e.verdict === "pass" ? "accept" : "refuse";
+      setState("gate", e.verdict === "pass" ? "Pass" : "Refuse");
+      fillLedger(e, animate);
     }
+    if (e.kind === "final") finish(e.status, e.answer, d.who);
+    else if (i === events.length - 1 && mission && !events.some((x) => x.kind === "final")) {
+      finish(mission.status, mission.answer, v2 ? role("auditor").label : "Grounding gate");
+    }
+    if (bar) bar.style.transform = `scaleX(${(i + 1) / events.length})`;
+
+    if (!animate) return;
+    if (e.kind === "assign") travel(e.agent, e.role);
+    else if (d.toTools) travel(e.agent, "tool");
+    else if (e.kind === "result") travel("tool", e.by && nodes[e.by] ? e.by : nextActor(i));
+    else if (e.kind === "draft") travel(e.agent, "critic");
+    else if (v2 && d.verdict === "revise") travel(e.agent, "analyst");
+    else if (v2 && d.verdict === "accept") travel(e.agent, "auditor");
+    else if (v2 && Array.isArray(p.steps)) return;
+    else if (e.kind === "audit" || e.kind === "final") return;
+    else if (d.verdict === "accept" || d.verdict === "refuse") travel(e.agent, "gate");
+    else travel(e.agent, nextActor(i));
+  }
+
+  function dwell(event) {
+    if (!event) return 1;
+    if (event.kind === "audit") return 1.3 + 0.15 * (event.findings || []).length;
+    if (event.kind === "final") return 1.3;
+    return 1;
   }
 
   function setPlaying(on) {
@@ -252,14 +451,24 @@
     }
     apply(cursor, true);
     cursor += 1;
-    timer = setTimeout(tick, STEP_MS);
+    timer = setTimeout(tick, STEP_MS * dwell(events[cursor - 1]));
   }
 
   function reset() {
     cursor = 0;
-    Object.values(nodes).forEach((n) => n.classList.remove("lit"));
-    if (nodes.gate) { delete nodes.gate.dataset.verdict; nodes.gate.querySelector(".state").textContent = ""; }
+    Object.values(nodes).forEach((n) => {
+      n.classList.remove("lit", "assigned");
+      const slot = n.querySelector(".state");
+      if (slot) slot.textContent = "";
+    });
+    if (nodes.gate) delete nodes.gate.dataset.verdict;
+    if (ledger) {
+      ledger.querySelector(".wait").hidden = false;
+      ledger.querySelector("ol").innerHTML = "";
+      delete ledger.dataset.verdict;
+    }
     who.textContent = "Orbit";
+    caption.style.removeProperty("--role");
     what.textContent = mission ? mission.question : "";
     when.textContent = "Replay of a saved engine trace";
     if (bar) bar.style.transform = "scaleX(0)";
@@ -276,10 +485,15 @@
     if (!res.ok) throw new Error(`Missing trace ${file}`);
     const rows = (await res.text()).split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
     mission = rows.find((r) => r.kind === "mission") || null;
-    events = rows.filter((r) => r.kind !== "mission" && r.kind !== "message");
+    const rules = (mission && mission.flight_rules) || {};
+    team = (mission && mission.team) || rules.team || (rows.some((r) => r.kind === "assign" || r.kind === "audit") ? "v2" : "v1");
+    events = compact(rows);
+    const seen = [...new Set(events.map((e) => e.agent).filter((a) => a && a !== "tool"))];
+    roles = (team === "v2" && Array.isArray(rules.roles) ? [...rules.roles] : seen).sort((a, b) => rank(a) - rank(b));
     question.textContent = mission ? mission.question : "";
     const scripted = mission && mission.harness === "scripted_harness";
-    tags.innerHTML = `<span class="scene-tag">Replay of a saved engine trace</span>${scripted ? `<span class="scene-tag warn">Scripted harness</span>` : ""}<span class="scene-tag">Not live</span><span class="scene-tag">Not a model score</span><span class="scene-tag">Task ${esc(mission ? mission.task_id : "")}</span>`;
+    const teamTag = team === "v2" ? `Team v2, ${roles.length} roles` : `Team v1, ${roles.length} roles`;
+    tags.innerHTML = `<span class="scene-tag">Replay of a saved engine trace</span>${scripted ? `<span class="scene-tag warn">Scripted harness</span>` : ""}<span class="scene-tag">Not live</span><span class="scene-tag">Not a model score</span><span class="scene-tag">${esc(teamTag)}</span><span class="scene-tag">Task ${esc(mission ? mission.task_id : "")}</span>`;
     if (transcript) {
       transcript.innerHTML = events.map((e) => { const d = describe(e); return `<li><strong>${esc(d.who)}.</strong> ${esc(d.text)}</li>`; }).join("")
         + (mission ? `<li><strong>Result.</strong> ${esc(mission.status)}: ${esc(mission.answer || "")}</li>` : "");
@@ -296,7 +510,7 @@
     setPlaying(true);
   });
   restartBtn.addEventListener("click", () => { setPlaying(false); reset(); setPlaying(true); });
-  select.addEventListener("change", () => load(select.value).then(() => { if (!reduce) setPlaying(true); }));
+  select.addEventListener("change", () => load(select.value).then(() => { if (!reduce) setPlaying(true); }).catch((error) => { what.textContent = error.message; }));
 
   let resizeTimer;
   let lastW = stage.clientWidth;
@@ -307,9 +521,14 @@
       lastW = stage.clientWidth;
       const at = cursor;
       layout();
+      reset();
       for (let i = 0; i < at; i += 1) apply(i, false);
+      cursor = at;
     }, 150);
   });
+
+  const wanted = params.get("trace");
+  if (wanted && [...select.options].some((o) => o.value === wanted)) select.value = wanted;
 
   load(select.value).then(() => {
     if (reduce) return;
