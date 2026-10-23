@@ -4,128 +4,153 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Time-series foundation model · Sherif Morsi</title>
-  <meta name="description" content="Sherif Morsi pretrained a 10.1M-parameter time-series transformer from scratch in PyTorch and scored it on held-out data after a leakage audit.">
+  <meta name="description" content="A forecasting transformer pretrained from scratch in PyTorch, a leakage audit that found benchmark test data in a public pretraining corpus, and a pre-registered test-split score.">
   <meta name="author" content="Sherif Morsi">
-  <meta name="theme-color" content="#000000">
-  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
   <link rel="canonical" href="https://shmorsi.github.io/projects/tsfm.html">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://shmorsi.github.io/projects/tsfm.html">
   <meta property="og:title" content="Time-series foundation model · Sherif Morsi">
-  <meta property="og:description" content="A transformer forecasting model built from scratch, with a leakage audit and validation scores.">
+  <meta property="og:description" content="A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.">
   <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Time-series foundation model · Sherif Morsi">
-  <meta name="twitter:description" content="A transformer forecasting model built from scratch, with a leakage audit and validation scores.">
+  <meta name="twitter:description" content="A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/og.png">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
   <link rel="preload" href="../assets/fonts/inter-tight-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="../assets/site.css">
-  <script>document.documentElement.classList.add("js")</script>
+  <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}document.documentElement.classList.add("js")</script>
   <script src="../assets/site.js" defer></script>
 </head>
 <body data-root="../" data-metrics="../data/projects.json">
   <a class="skip" href="#main">Skip to content</a>
   <canvas class="stars" data-stars aria-hidden="true"></canvas>
-  <div class="star-drift" aria-hidden="true"></div>
-  <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
   <header class="site-header">
     <a class="wordmark" href="../">Sherif Morsi</a>
-    <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
-    <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
-      <a href="../#missions">Missions</a>
-      <a href="../#experience">Experience</a>
-      <a href="../#skills">Skills</a>
-      <a href="../#contact">Contact</a>
-    </nav>
+    <div class="header-tools">
+      <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="../#work">Work</a>
+        <a href="../#experience">Experience</a>
+        <a href="../#contact">Contact</a>
+        <a href="../resume/Sherif_Morsi_Resume.pdf">Resume</a>
+      </nav>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.75a7.25 7.25 0 0 1 0 14.5Z" fill="currentColor"/></svg></button>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
+    </div>
   </header>
   <main id="main">
-    <header class="cs-hero">
-      <a class="text-link back" href="../#tsfm">All missions</a>
-      <p class="index">Mission 01 — TSFM</p>
-      <h1 id="cs-title">A time-series foundation model, from scratch</h1>
-      <p class="cs-question">How far does a small transformer get when it is pretrained from scratch, on data checked for overlap with the benchmark, and judged by rules fixed in advance?</p>
-      <p class="cs-summary">Decoder-only transformer, tokenizers, training loop, and sampling in plain PyTorch. Pretrained on a pinned corpus plus synthetic Gaussian-process series. Scored zero-shot with the official GIFT-Eval scoring code on datasets held out of training.</p>
-      <div class="project-links">
-        <a class="button button-solid" href="https://github.com/shmorsi/tsfm-from-scratch" target="_blank" rel="noopener noreferrer">Code and results</a>
+    <header class="cs-hero wrap">
+      <a class="text-link back" href="../#tsfm">All work</a>
+      <p class="label">Mission 01 / Deep learning</p>
+      <h1>A time-series foundation model, from scratch</h1>
+      <p class="cs-purpose">A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.</p>
+      <p class="cs-summary">Decoder-only transformer, tokenizers, training loop and sampling in plain PyTorch. Pretrained on a pinned corpus plus synthetic Gaussian-process series. Scored with the official GIFT-Eval scoring code on data held out of training.</p>
+      <div class="actions">
+        <a class="button button-solid" href="https://github.com/shmorsi/tsfm-from-scratch" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a class="text-link" href="https://github.com/shmorsi/tsfm-from-scratch/blob/main/RESEARCH_NOTE.md" target="_blank" rel="noopener noreferrer">Research note</a>
       </div>
     </header>
-    <div class="cs-body">
-      <section class="glance" aria-label="At a glance" data-glance="tsfm"></section>
+
+    <div class="wrap">
+      <section class="cs-figure" aria-label="At a glance">
+        <div data-glance="tsfm"></div>
+        <figure class="figure">
+          <div class="screen"><img src="../assets/img/tsfm-results.svg" width="1600" height="1000" alt="Validation chart: CRPS relative to Seasonal Naive falls from 0.740 to 0.636 to 0.605 as the model grows from 0.9M to 2.9M to 10.1M parameters." decoding="async"></div>
+          <figcaption>Validation split, 16 held-out configurations, one seed. Lower is better.</figcaption>
+        </figure>
+      </section>
+    </div>
+
+    <div class="cs-body wrap">
       <section class="cs-section" aria-labelledby="s-problem">
         <h2 id="s-problem">Problem</h2>
         <div class="prose">
-          <p>Time-series foundation models are pretrained on many series and asked to forecast new ones with no further training. The score only means something if benchmark data did not leak into pretraining, and if the evaluation was fixed before the scores were seen.</p>
+          <p class="big">A foundation model's score means something only if the benchmark never leaked into its training data.</p>
+          <p>Time-series foundation models are pretrained on many series and asked to forecast new ones with no further training. The evaluation also has to be fixed before anyone sees the scores.</p>
         </div>
       </section>
+
       <section class="cs-section" aria-labelledby="s-data">
-        <h2 id="s-data">Data</h2>
+        <h2 id="s-data">The audit</h2>
         <div class="prose">
-          <p>The leakage audit covered <span data-bind="tsfm.stats.series.display"></span> series across <span data-bind="tsfm.stats.datasets.display"></span> datasets (<span data-bind="tsfm.stats.points.display"></span> points) from GiftEvalPretrain, the corpus its authors describe as non-leaking, plus synthetic series. Every raw file is pinned by a SHA-256 fingerprint. A content check compared pretraining series with GIFT-Eval series and found real copies. All <span data-bind="tsfm.stats.flagged.display"></span> flagged series were removed. A re-run on the final corpus finds no matches. An earlier version of the check also produced false matches from linearly interpolated gaps; inspecting each match separated those from real copies.</p>
-          <div class="table-wrap" tabindex="0" role="region" aria-label="Flagged overlaps" data-table="tsfm.tables.overlaps"></div>
+          <p class="big">The public corpus described as non-leaking contained copies of benchmark series, some inside the test windows.</p>
+          <p>The audit covered <span data-bind="tsfm.stats.series.display">443,258</span> series across <span data-bind="tsfm.stats.datasets.display">77</span> datasets (<span data-bind="tsfm.stats.points.display">1,087,018,264</span> points) from GiftEvalPretrain. Every raw file is pinned by a SHA-256 fingerprint. A content check compared each pretraining series with every GIFT-Eval series, at native frequency and as daily aggregates, after rescaling.</p>
+          <p>All <span data-bind="tsfm.stats.flagged.display">801</span> flagged series were removed, including look-alikes that turned out to be straight-line gaps. A re-run on the final corpus finds no matches.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Copies that were removed" data-table="tsfm.tables.overlaps"></div>
         </div>
       </section>
+
       <section class="cs-section" aria-labelledby="s-method">
         <h2 id="s-method">Method</h2>
         <div class="prose">
           <ul>
-            <li><strong>Model.</strong> Decoder-only transformer with pre-norm RMSNorm, rotary position embeddings, SwiGLU, and a key/value cache, written without a model library. Two tokenizers: mean-scaled quantization with cross-entropy, and patches with a non-crossing quantile head.</li>
-            <li><strong>Training.</strong> Mixed precision (fp16) on a single T4 GPU, gradient accumulation, and a cosine schedule. A resumed run is bit-identical to an uninterrupted one. Profiling showed cumulative-sum kernels taking half of each step; they were replaced with cheaper equivalents.</li>
-            <li><strong>Evaluation.</strong> GluonTS, the same scorer GIFT-Eval uses, checked by reproducing Seasonal Naive. The split, metrics, baselines, and decision rule were tagged in git before test-set scoring. Model selection used only held-out validation datasets.</li>
+            <li><strong>Model.</strong> Decoder-only transformer with pre-norm RMSNorm, rotary positions, SwiGLU and a key/value cache, written without a model library. Two tokenizers: mean-scaled quantization with cross-entropy, and patches with a non-crossing quantile head.</li>
+            <li><strong>Training.</strong> Mixed precision (fp16) on one Colab T4, gradient accumulation, cosine schedule, resumable checkpoints. Profiling found GPU scan kernels taking about half of each step; they were removed from the hot path.</li>
+            <li><strong>Evaluation.</strong> GluonTS, the scorer GIFT-Eval uses, checked by reproducing Seasonal Naive on every official metric. Splits, metrics, baselines and the decision rule were tagged in git before test scoring.</li>
           </ul>
         </div>
       </section>
+
       <section class="cs-section" aria-labelledby="s-results">
         <h2 id="s-results">Results</h2>
         <div class="prose">
-          <p>Zero-shot on <span data-bind="tsfm.stats.configs.display"></span> configurations from datasets held out of pretraining. The largest run, patch_s2, has CRPS <span data-bind="tsfm.stats.crps.display"></span> and MASE <span data-bind="tsfm.stats.mase.display"></span> relative to Seasonal Naive. The pre-registered rule selects it. Validation loss falls with compute as a power law with exponent <span data-bind="tsfm.stats.power.display"></span> (95% bootstrap interval <span data-bind="tsfm.stats.powerCi.display"></span>) across <span data-bind="tsfm.stats.modelSizes.display"></span> patch-model sizes.</p>
+          <h3>Validation: bigger model, lower error</h3>
+          <p>Zero-shot on <span data-bind="tsfm.stats.configs.display">16</span> configurations from datasets held out of pretraining. The largest run, patch_s2, has CRPS <span data-bind="tsfm.stats.crps.display">0.605×</span> and MASE <span data-bind="tsfm.stats.mase.display">0.840</span> relative to Seasonal Naive. Validation loss falls with compute as a power law with exponent <span data-bind="tsfm.stats.power.display">0.058</span> (95% interval <span data-bind="tsfm.stats.powerCi.display">0.051 to 0.064</span>) across <span data-bind="tsfm.stats.modelSizes.display">3</span> sizes.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="Validation scores" data-table="tsfm.tables.validation"></div>
-          <p>Published leaderboard models are not used as a comparison here. The pre-registered test-split score is still open, so no benchmark ranking is claimed.</p>
+
+          <h3>Test split: a smaller model, scored once</h3>
+          <p>The patch_s2 weights were never committed, so that checkpoint has no test score and none is claimed. A separate, pre-registered CPU study trained a smaller model (<span data-bind="tsfm.stats.cpuParams.display">833,440</span> parameters), committed its weights, and scored the official test split once: <span data-bind="tsfm.stats.testConfigs.display">97</span> configurations, <span data-bind="tsfm.stats.testSeeds.display">3</span> seeds.</p>
+          <p>Its CRPS is <span data-bind="tsfm.stats.testCrps.display">1.109×</span> Seasonal Naive, no detectable difference, and <span data-bind="tsfm.stats.testArima.display">1.217×</span> AutoARIMA, worse. Split-conformal intervals fixed coverage and made CRPS worse.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Test split scores" data-table="tsfm.tables.test"></div>
+          <p>No comparison to published leaderboard models is claimed for this work.</p>
         </div>
       </section>
+
       <section class="cs-section" aria-labelledby="s-vol">
         <h2 id="s-vol">Volatility study</h2>
         <div class="prose">
-          <p>Daily realized volatility of BTCUSDT and ETHUSDT, from Binance Vision intraday data, forecast <span data-bind="tsfm.stats.volHorizon.display"></span> days ahead across 2020–2026. The design was pre-registered separately. HAR-RV, a standard volatility model, is the baseline. These are forecast scores only. No trading performance is claimed.</p>
+          <p>Daily realized volatility of BTC and ETH, forecast <span data-bind="tsfm.stats.volHorizon.display">22</span> days ahead, pre-registered separately. HAR-RV, a standard volatility model, beats a random walk. These are forecast scores for the baselines only; the transformer was not run here, and no trading result is claimed.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="Volatility baselines" data-table="tsfm.tables.volatility"></div>
         </div>
       </section>
-      <section class="cs-section" aria-labelledby="s-miss">
-        <h2 id="s-miss">Limits</h2>
+
+      <section class="cs-section" aria-labelledby="s-limits">
+        <h2 id="s-limits">Limits</h2>
         <div class="prose">
           <div class="callout">
-            <ul>
-              <li>The first GPU run diverged when future patches overflowed half precision. Clipping fixed it. The broken runs are recorded in the repository and discarded.</li>
-              <li>The <span data-bind="tsfm.stats.nominalInterval.display"></span> intervals cover <span data-bind="tsfm.stats.coverage.display"></span> of outcomes. They are too narrow, worst at long horizons, because longer forecasts feed back medians.</li>
-              <li>Scope was cut to fit a single GPU and a deadline: fewer model sizes than planned, the second tokenizer trained but not scored, and one seed. The test split was not scored.</li>
-              <li>The leakage check finds exact and rescaled copies, not noisy or resampled ones.</li>
-            </ul>
+            <p>The 0.605× headline is validation only: 16 configurations, one seed. The model behind it has no test score.</p>
+            <p>The test-scored CPU model does not beat AutoARIMA, and its CRPS is not distinguishable from Seasonal Naive.</p>
+            <p>Raw intervals undercover: the validation model's nominal <span data-bind="tsfm.stats.nominalInterval.display">80%</span> intervals cover <span data-bind="tsfm.stats.coverage.display">65%</span> of outcomes.</p>
+            <p>The T4 budget cut the plan: three sizes instead of four to six, the second tokenizer trained but not scored, one seed.</p>
+            <p>The leakage check finds exact and rescaled copies, not noisy or resampled ones.</p>
           </div>
         </div>
       </section>
+
       <section class="cs-section" aria-labelledby="s-checks">
         <h2 id="s-checks">Checks</h2>
         <div class="prose">
-          <ul>
-            <li><span data-bind="tsfm.stats.tests.display"></span> automated tests run in GitHub Actions. A test fails if a document states a number that is not in the committed results.</li>
-            <li>A small configuration runs the pipeline, from verified download to evaluation, in CI on every push.</li>
-          </ul>
-          <p class="stack">Python 3.12 · PyTorch · NumPy · pandas · Parquet · GluonTS · statsforecast · pytest · Hypothesis · ruff · mypy · uv · GitHub Actions · Google Colab</p>
+          <p><span data-bind="tsfm.stats.tests.display">150</span> automated tests run in GitHub Actions. A test fails if a generated document states a number that is not in the committed results. A tiny configuration runs the pipeline end to end on every push.</p>
+          <p class="stack">Python 3.12, PyTorch, NumPy, pandas, Parquet, GluonTS, statsforecast, pytest, Hypothesis, ruff, mypy, uv, GitHub Actions, Colab</p>
           <p class="file-note">Figures on this page are read from <a href="../data/projects.json"><code>data/projects.json</code></a>.</p>
         </div>
       </section>
+
       <nav class="next-project" aria-label="Next project">
-        <a class="next" href="world-shock-lab.html"><span class="index">Next · Mission 02</span><strong>World Shock Lab</strong></a>
-        <a class="text-link" href="../#missions">All missions</a>
+        <a class="next" href="world-shock-lab.html"><span class="label">Next, mission 02</span><strong>World Shock Lab</strong></a>
+        <a class="text-link" href="../#work">All work</a>
       </nav>
     </div>
   </main>
   <footer class="site-footer">
-    <span>© 2026 Sherif Morsi · Montreal</span>
+    <span>© 2026 Sherif Morsi, Montreal</span>
     <a href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
   </footer>
 </body>

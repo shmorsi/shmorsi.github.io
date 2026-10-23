@@ -7,14 +7,17 @@
 }
 
 :root {
-  --ink: #f4f4f4;
-  --muted: #b9b9b9;
-  --line: rgba(255, 255, 255, 0.16);
-  --planner: #d7e6ff;
+  --ink: #f5f5f7;
+  --muted: #a8a8ad;
+  --line: rgba(255, 255, 255, 0.14);
+  --planner: #b9d4ff;
   --worker: #f2c14e;
-  --critic: #ff6b5a;
+  --critic: #ff8a7a;
+  --accent: #8ec5ff;
   --bg: #000;
+  color-scheme: dark;
 }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 * { box-sizing: border-box; }
 
@@ -23,8 +26,9 @@ html, body {
   min-height: 100%;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Inter Tight", "Avenir Next", "Segoe UI", sans-serif;
+  font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
   font-weight: 450;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -43,7 +47,7 @@ body::before {
     radial-gradient(1px 1px at 80% 46%, rgba(255, 255, 255, 0.28), transparent),
     radial-gradient(1.5px 1.5px at 48% 88%, rgba(255, 255, 255, 0.3), transparent),
     radial-gradient(1px 1px at 90% 12%, rgba(255, 255, 255, 0.45), transparent);
-  animation: drift 90s linear infinite;
+  opacity: 0.8;
 }
 
 @keyframes drift {
@@ -69,7 +73,7 @@ button, input, select, textarea {
   font-size: 12px;
 }
 
-.brand { letter-spacing: 0.42em; font-size: 13px; }
+.brand { letter-spacing: 0.2em; font-size: 13px; font-weight: 650; }
 .brand span {
   letter-spacing: 0.22em;
   color: var(--muted);
@@ -270,7 +274,6 @@ body.success .orbit i { filter: drop-shadow(0 0 12px rgba(215, 230, 255, 0.7)); 
   font-size: 11px;
   text-transform: uppercase;
   color: var(--muted);
-  animation: seat-glow 5.6s ease-in-out infinite;
 }
 
 @keyframes seat-glow {
@@ -343,10 +346,16 @@ body.success .orbit i { filter: drop-shadow(0 0 12px rgba(215, 230, 255, 0.7)); 
 }
 
 .controls button, .speed {
-  border: 1px solid var(--line);
-  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  padding: 0 14px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
+  font-weight: 600;
 }
+.controls button#play { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
 .controls button[aria-pressed="true"] {
   border-color: var(--ink);
@@ -479,6 +488,14 @@ textarea { min-height: 72px; resize: vertical; grid-column: 1 / -1; }
   color: var(--muted);
   line-height: 1.5;
   letter-spacing: 0.02em;
+}
+
+@media (max-width: 560px) {
+  .controls { flex-wrap: wrap; }
+  .scrub { flex-basis: 100%; order: 5; }
+  .fields { grid-template-columns: 1fr; }
+  .meters { gap: 12px; font-size: 11px; }
+  .brand span { display: block; margin: 6px 0 0; }
 }
 
 @media (max-width: 900px) {

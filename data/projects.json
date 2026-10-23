@@ -1,6 +1,6 @@
 {
-  "instructions": "Edit this file to update every measured figure on the site. Do not add a number unless it is in the resume or in a committed result file. The home page, case studies, and tables all read from here. Search this file for the old value and update every place it appears, including caveat text.",
-  "updated": "2026-10-22",
+  "instructions": "Edit this file to update every measured figure on the site. Do not add a number unless it is in the resume or in a committed result file in the project's repository. The home page, case studies, and tables all read from here. Each project has one headline stat (headline.stat), three short facts (factIds), and a short caveat. Search this file for the old value and update every place it appears, including caveat text.",
+  "updated": "2026-10-23",
   "projects": [
     {
       "id": "tsfm",
@@ -11,29 +11,52 @@
       "kicker": "Deep learning",
       "title": "Time-series foundation model",
       "summary": "A decoder-only transformer pretrained from scratch in PyTorch, then scored zero-shot on datasets held out of training after overlapping benchmark series were removed.",
-      "caveat": "The headline CRPS is a validation result on 16 held-out configurations and one seed. The 80% intervals cover 65% of outcomes. The test split was not scored, and no comparison to published models is claimed.",
+      "caveat": "The 0.605× is a validation result, and the 10.1M-parameter patch_s2 checkpoint has no test score. A smaller CPU model (833,440 parameters, 3 seeds, 97 configurations) was scored once on the test split: CRPS 1.109× Seasonal Naive, no detectable difference, and 1.217× AutoARIMA, worse.",
       "image": {
         "src": "assets/img/tsfm-results.svg",
         "alt": "Validation chart of CRPS relative to Seasonal Naive for three pretrained transformers of increasing size.",
         "width": 1600,
         "height": 1000
       },
-      "tags": ["Python", "PyTorch", "pytest", "GitHub Actions"],
-      "links": [
-        {"label": "Case study", "href": "projects/tsfm.html", "primary": true},
-        {"label": "Code", "href": "https://github.com/shmorsi/tsfm-from-scratch", "external": true},
-        {"label": "Research note", "href": "https://github.com/shmorsi/tsfm-from-scratch/blob/main/RESEARCH_NOTE.md", "external": true}
+      "tags": [
+        "Python",
+        "PyTorch",
+        "pytest",
+        "GitHub Actions"
       ],
-      "homeMetricIds": ["crps", "params", "series", "flagged"],
-      "glanceIds": ["crps", "params", "flagged", "tests"],
+      "links": [
+        {
+          "label": "Case study",
+          "href": "projects/tsfm.html",
+          "kind": "site"
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/shmorsi/tsfm-from-scratch",
+          "kind": "repo",
+          "external": true
+        },
+        {
+          "label": "Research note",
+          "href": "https://github.com/shmorsi/tsfm-from-scratch/blob/main/RESEARCH_NOTE.md",
+          "kind": "more",
+          "external": true
+        }
+      ],
+      "glanceIds": [
+        "crps",
+        "testCrps",
+        "flagged",
+        "tests"
+      ],
       "stats": {
         "crps": {
-          "label": "Zero-shot validation CRPS",
+          "label": "Zero-shot CRPS vs Seasonal Naive, validation",
           "display": "0.605×",
           "count": 0.605,
           "decimals": 3,
           "suffix": "×",
-          "source": "Resume: 0.605× Seasonal Naive zero-shot validation CRPS for the 10.1M-parameter model. Case study: patch_s2 on 16 held-out configurations (MASE 0.840). Validation only."
+          "source": "tsfm-from-scratch README, validation study table: patch_s2 CRPS 0.605 and MASE 0.840, geometric mean of scores divided by Seasonal Naive on 16 configurations from datasets held out of pretraining, one seed, 10,083,392 parameters. Resume: 0.605×. Validation only."
         },
         "mase": {
           "label": "Zero-shot validation MASE",
@@ -43,33 +66,33 @@
           "source": "tsfm-from-scratch case study, patch_s2, score relative to Seasonal Naive on 16 held-out configurations."
         },
         "params": {
-          "label": "Parameters",
+          "label": "Parameters, validation headline model",
           "display": "10.1M",
           "count": 10.1,
           "decimals": 1,
           "suffix": "M",
-          "source": "Resume: 10.1M-parameter PyTorch transformer, trained in fp16 on a single T4 GPU."
+          "source": "tsfm-from-scratch MODEL_CARD.md: patch_s2 total parameters 10,083,392, shown as 10.1M. Trained in fp16 on one Colab T4."
         },
         "series": {
           "label": "Series audited",
           "display": "443,258",
           "count": 443258,
           "decimals": 0,
-          "source": "Resume: 443,258 series validated across 77 datasets to keep evaluation benchmarks leakage-free."
+          "source": "tsfm-from-scratch DATA_CARD.md: pretraining corpus of 77 datasets, 443,258 series, 1,087,018,264 points. Resume: 443,258 series across 77 datasets."
         },
         "datasets": {
           "label": "Datasets audited",
           "display": "77",
           "count": 77,
           "decimals": 0,
-          "source": "Resume: 77 datasets in the leakage audit."
+          "source": "tsfm-from-scratch DATA_CARD.md: 77 pretraining datasets."
         },
         "flagged": {
-          "label": "Series excluded",
+          "label": "Benchmark-overlap series removed",
           "display": "801",
           "count": 801,
           "decimals": 0,
-          "source": "Resume: 801 flagged series excluded before training. Case study: removed from the pretraining corpus; a re-run on the final corpus finds no matches."
+          "source": "tsfm-from-scratch DATA_CARD.md: the first leakage check flagged 801 series; all were excluded, and the final corpus has 0 native and 0 daily hits. Resume: 801."
         },
         "configs": {
           "label": "Held-out configurations",
@@ -79,11 +102,11 @@
           "source": "tsfm-from-scratch case study: zero-shot scores on 16 configurations from datasets held out of pretraining."
         },
         "tests": {
-          "label": "Automated tests",
+          "label": "Automated tests in CI",
           "display": "150",
           "count": 150,
           "decimals": 0,
-          "source": "Resume: 150 automated tests running in GitHub Actions CI."
+          "source": "pytest collects 150 tests at tsfm-from-scratch main 28c0687 (collected on 2026-10-23). Resume: 150 automated tests in GitHub Actions CI. The CI run for that commit passed."
         },
         "coverage": {
           "label": "80% interval coverage",
@@ -91,7 +114,7 @@
           "count": 65,
           "decimals": 0,
           "suffix": "%",
-          "source": "Portfolio case study of tsfm-from-scratch results: the nominal 80% intervals cover 65% of outcomes because longer forecasts feed back medians."
+          "source": "tsfm-from-scratch README validation table: patch_s2 80% coverage 0.649, shown as 65%. Raw quantiles undercover."
         },
         "nominalInterval": {
           "label": "Nominal interval",
@@ -101,17 +124,17 @@
         "points": {
           "label": "Pretraining points",
           "display": "1,087,018,264",
-          "source": "tsfm-from-scratch case study: 77 datasets (1,087,018,264 points) from GiftEvalPretrain, plus synthetic Gaussian-process series."
+          "source": "tsfm-from-scratch DATA_CARD.md: 1,087,018,264 pretraining points from GiftEvalPretrain, plus synthetic Gaussian-process series."
         },
         "power": {
           "label": "Validation-loss power-law exponent",
           "display": "0.058",
-          "source": "tsfm-from-scratch case study: validation loss falls with training compute as a power law with exponent 0.058 (95% bootstrap interval 0.051 to 0.064) across 3 patch-model sizes."
+          "source": "tsfm-from-scratch RESEARCH_NOTE.md: power-law fit over 3 runs, b = 0.0578 (95% bootstrap interval 0.0508 to 0.0636), shown as 0.058."
         },
         "powerCi": {
           "label": "Power-law exponent interval",
           "display": "0.051 to 0.064",
-          "source": "tsfm-from-scratch case study, 95% bootstrap interval on the power-law exponent."
+          "source": "tsfm-from-scratch RESEARCH_NOTE.md: 0.0508 to 0.0636, shown as 0.051 to 0.064."
         },
         "modelSizes": {
           "label": "Patch-model sizes in the power law",
@@ -121,43 +144,174 @@
         "volHorizon": {
           "label": "Volatility forecast horizon",
           "display": "22",
-          "source": "tsfm-from-scratch case study: daily realized volatility forecast 22 days ahead."
+          "source": "tsfm-from-scratch README, market volatility baselines: 22-day forecasts of daily realized volatility."
+        },
+        "testCrps": {
+          "label": "Test CRPS vs Seasonal Naive, smaller CPU model",
+          "display": "1.109×",
+          "source": "tsfm-from-scratch README test results: cpu_s0 raw quantiles, 97 configurations, 3 seeds, CRPS ratio 1.109 [0.978, 1.265], verdict no detectable difference. results/analysis/cpu_study.json."
+        },
+        "testArima": {
+          "label": "Test CRPS vs AutoARIMA, smaller CPU model",
+          "display": "1.217×",
+          "source": "tsfm-from-scratch README: cpu_s0 raw, ratio to upstream AutoARIMA 1.217, 95% CI [1.091, 1.362], verdict worse."
+        },
+        "cpuParams": {
+          "label": "Parameters, test-scored CPU model",
+          "display": "833,440",
+          "source": "tsfm-from-scratch MODEL_CARD.md and README: the committed CPU model has 833,440 parameters (754,688 in the transformer body)."
+        },
+        "testConfigs": {
+          "label": "Test configurations",
+          "display": "97",
+          "source": "tsfm-from-scratch README: official GIFT-Eval test split, 97 configurations."
+        },
+        "testSeeds": {
+          "label": "Seeds on the test split",
+          "display": "3",
+          "source": "tsfm-from-scratch README: 3 seeds, all kept."
+        },
+        "testCoverage": {
+          "label": "Test 80% coverage, raw quantiles",
+          "display": "0.642",
+          "source": "tsfm-from-scratch README: raw quantiles cover 0.401 / 0.642 / 0.730 at 50/80/90% on the test split."
         }
       },
       "tables": {
         "validation": {
           "caption": "Validation split, datasets held out of pretraining. Score divided by Seasonal Naive. Lower is better.",
-          "headers": ["Run", "Parameters", "CRPS", "MASE"],
-          "rows": [
-            ["patch_s0", "0.9M", "0.740", "1.139"],
-            ["patch_s1", "2.9M", "0.636", "0.910"],
-            ["patch_s2", "10.1M", "0.605", "0.840"]
+          "headers": [
+            "Run",
+            "Parameters",
+            "CRPS",
+            "MASE"
           ],
-          "source": "tsfm-from-scratch case study. These are validation scores, not the official test split."
+          "rows": [
+            [
+              "patch_s0",
+              "0.9M",
+              "0.740",
+              "1.139"
+            ],
+            [
+              "patch_s1",
+              "2.9M",
+              "0.636",
+              "0.910"
+            ],
+            [
+              "patch_s2",
+              "10.1M",
+              "0.605",
+              "0.840"
+            ]
+          ],
+          "source": "tsfm-from-scratch README, validation study that selected patch_s2. Parameter totals from results/runs/*/summary.json (895,296; 2,879,296; 10,083,392). Validation scores, not the test split."
         },
         "overlaps": {
           "caption": "Pretraining series that matched GIFT-Eval series and were removed.",
-          "headers": ["Pretraining data", "Benchmark series", "Flagged series"],
-          "rows": [
-            ["beijing_air_quality", "kdd_cup_2018_with_missing/H", "59"],
-            ["fred_md", "m4_monthly", "8"],
-            ["m1_monthly", "m4_monthly", "2"],
-            ["pedestrian_counts", "m4_hourly", "46"],
-            ["tourism_monthly", "m4_monthly", "28"],
-            ["weather", "temperature_rain_with_missing", "499"]
+          "headers": [
+            "Pretraining data",
+            "Benchmark series",
+            "Flagged series"
           ],
-          "source": "tsfm-from-scratch case study. The resume total excluded is 801 series; this table is the named pairs reported on the case study."
+          "rows": [
+            [
+              "beijing_air_quality",
+              "kdd_cup_2018_with_missing/H",
+              "59"
+            ],
+            [
+              "fred_md",
+              "m4_monthly",
+              "8"
+            ],
+            [
+              "m1_monthly",
+              "m4_monthly",
+              "2"
+            ],
+            [
+              "pedestrian_counts",
+              "m4_hourly",
+              "46"
+            ],
+            [
+              "tourism_monthly",
+              "m4_monthly",
+              "28"
+            ],
+            [
+              "weather",
+              "temperature_rain_with_missing",
+              "499"
+            ]
+          ],
+          "source": "tsfm-from-scratch DATA_CARD.md round 1 table, rows with verdict copy. Every flagged series (801 in total, including coincidences) was excluded."
         },
         "volatility": {
           "caption": "Daily realized volatility, BTC and ETH, 2020–2026. Weighted quantile loss versus a random walk, with a 95% interval.",
-          "headers": ["Model", "Loss ratio", "80% coverage"],
-          "rows": [
-            ["Random walk", "1 (reference)", "0.80"],
-            ["HAR-RV", "0.755 [0.731, 0.783]", "0.81"]
+          "headers": [
+            "Model",
+            "Loss ratio",
+            "80% coverage"
           ],
-          "source": "tsfm-from-scratch case study. Baselines only. No trading performance is claimed, and the transformer is not given a volatility score on this page."
+          "rows": [
+            [
+              "Random walk",
+              "1 (reference)",
+              "0.80"
+            ],
+            [
+              "HAR-RV",
+              "0.755 [0.731, 0.783]",
+              "0.81"
+            ]
+          ],
+          "source": "tsfm-from-scratch README. Baselines only. No trading performance is claimed, and the transformer was not run on this study."
+        },
+        "test": {
+          "caption": "Official GIFT-Eval test split, smaller CPU model (833,440 parameters), 97 configurations, 3 seeds. Ratios to Seasonal Naive, 95% paired bootstrap over configurations. Lower is better.",
+          "headers": [
+            "Model",
+            "CRPS",
+            "Verdict vs Seasonal Naive",
+            "CRPS vs AutoARIMA",
+            "MASE",
+            "80% coverage"
+          ],
+          "rows": [
+            [
+              "cpu_s0, raw quantiles",
+              "1.109 [0.978, 1.265]",
+              "No detectable difference",
+              "1.217 [1.091, 1.362], worse",
+              "1.835",
+              "0.642"
+            ],
+            [
+              "cpu_s0, split-conformal",
+              "1.277 [1.130, 1.455]",
+              "Worse",
+              "1.401 [1.249, 1.576], worse",
+              "1.835",
+              "0.932"
+            ]
+          ],
+          "source": "tsfm-from-scratch README test results tables, from results/analysis/cpu_study.json. patch_s2 has no test score because its weights were never committed (DEVIATIONS.md)."
         }
-      }
+      },
+      "purpose": "A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.",
+      "headline": {
+        "stat": "crps",
+        "qualifier": "Validation only. 16 held-out configurations, one seed, 10.1M parameters."
+      },
+      "factIds": [
+        "params",
+        "flagged",
+        "tests"
+      ],
+      "purposeSource": "tsfm-from-scratch DATA_CARD.md: the upstream pretraining corpus, described upstream as non-leaking, contained exact or rescaled copies of GIFT-Eval series, some inside the test windows. All 801 flagged series were removed."
     },
     {
       "id": "world-shock-lab",
@@ -168,37 +322,61 @@
       "kicker": "Macro shocks and machine learning",
       "title": "World Shock Lab",
       "summary": "Event studies of Federal Reserve, Bank of Canada, and OPEC surprises across global assets, with a pre-registered test of whether machine learning adds anything, and a scenario tool published before each decision.",
-      "caveat": "On the original benchmark, a neural net did not beat the linear model across 168 held-out announcements (gap −0.003, 90% interval −0.019 to +0.014). A second pre-registered study, ml-study-v1, is on main (merge commit c955cc1, 2026-10-20): quantile gradient boosting cut 5% pinball loss to 1.446 versus 1.558 for the Gaussian linear baseline (difference −0.112, 90% interval −0.228 to −0.010). The temporal CNN did not beat the linear model on the mean (+0.015, 90% interval −0.006 to +0.037). None of 80 regime tests survived false-discovery control.",
+      "caveat": "Machine learning did not beat the linear model on the average move in either pre-registered study. Quantile boosting won only on 5% tail pinball loss. None of 80 regime tests survived false-discovery control.",
       "image": {
         "src": "assets/img/world-shock-lab-scenario.webp",
         "alt": "World Shock Lab scenario for a Federal Reserve hike and an oil supply cut, with bands around six Canadian assets.",
         "width": 1600,
         "height": 1000
       },
-      "tags": ["Python", "PyTorch", "statsmodels", "React", "TypeScript"],
-      "links": [
-        {"label": "Live site", "href": "https://shmorsi.github.io/world-shock-lab/", "external": true, "primary": true},
-        {"label": "Case study", "href": "projects/world-shock-lab.html"},
-        {"label": "Code", "href": "https://github.com/shmorsi/world-shock-lab", "external": true}
+      "tags": [
+        "Python",
+        "PyTorch",
+        "statsmodels",
+        "React",
+        "TypeScript"
       ],
-      "homeMetricIds": ["tsxFed", "tsxBoc", "replications", "assets"],
-      "glanceIds": ["tsxFed", "replications", "regime", "announcements"],
+      "links": [
+        {
+          "label": "Live site",
+          "href": "https://shmorsi.github.io/world-shock-lab/",
+          "kind": "site",
+          "external": true
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/shmorsi/world-shock-lab",
+          "kind": "repo",
+          "external": true
+        },
+        {
+          "label": "Case study",
+          "href": "projects/world-shock-lab.html",
+          "kind": "more"
+        }
+      ],
+      "glanceIds": [
+        "tsxFed",
+        "replications",
+        "regime",
+        "announcements"
+      ],
       "stats": {
         "tsxFed": {
-          "label": "TSX, 10 bp Fed surprise",
+          "label": "TSX move on a 10 bp Fed surprise",
           "display": "−1.10%",
           "count": -1.1,
           "decimals": 2,
           "suffix": "%",
-          "source": "Resume: a 10 bp Fed surprise moves the TSX −1.10% on the announcement day."
+          "source": "world-shock-lab README headline findings and docs/RESULTS.md: S&P/TSX −1.10% on the day of a Fed move scaled to a 10 bp rise in the US 2-year (90% band −1.59 to −0.61). Resume: −1.10%."
         },
         "tsxBoc": {
-          "label": "TSX, 10 bp BoC surprise",
+          "label": "Same-size Bank of Canada surprise",
           "display": "−0.19%",
           "count": -0.19,
           "decimals": 2,
           "suffix": "%",
-          "source": "Resume: an equal Bank of Canada surprise moves the TSX −0.19%."
+          "source": "world-shock-lab README: −0.19% after a BoC move of the same size (90% band −0.33 to −0.04), or −0.75% with Rigobon–Sack. Resume: −0.19%."
         },
         "assets": {
           "label": "Global assets",
@@ -329,7 +507,7 @@
         "fdrAssets": {
           "label": "Shock-to-asset responses that survive FDR",
           "display": "126 of 318",
-          "source": "World Shock Lab case study."
+          "source": "world-shock-lab docs/RESEARCH_NOTE.md: across 318 shock-to-asset responses at one and five days, 126 survive Benjamini–Hochberg control."
         },
         "firstStageF": {
           "label": "First-stage F for monthly macro effects",
@@ -337,26 +515,26 @@
           "source": "World Shock Lab case study: monthly macro effects rest on weak instruments (first-stage F of 3.1) and are labelled suggestive."
         },
         "tests": {
-          "label": "Automated Python tests",
-          "display": "145",
-          "count": 145,
+          "label": "Automated Python tests in CI",
+          "display": "157",
+          "count": 157,
           "decimals": 0,
-          "source": "World Shock Lab case study: 145 automated Python tests, including Monte Carlo recovery of known responses, in GitHub Actions on every push."
+          "source": "pytest collects 157 tests at world-shock-lab main c955cc1 with the repository's default marker filter (-m 'not data'), which is what CI runs; 9 more data checks need the local raw downloads (166 in total). Collected on 2026-10-23. The earlier site figure, 145, predates ml-study-v1."
         },
         "rerunMinutes": {
           "label": "Full rerun time",
           "display": "11 min",
-          "source": "World Shock Lab case study: a full rerun from the pinned downloads took 11 minutes and reproduced every result."
+          "source": "world-shock-lab commit ef805bb (docs/COMMIT_MAP.md, reproduction check): full pipeline rerun from the pinned cache took 11 min; outputs identical apart from provenance stamps."
         },
         "phoneSeconds": {
           "label": "Scenario tool on a throttled phone",
           "display": "under 3 s",
-          "source": "Resume: the React/TypeScript scenario tool loads in under 3 seconds on a throttled phone. Tests fail if the page shows a number that is not in the results."
+          "source": "Resume: under 3 seconds on a throttled phone. world-shock-lab results/web_perf.json: slowest view 2.703 s on slow 4G with a 4x CPU slowdown at 390x844."
         },
         "forecastPublished": {
           "label": "First forecasts published",
           "display": "2026-10-13",
-          "source": "World Shock Lab case study: the first forecasts, for the decisions of 2026-10-28, were published on 2026-10-13."
+          "source": "world-shock-lab live/forecasts/2026-10-28_boc.json: published_at 2026-10-13T00:36:18Z, decision 2026-10-28."
         },
         "forecastDecision": {
           "label": "First forecasted decision date",
@@ -367,38 +545,112 @@
       "tables": {
         "announcement": {
           "caption": "Announcement-day response. Each surprise is scaled to a 10 basis-point move in that country's 2-year yield. 90% interval in brackets.",
-          "headers": ["Canadian asset", "Fed surprise", "BoC surprise", "BoC, Rigobon–Sack"],
+          "headers": [
+            "Canadian asset",
+            "Fed surprise",
+            "BoC surprise",
+            "BoC, Rigobon–Sack"
+          ],
           "rows": [
-            ["S&P/TSX Composite (%)", "−1.10 [−1.59, −0.61]", "−0.19 [−0.33, −0.04]", "−0.75 [−1.42, −0.37]"],
-            ["Big-Six Canadian banks (%)", "−0.76 [−1.32, −0.19]", "0.00 [−0.16, +0.15]", "−0.63 [−1.36, −0.20]"],
-            ["10-year Government of Canada yield (basis points)", "+4.40 [+2.99, +5.81]", "+4.64 [+3.75, +5.52]", "+2.47 [+0.67, +3.75]"],
-            ["Canadian dollars per US dollar (%)", "+0.40 [+0.23, +0.57]", "−0.37 [−0.53, −0.21]", "−0.49 [−0.85, −0.24]"]
+            [
+              "S&P/TSX Composite (%)",
+              "−1.10 [−1.59, −0.61]",
+              "−0.19 [−0.33, −0.04]",
+              "−0.75 [−1.42, −0.37]"
+            ],
+            [
+              "Big-Six Canadian banks (%)",
+              "−0.76 [−1.32, −0.19]",
+              "0.00 [−0.16, +0.15]",
+              "−0.63 [−1.36, −0.20]"
+            ],
+            [
+              "10-year Government of Canada yield (basis points)",
+              "+4.40 [+2.99, +5.81]",
+              "+4.64 [+3.75, +5.52]",
+              "+2.47 [+0.67, +3.75]"
+            ],
+            [
+              "Canadian dollars per US dollar (%)",
+              "+0.40 [+0.23, +0.57]",
+              "−0.37 [−0.53, −0.21]",
+              "−0.49 [−0.85, −0.24]"
+            ]
           ],
           "source": "World Shock Lab case study, generated from committed results."
         },
         "ml": {
           "caption": "168 held-out announcements. Pooled scaled error. Lower is better. The pre-registered verdict is that machine learning does not add value.",
-          "headers": ["Model", "Error"],
+          "headers": [
+            "Model",
+            "Error"
+          ],
           "rows": [
-            ["Neural network (multilayer perceptron)", "1.139"],
-            ["Linear local projection", "1.142"],
-            ["Gradient boosting", "1.147"],
-            ["Ridge regression", "1.160"],
-            ["Predict no move", "1.195"],
-            ["State-dependent local projection", "1.212"]
+            [
+              "Neural network (multilayer perceptron)",
+              "1.139"
+            ],
+            [
+              "Linear local projection",
+              "1.142"
+            ],
+            [
+              "Gradient boosting",
+              "1.147"
+            ],
+            [
+              "Ridge regression",
+              "1.160"
+            ],
+            [
+              "Predict no move",
+              "1.195"
+            ],
+            [
+              "State-dependent local projection",
+              "1.212"
+            ]
           ],
           "source": "World Shock Lab case study. Neural-network error minus linear error is −0.003, and the 90% interval includes zero."
         },
         "mlStudy": {
           "caption": "ml-study-v1 on 168 held-out announcements, 2019–2026. Pooled scaled scores, lower is better. Read from results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). The earlier benchmark above is unchanged.",
-          "headers": ["Target", "Model", "Score", "Difference vs baseline", "90% interval"],
+          "headers": [
+            "Target",
+            "Model",
+            "Score",
+            "Difference vs baseline",
+            "90% interval"
+          ],
           "rows": [
-            ["Mean (scaled MAE)", "Temporal CNN, 16 channels", "1.157", "+0.015 vs linear 1.142", "−0.006 to +0.037"],
-            ["5% tail (pinball)", "Quantile gradient boosting, depth 2", "1.446", "−0.112 vs Gaussian linear 1.558", "−0.228 to −0.010"]
+            [
+              "Mean (scaled MAE)",
+              "Temporal CNN, 16 channels",
+              "1.157",
+              "+0.015 vs linear 1.142",
+              "−0.006 to +0.037"
+            ],
+            [
+              "5% tail (pinball)",
+              "Quantile gradient boosting, depth 2",
+              "1.446",
+              "−0.112 vs Gaussian linear 1.558",
+              "−0.228 to −0.010"
+            ]
           ],
           "source": "results/mlstudy/final.json (protocol ml-study-v1, git d0dc395c530d37d225381b3bd7391ee54f83c223, generated 20261020T183639Z) on main at merge commit c955cc1 (https://github.com/shmorsi/world-shock-lab/commit/c955cc1527f915c9227f65e1ccbca058ce32d9a6), merged from https://github.com/shmorsi/world-shock-lab/pull/1 on 2026-10-20. File verdicts: no evidence the temporal CNN adds value on the mean; quantile gradient boosting adds value on the 5% tail by pinball loss. Not a calibration claim, and not a comparison to a published model."
         }
-      }
+      },
+      "purpose": "How a central-bank surprise ripples through 53 markets, with forecasts published before each decision.",
+      "headline": {
+        "stat": "tsxFed",
+        "qualifier": "Announcement day, 90% band −1.59 to −0.61. Identified causal."
+      },
+      "factIds": [
+        "tsxBoc",
+        "replications",
+        "assets"
+      ]
     },
     {
       "id": "orbit",
@@ -407,45 +659,463 @@
       "role": "featured",
       "badge": "Replay",
       "kicker": "AI agents",
-      "title": "Multi-Agent Mission Control",
-      "summary": "A local multi-agent AI team: planner, worker, critic; tool use; QLoRA fine-tuning. Mission Control replays saved engine traces in the browser.",
-      "caveat": "Evaluation pending: single agent vs team vs fine-tuned team on a frozen test set. No language-model score is shown. Bundled replays are labeled scripted harness and are not model scores.",
+      "title": "Orbit",
+      "summary": "A local planner, worker and critic over a fictional makerspace corpus. The worker calls sandboxed tools, the critic sends weak claims back, and a grounding gate refuses what the cited tool result does not contain.",
+      "caveat": "Measured once on a frozen 12-task test (3 agents, harness v2). Task success went from 2 to 3 of 12, and that gain is not significant: the paired interval includes zero. The harness has since changed to v3, and the rescore under v3 is pending.",
       "image": {
         "src": "assets/img/orbit-mission.webp",
-        "alt": "Mission Control replay with planner, worker, and critic, a scripted harness label, and a tool module on the worker.",
+        "alt": "Mission Control replay of a saved engine trace, with planner, worker and critic, marked scripted harness.",
         "width": 1280,
         "height": 800
       },
-      "tags": ["Python", "PyTorch", "QLoRA", "Local"],
-      "links": [
-        {"label": "Mission page", "href": "orbit/", "primary": true},
-        {"label": "Code", "href": "https://github.com/shmorsi/orbit-multi-agent", "external": true}
+      "tags": [
+        "Python",
+        "PyTorch",
+        "QLoRA",
+        "Claude API"
       ],
-      "homeMetricIds": ["team", "tools", "eval", "host"],
-      "glanceIds": ["team", "tools", "eval", "host"],
+      "links": [
+        {
+          "label": "Mission page",
+          "href": "orbit/",
+          "kind": "site"
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/shmorsi/orbit-multi-agent",
+          "kind": "repo",
+          "external": true
+        }
+      ],
+      "glanceIds": [
+        "schemaValid",
+        "taskSuccess",
+        "toolCount",
+        "tests"
+      ],
       "stats": {
+        "schemaValid": {
+          "label": "Schema-valid tool calls",
+          "display": "0.61 → 0.78",
+          "source": "orbit-multi-agent results/v2_qwen1.5b: team_base.json schema_valid_rate 0.6071428571428571, team_lora.json 0.7797619047619048, shown as 0.61 and 0.78. comparison.json team_lora_minus_team_base schema_valid_rate 95% paired bootstrap 0.0013888888888889117 to 0.33888888888888885. Resume: 0.61 to 0.78, 95% CI above zero."
+        },
+        "taskSuccess": {
+          "label": "Task success, adapter vs base team",
+          "display": "3 vs 2 of 12",
+          "source": "orbit-multi-agent results/v2_qwen1.5b: team_lora 3 of 12, team_base 2 of 12. Paired bootstrap −0.16666666666666666 to 0.3333333333333333 includes zero: not significant."
+        },
         "team": {
-          "label": "Team",
-          "display": "Planner, worker, critic",
-          "source": "Orbit README: a local planner, a worker, and a critic. The worker calls tools. The critic sends a bad claim back."
+          "label": "Agents",
+          "display": "3",
+          "source": "orbit-multi-agent README: planner, worker and critic. A six-role team is planned and not yet scored."
+        },
+        "toolCount": {
+          "label": "Sandboxed tools",
+          "display": "6",
+          "source": "orbit-multi-agent README: sandboxed Python, calculator, corpus file read, per-run file write, keyword retrieval, offline web cache. Nothing in the tool path opens a socket. Resume: 6 sandboxed tools."
+        },
+        "testTasks": {
+          "label": "Frozen test tasks",
+          "display": "12",
+          "source": "orbit-multi-agent README results: frozen test team-eval-v1, 12 tasks."
+        },
+        "tests": {
+          "label": "pytest tests in CI",
+          "display": "94",
+          "source": "pytest collects 94 tests at orbit-multi-agent main 3d781c6 (collected on 2026-10-23). Resume: 94 pytest tests in CI."
         },
         "tools": {
           "label": "Tools",
           "display": "On device",
-          "source": "Orbit README: sandboxed Python, a calculator, corpus file read, a per-run file write, keyword retrieval, and an offline web cache. Nothing in the tool path opens a socket."
-        },
-        "eval": {
-          "label": "Frozen-test evaluation",
-          "display": "Pending",
-          "source": "Orbit README results table: single base model, team base model, team plus adapter, and the paired comparison are pending runs. No language-model score has been measured."
+          "source": "Orbit README: nothing in the tool path opens a socket."
         },
         "host": {
           "label": "Where a live run goes",
           "display": "Your machine",
-          "source": "Orbit README: Mission Control replays a saved trace, and a task you start runs on your own machine. GitHub Pages replays the saved traces. The run form needs the local server."
+          "source": "Orbit README: GitHub Pages replays the saved traces. The run form needs the local server."
         }
       },
-      "tables": {}
+      "tables": {
+        "v1": {
+          "caption": "v1, 3 agents. Measured once on the frozen 12-task test team-eval-v1. Qwen2.5-1.5B-Instruct, QLoRA on 307 train and 71 tune dialogues. Harness v2.",
+          "headers": [
+            "Run",
+            "Successes",
+            "Schema-valid rate",
+            "Trap refusals"
+          ],
+          "rows": [
+            [
+              "Single agent, base model",
+              "2 of 12",
+              "0.75",
+              "2 of 2"
+            ],
+            [
+              "Team, base model",
+              "2 of 12",
+              "0.61",
+              "2 of 2"
+            ],
+            [
+              "Team plus QLoRA adapter",
+              "3 of 12",
+              "0.78",
+              "1 of 2"
+            ],
+            [
+              "Team, distilled",
+              "Not scored",
+              "",
+              ""
+            ]
+          ],
+          "source": "orbit-multi-agent README results block and results/v2_qwen1.5b/*.json. Rates shown to two decimals: 0.75, 0.6071428571428571, 0.7797619047619048."
+        },
+        "v1Pairs": {
+          "caption": "Paired bootstrap, team plus adapter minus team base, 10,000 resamples, 95% interval.",
+          "headers": [
+            "Metric",
+            "Point",
+            "95% interval",
+            "Reading"
+          ],
+          "rows": [
+            [
+              "Task success rate",
+              "+0.083",
+              "−0.167 to +0.333",
+              "Includes zero. Not significant."
+            ],
+            [
+              "Schema-valid rate",
+              "+0.173",
+              "+0.001 to +0.339",
+              "Above zero."
+            ]
+          ],
+          "source": "orbit-multi-agent results/v2_qwen1.5b/comparison.json, team_lora_minus_team_base, shown to three decimals."
+        }
+      },
+      "purpose": "AI teams you can audit: agents that plan, act, and refuse to state anything they can't prove.",
+      "headline": {
+        "stat": "schemaValid",
+        "qualifier": "Team, base model to QLoRA adapter. Frozen 12-task test, 95% interval above zero."
+      },
+      "factIds": [
+        "team",
+        "toolCount",
+        "tests"
+      ]
+    },
+    {
+      "id": "atlas",
+      "mission": "04",
+      "code": "ATLAS",
+      "role": "featured",
+      "badge": "Local app",
+      "kicker": "Economic research terminal",
+      "title": "ATLAS",
+      "purpose": "An economic research terminal that traces how a cost shock travels through the world's production networks.",
+      "summary": "Real country data, seven OECD production tables, a PyTorch scenario solver and saved neural checkpoints, served by one local FastAPI process with a React interface. Every result is labelled as observed, hypothetical or learned.",
+      "caveat": "A local research terminal, not a hosted service. In the graph experiment, ridge regression beat every neural and graph model on the one held-out year. Latencies are warm requests on one machine.",
+      "image": {
+        "src": "assets/img/atlas-overview.webp",
+        "alt": "ATLAS World Atlas view: a map of real GDP growth by country, with Japan selected and its 2025 figures beside the map.",
+        "width": 1440,
+        "height": 900
+      },
+      "tags": [
+        "Python",
+        "PyTorch",
+        "FastAPI",
+        "DuckDB",
+        "React",
+        "TypeScript"
+      ],
+      "links": [
+        {
+          "label": "Case study",
+          "href": "projects/atlas.html",
+          "kind": "site"
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/shmorsi/atlas",
+          "kind": "repo",
+          "external": true
+        },
+        {
+          "label": "Release v0.1.2",
+          "href": "https://github.com/shmorsi/atlas/releases/tag/v0.1.2",
+          "kind": "more",
+          "external": true
+        }
+      ],
+      "headline": {
+        "stat": "nodes",
+        "qualifier": "Seven OECD tables, 2016–2022. Historical structure, hypothetical cost scenarios."
+      },
+      "factIds": [
+        "checkpoints",
+        "bestGraph",
+        "scenarioMs"
+      ],
+      "glanceIds": [
+        "nodes",
+        "checkpoints",
+        "bestGraph",
+        "scenarioMs"
+      ],
+      "stats": {
+        "nodes": {
+          "label": "Country-sector nodes in one scenario solve",
+          "display": "405",
+          "source": "atlas README and docs/SCENARIO_STUDIO.md: seven OECD production tables aggregated to 405 nodes across 81 areas; the studio solves p = solve(I − αAᵀ, s) with torch.linalg.solve in float64."
+        },
+        "areas": {
+          "label": "Areas",
+          "display": "81",
+          "source": "atlas docs/BUILD_STATUS.md: 81 areas × five groups."
+        },
+        "tables": {
+          "label": "OECD production tables",
+          "display": "7",
+          "source": "atlas docs/BUILD_STATUS.md: seven OECD annual tables, 2016–2022."
+        },
+        "entities": {
+          "label": "Geographic entities",
+          "display": "177",
+          "source": "atlas README: 177 Natural Earth country and territory geometries."
+        },
+        "records": {
+          "label": "World Bank records",
+          "display": "42,900",
+          "source": "atlas README: 42,900 WDI records for 1960–2024, missing values kept as missing."
+        },
+        "checkpoints": {
+          "label": "Trained PyTorch checkpoints",
+          "display": "12",
+          "source": "atlas README and docs/BUILD_STATUS.md: six GRU checkpoints and six graph/no-graph checkpoints, replayed in the release gate."
+        },
+        "bestGraph": {
+          "label": "Best model, graph experiment",
+          "display": "Ridge",
+          "source": "atlas docs/RESEARCH_REPORT.md: on the 2022 test year, ridge RMSE 14.0001 and MAE 9.3973 log pp, below every graph and no-graph seed (best graph RMSE 14.2782). One held-out year."
+        },
+        "ridgeRmse": {
+          "label": "Ridge RMSE, graph experiment",
+          "display": "14.00",
+          "source": "atlas docs/RESEARCH_REPORT.md: ridge RMSE 14.0001 log pp, 2022 test year."
+        },
+        "graphRmse": {
+          "label": "Best graph RMSE",
+          "display": "14.28",
+          "source": "atlas docs/RESEARCH_REPORT.md: graph_seed17 RMSE 14.2782 log pp, 2022 test year."
+        },
+        "scenarioMs": {
+          "label": "405-node scenario, local median",
+          "display": "11.0 ms",
+          "source": "atlas docs/LOCAL_LATENCY.json: /api/network/scenario median 11.0 ms over 10 warm sequential loopback requests on macOS ARM64. Not a load, cold-start or other-hardware result."
+        },
+        "graphParams": {
+          "label": "Graph model parameters",
+          "display": "81",
+          "source": "atlas docs/SCENARIO_STUDIO.md and RESEARCH_REPORT.md: the graph model has 81 trainable parameters."
+        },
+        "gruParams": {
+          "label": "GRU parameters",
+          "display": "354",
+          "source": "atlas docs/RESEARCH_REPORT.md: 354 parameters with all features, 282 in the domestic-only ablation."
+        },
+        "backendTests": {
+          "label": "Backend tests",
+          "display": "44",
+          "source": "atlas docs/VALIDATION.md: the v0.1.2 update passed 44 backend tests; pytest collects 44 at main a3f0bb6."
+        },
+        "browserTests": {
+          "label": "Chromium browser tests",
+          "display": "27",
+          "source": "atlas docs/VALIDATION.md: the complete 27-test Chromium suite passed against a production build, on local macOS."
+        },
+        "treasury": {
+          "label": "Observed Treasury curves",
+          "display": "694",
+          "source": "atlas README: 694 observed daily Treasury par curves, 2024–2026, latest 2026-10-09."
+        },
+        "events": {
+          "label": "Dated official releases",
+          "display": "30",
+          "source": "atlas README: 30 dated official Fed/ECB releases."
+        }
+      },
+      "tables": {
+        "graph": {
+          "caption": "Graph experiment, held-out year 2022, 405 dependent node observations. Error in log percentage points, sorted by RMSE. Lower is better.",
+          "headers": [
+            "Model",
+            "MAE",
+            "RMSE"
+          ],
+          "rows": [
+            [
+              "Ridge",
+              "9.397",
+              "14.000"
+            ],
+            [
+              "Graph, seed 17",
+              "9.485",
+              "14.278"
+            ],
+            [
+              "No graph, seed 17",
+              "9.626",
+              "14.538"
+            ],
+            [
+              "No graph, seed 43",
+              "10.200",
+              "15.088"
+            ],
+            [
+              "Graph, seed 43",
+              "10.239",
+              "15.130"
+            ],
+            [
+              "No graph, seed 29",
+              "10.687",
+              "15.642"
+            ],
+            [
+              "Training mean",
+              "10.735",
+              "15.822"
+            ],
+            [
+              "Graph, seed 29",
+              "10.901",
+              "15.883"
+            ],
+            [
+              "Persistence",
+              "11.830",
+              "16.512"
+            ]
+          ],
+          "source": "atlas docs/RESEARCH_REPORT.md, exploratory graph experiment table (values to three decimals). Training 2018–2020, validation 2021, test 2022.",
+          "highlightRow": 0
+        },
+        "gru": {
+          "caption": "US annual real GDP growth, 10 held-out years (2015–2024). Error in percentage points. All seeds shown; seed 17 was the display default chosen before the test was inspected.",
+          "headers": [
+            "Model",
+            "Seed",
+            "MAE",
+            "RMSE",
+            "80% coverage"
+          ],
+          "rows": [
+            [
+              "GRU, all features",
+              "17",
+              "1.180",
+              "1.945",
+              "0.8"
+            ],
+            [
+              "GRU, all features",
+              "29",
+              "1.396",
+              "2.058",
+              "0.8"
+            ],
+            [
+              "GRU, all features",
+              "43",
+              "1.498",
+              "2.105",
+              "0.7"
+            ],
+            [
+              "GRU, domestic only",
+              "17",
+              "1.202",
+              "1.977",
+              "0.8"
+            ],
+            [
+              "GRU, domestic only",
+              "29",
+              "1.617",
+              "2.173",
+              "0.8"
+            ],
+            [
+              "GRU, domestic only",
+              "43",
+              "1.369",
+              "2.034",
+              "0.8"
+            ],
+            [
+              "Ridge",
+              "",
+              "1.309",
+              "1.978",
+              ""
+            ],
+            [
+              "Training mean",
+              "",
+              "1.363",
+              "2.044",
+              ""
+            ],
+            [
+              "Persistence, lag 2",
+              "",
+              "2.000",
+              "2.695",
+              ""
+            ]
+          ],
+          "source": "atlas docs/RESEARCH_REPORT.md forecasting table (values to three decimals). The report: the neural model does not consistently beat ridge or the training mean."
+        },
+        "latency": {
+          "caption": "Ten warm sequential requests per endpoint on one macOS ARM64 machine, loopback only. Not a load or cold-start benchmark.",
+          "headers": [
+            "Request",
+            "Median",
+            "Max"
+          ],
+          "rows": [
+            [
+              "Country table, 2025",
+              "6.47 ms",
+              "12.42 ms"
+            ],
+            [
+              "Japan network profile, 2022",
+              "5.31 ms",
+              "6.09 ms"
+            ],
+            [
+              "405-node scenario",
+              "11.00 ms",
+              "11.77 ms"
+            ],
+            [
+              "GRU checkpoint replay",
+              "40.51 ms",
+              "59.40 ms"
+            ]
+          ],
+          "source": "atlas docs/LOCAL_LATENCY.json."
+        }
+      }
     }
-  ]
+  ],
+  "tagline": "I build AI that has to be right: models and agents measured against reality, not demos."
 }
