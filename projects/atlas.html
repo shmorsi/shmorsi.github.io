@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>ATLAS · Sherif Morsi</title>
+  <meta name="description" content="ATLAS is a local economic research terminal: real country data, seven OECD production tables, a PyTorch cost-propagation solver and saved neural checkpoints, with every limit stated beside the result.">
+  <meta name="author" content="Sherif Morsi">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <link rel="canonical" href="https://shmorsi.github.io/projects/atlas.html">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://shmorsi.github.io/projects/atlas.html">
+  <meta property="og:title" content="ATLAS · Sherif Morsi">
+  <meta property="og:description" content="An economic research terminal that traces how a cost shock travels through the world's production networks.">
+  <meta property="og:image" content="https://shmorsi.github.io/assets/img/atlas-overview.webp">
+  <meta property="og:image:width" content="1440">
+  <meta property="og:image:height" content="900">
+  <meta property="og:image:alt" content="ATLAS World Atlas view with a map of real GDP growth by country.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ATLAS · Sherif Morsi">
+  <meta name="twitter:description" content="An economic research terminal that traces how a cost shock travels through the world's production networks.">
+  <meta name="twitter:image" content="https://shmorsi.github.io/assets/img/atlas-overview.webp">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preload" href="../assets/fonts/inter-tight-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../assets/site.css">
+  <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}document.documentElement.classList.add("js")</script>
+  <script src="../assets/site.js" defer></script>
+</head>
+<body data-root="../" data-metrics="../data/projects.json">
+  <a class="skip" href="#main">Skip to content</a>
+  <canvas class="stars" data-stars aria-hidden="true"></canvas>
+  <header class="site-header">
+    <a class="wordmark" href="../">Sherif Morsi</a>
+    <div class="header-tools">
+      <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="../#work">Work</a>
+        <a href="../#experience">Experience</a>
+        <a href="../#contact">Contact</a>
+        <a href="../resume/Sherif_Morsi_Resume.pdf">Resume</a>
+      </nav>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.75a7.25 7.25 0 0 1 0 14.5Z" fill="currentColor"/></svg></button>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
+    </div>
+  </header>
+  <main id="main">
+    <header class="cs-hero wrap">
+      <a class="text-link back" href="../#atlas">All work</a>
+      <p class="label">Mission 04 / Economic research terminal</p>
+      <h1>ATLAS</h1>
+      <p class="cs-purpose">An economic research terminal that traces how a cost shock travels through the world's production networks.</p>
+      <p class="cs-summary">Real country data, seven OECD production tables, a PyTorch scenario solver and twelve saved neural checkpoints, served by one FastAPI process on your own machine. Every result is labelled as observed history, a hypothetical scenario, or a learned prediction.</p>
+      <div class="actions">
+        <a class="button button-solid" href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a class="button" href="https://github.com/shmorsi/atlas/releases/tag/v0.1.2" target="_blank" rel="noopener noreferrer">Download v0.1.2</a>
+        <a class="text-link" href="https://github.com/shmorsi/atlas/blob/main/docs/RESEARCH_REPORT.md" target="_blank" rel="noopener noreferrer">Research report</a>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <section class="cs-figure" aria-label="At a glance">
+        <div data-glance="atlas"></div>
+        <figure class="figure video-slot" data-video-src="" data-video-poster="../assets/img/atlas-overview.webp" data-video-label="ATLAS walkthrough, no sound">
+          <div class="screen" data-video-holder><img src="../assets/img/atlas-overview.webp" width="1440" height="900" alt="ATLAS World Atlas: a map of real GDP growth by country, with Japan selected. Beside the map, Japan's 2025 growth of 1.19%, economic size and population." decoding="async"></div>
+          <figcaption>Guided mode, the default view. Data are World Bank observations, not a live feed.</figcaption>
+        </figure>
+      </section>
+    </div>
+
+    <div class="cs-body wrap">
+      <section class="cs-section" aria-labelledby="s-what">
+        <h2 id="s-what">What it is</h2>
+        <div class="prose">
+          <p class="big">A research terminal for the world economy that runs on one laptop and shows its working.</p>
+          <p>Pick a country and ATLAS shows its observed history. Pick a sector and a cost change, and it traces where that cost goes through the real supplier network, round by round. Ask for a forecast and it runs a saved PyTorch checkpoint next to the baselines it has to beat.</p>
+          <p>It is a <strong>local research terminal</strong>, not a hosted service. One command builds the interface, verifies every data and model hash, and starts a single loopback server. No account, no credentials, no cloud.</p>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-studio">
+        <h2 id="s-studio">Scenario Studio</h2>
+        <div class="prose">
+          <p class="big">One change. A world of connections.</p>
+          <p>The studio loads seven OECD production tables (2016 to 2022), aggregated to <span data-bind="atlas.stats.nodes.display">405</span> country-sector nodes across <span data-bind="atlas.stats.areas.display">81</span> areas. You set up to five direct cost shocks and a pass-through rate. PyTorch solves the whole system exactly in float64, then differentiates it with autograd, so each source's contribution to the result is computed, not guessed.</p>
+          <pre class="quickstart" aria-label="The cost propagation the studio solves"><code>p = solve(I − α Aᵀ, s)
+direct: s    first round: α Aᵀ s    later rounds: the rest</code></pre>
+          <p>The result is a hypothetical cost change on historical structure. It is not GDP, inflation or an asset return, and the page says so beside every number.</p>
+          <figure class="figure">
+            <div class="screen"><img src="../assets/img/atlas-studio.webp" width="1170" height="1410" alt="Scenario Studio: a Saudi Arabia energy cost shock of plus 10 percent, the footprint map, Japan's modelled cost change of plus 0.144 percent, a chart of transmission rounds, pass-through comparison bars, and a ranked list of the most affected economies." loading="lazy" decoding="async"></div>
+            <figcaption>A 10% energy cost shock in Saudi Arabia, read from Japan. Rounds are steps through the network, not calendar time.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-network">
+        <h2 id="s-network">The network</h2>
+        <div class="prose">
+          <p>Each table is checked before use: flows and outputs reconcile after aggregation, all seven spectral radii are below one, and six raw transaction blocks were summed independently and matched. Published accounting exceptions stay visible rather than being balanced away.</p>
+          <figure class="figure">
+            <div class="screen"><img src="../assets/img/atlas-network.webp" width="1235" height="1000" alt="Economic Network workspace: a world map of Japan's measured suppliers in 2022, with lines to the eight largest foreign suppliers, and the start of a supplier table." loading="lazy" decoding="async"></div>
+            <figcaption>Japan's measured suppliers in 2022. Lines are relationships in the tables, not shipping routes.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-models">
+        <h2 id="s-models">The models</h2>
+        <div class="prose">
+          <p class="big">Ridge regression beat every neural and graph model.</p>
+          <p>A small graph network (<span data-bind="atlas.stats.graphParams.display">81</span> parameters) predicts each node's output growth from the previous year's network. It trains on 2018 to 2020, validates on 2021, and is tested once on 2022. Three seeds, a no-graph ablation and three baselines are all reported. The graph does not consistently beat its own ablation, and ridge has the lowest error.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Graph experiment results" data-table="atlas.tables.graph"></div>
+          <p>A separate GRU (<span data-bind="atlas.stats.gruParams.display">354</span> parameters) forecasts US annual GDP growth on ten held-out years. Performance varies by seed, and it does not consistently beat ridge or the training mean.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="GDP forecasting results" data-table="atlas.tables.gru"></div>
+          <figure class="figure">
+            <div class="screen"><img src="../assets/img/atlas-forecasting.webp" width="1075" height="950" alt="Macro Forecasting workspace: observed and predicted US GDP growth from 2015 to 2024 with 80% bands, and a table of every GRU seed against ridge, persistence and training-mean baselines." loading="lazy" decoding="async"></div>
+            <figcaption>Every seed is on screen. The default is seed 17, chosen before the test was inspected.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-speed">
+        <h2 id="s-speed">Speed</h2>
+        <div class="prose">
+          <p>A full 405-node scenario returns in a median of <span data-bind="atlas.stats.scenarioMs.display">11.0 ms</span>. That is a warm request on one machine, measured locally. It is not a load test, a cold start, or a promise for other hardware.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Local latency" data-table="atlas.tables.latency"></div>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-limits">
+        <h2 id="s-limits">Limits</h2>
+        <div class="prose">
+          <div class="callout">
+            <p>A local, single-user research terminal. An internet-facing version would need authentication, a security review and monitoring that do not exist.</p>
+            <p>The graph experiment has one held-out year and dependent nodes. Ridge wins. No generalization, calibration or causal claim follows.</p>
+            <p>World Bank history is revised and has no release vintages, so no point-in-time backtest is possible.</p>
+            <p>Scenarios use fixed historical coefficients and one uniform pass-through rate. No identified causal oil or monetary shock, and no asset-price bridge.</p>
+            <p>Browser tests ran in Chromium on macOS. Safari, Firefox and human accessibility testing are not verified.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-checks">
+        <h2 id="s-checks">Checks</h2>
+        <div class="prose">
+          <p><span data-bind="atlas.stats.backendTests.display">44</span> backend tests and a <span data-bind="atlas.stats.browserTests.display">27</span>-test Chromium suite passed on the v0.1.2 build. New tests compare the PyTorch solve with an independent SciPy solver and check autograd against finite differences. The release gate replays all twelve checkpoints before the app starts. Setup, backend tests and the build also pass on clean macOS, Windows and Linux runners in GitHub Actions.</p>
+          <pre class="quickstart"><code>npm ci
+npm run setup
+npm run atlas    # opens on http://127.0.0.1:8000</code></pre>
+          <p class="stack">Python, PyTorch, FastAPI, DuckDB, Parquet, SQLite, NumPy, SciPy, CVXPY, React, TypeScript, Vite, MapLibre, ECharts, Playwright</p>
+          <p class="file-note">Figures and screenshots on this page come from the <a href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">atlas repository</a> and are read from <a href="../data/projects.json"><code>data/projects.json</code></a>.</p>
+        </div>
+      </section>
+
+      <nav class="next-project" aria-label="Next project">
+        <a class="next" href="tsfm.html"><span class="label">Next, mission 01</span><strong>Time-series foundation model</strong></a>
+        <a class="text-link" href="../#work">All work</a>
+      </nav>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <span>© 2026 Sherif Morsi, Montreal</span>
+    <a href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
+  </footer>
+</body>
+</html>
