@@ -16,6 +16,7 @@ TEXT_PATHS = [
     *ROOT.glob("projects/*.html"),
     *ROOT.glob("orbit/**/*.html"),
     ROOT / "assets" / "site.js",
+    ROOT / "orbit" / "scene.js",
     ROOT / "data" / "projects.json",
 ]
 
@@ -48,12 +49,10 @@ if (ROOT / "world-shock-lab").exists():
     errors.append("world-shock-lab/ must not exist in this repo; the live site is served from the other repository")
 
 projects = {project["id"]: project for project in DATA["projects"]}
-for project_id in ("atlas", "macro-analyst-agent"):
-    if project_id in projects:
-        errors.append(f"{project_id} must not be listed on the site")
-for name in ("atlas.html", "macro-analyst-agent.html"):
-    if (ROOT / "projects" / name).exists():
-        errors.append(f"projects/{name} must not be served")
+if "macro-analyst-agent" in projects:
+    errors.append("macro-analyst-agent must not be listed on the site")
+if (ROOT / "projects" / "macro-analyst-agent.html").exists():
+    errors.append("projects/macro-analyst-agent.html must not be served")
 
 for project in DATA["projects"]:
     stats = project.get("stats") or {}
@@ -61,9 +60,20 @@ for project in DATA["projects"]:
         for field in ("label", "display", "source"):
             if not str(stat.get(field, "")).strip():
                 errors.append(f"{project['id']}.stats.{key} is missing {field}")
-    for key in project.get("homeMetricIds") or []:
+    headline = project.get("headline") or {}
+    if project.get("role") == "featured":
+        if headline.get("stat") not in stats:
+            errors.append(f"{project['id']} headline.stat must name one stat")
+        if not str(headline.get("qualifier", "")).strip():
+            errors.append(f"{project['id']} headline needs its honest qualifier")
+        if not str(project.get("purpose", "")).strip():
+            errors.append(f"{project['id']} needs a one-line purpose")
+        kinds = [link.get("kind") for link in project.get("links") or []]
+        if "site" not in kinds or "repo" not in kinds:
+            errors.append(f"{project['id']} needs a site link and a repo link")
+    for key in project.get("factIds") or []:
         if key not in stats:
-            errors.append(f"{project['id']} homeMetricIds references missing stat {key}")
+            errors.append(f"{project['id']} factIds references missing stat {key}")
     for key in project.get("glanceIds") or []:
         if key not in stats:
             errors.append(f"{project['id']} glanceIds references missing stat {key}")
@@ -72,8 +82,6 @@ for project in DATA["projects"]:
             errors.append(f"{project['id']}.tables.{name} needs rows and a source")
 
 bind_re = re.compile(r'data-(?:bind|table)="([^"]+)"')
-for path in ROOT.glob("*.html"):
-    pass
 html_files = list(ROOT.glob("*.html")) + list((ROOT / "projects").glob("*.html")) + list(ROOT.glob("orbit/**/*.html"))
 for path in html_files:
     text = path.read_text()
@@ -89,9 +97,6 @@ for path in html_files:
             else:
                 errors.append(f"{path.name} bind {raw} does not resolve")
                 break
-        else:
-            if raw.startswith(tuple()) is False and "data-bind" in text:
-                pass
     for glance in re.findall(r'data-glance="([^"]+)"', text):
         if glance not in projects:
             errors.append(f"{path.name} glance {glance} is unknown")
@@ -130,10 +135,59 @@ for path in [*html_files, ROOT / "README.md", ROOT / "sitemap.xml", ROOT / "data
     if not path.exists():
         continue
     page = path.read_text(encoding="utf-8")
-    if re.search(r"\bATLAS\b|macro-analyst-agent|Macro Analyst", page):
-        errors.append(f"{path.relative_to(ROOT)} still mentions ATLAS or the Macro Analyst Agent")
+    if re.search(r"macro-analyst-agent|Macro Analyst", page):
+        errors.append(f"{path.relative_to(ROOT)} still mentions the Macro Analyst Agent")
+
+# Facts that must stay true, and stale ones that must not come back.
+tsfm = projects.get("tsfm", {})
+if "test split was not scored" in json.dumps(tsfm).lower():
+    errors.append("tsfm must not say the test split was not scored; the CPU model was scored once")
+for needle in ("833,440", "1.109", "1.217", "no detectable difference", "worse"):
+    if needle not in tsfm.get("caveat", ""):
+        errors.append(f"tsfm caveat must state {needle!r} for the test-scored CPU model")
+if "patch_s2" not in tsfm.get("caveat", "") or "no test score" not in tsfm.get("caveat", ""):
+    errors.append("tsfm caveat must say the patch_s2 headline has no test score")
+atlas = projects.get("atlas")
+if atlas is None or not (ROOT / "projects" / "atlas.html").exists():
+    errors.append("ATLAS needs its project entry and projects/atlas.html")
+else:
+    caveat = atlas.get("caveat", "").lower()
+    for needle in ("local research terminal", "ridge", "one machine"):
+        if needle not in caveat:
+            errors.append(f"ATLAS caveat must state {needle!r}")
+for path in html_files:
+    page = path.read_text(encoding="utf-8")
+    if "devpost" in page.lower():
+        errors.append(f"{path.relative_to(ROOT)} links Devpost; that profile is empty")
+home = (ROOT / "index.html").read_text(encoding="utf-8")
+if "Trained in agentic AI for intent-based 5G network slicing (Amazon Bedrock)." not in home:
+    errors.append("Nokia role must keep the agentic AI training line")
+# The home mission index repeats each headline figure for no-JS readers; it must match the data.
+for pid, project in projects.items():
+    if project.get("role") != "featured":
+        continue
+    stat = project["stats"][project["headline"]["stat"]]
+    block = re.search(rf'data-headline="{re.escape(pid)}".*?</li>', home, re.S)
+    if not block:
+        errors.append(f"index.html mission index is missing {pid}")
+    elif stat["display"] not in block.group(0) or stat["label"] not in block.group(0):
+        errors.append(f"index.html mission index for {pid} does not match data/projects.json")
+# data-bind fallback text must match the data it binds.
+for path in html_files:
+    page = path.read_text(encoding="utf-8")
+    for raw, shown in re.findall(r'data-bind="([^"]+)">([^<]*)<', page):
+        project_id, _, rest = raw.partition(".")
+        cursor = projects.get(project_id)
+        for part in rest.split("."):
+            cursor = cursor.get(part) if isinstance(cursor, dict) else None
+        if shown and cursor is not None and shown != str(cursor):
+            errors.append(f"{path.relative_to(ROOT)} bind {raw} shows {shown!r} but data says {cursor!r}")
+sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
+for loc in ("projects/tsfm.html", "projects/world-shock-lab.html", "projects/atlas.html", "orbit/"):
+    if f"https://shmorsi.github.io/{loc}</loc>" not in sitemap:
+        errors.append(f"sitemap.xml is missing {loc}")
 
 if errors:
     print("\n".join(errors))
     sys.exit(1)
-print(f"ok — {len(projects)} projects")
+print(f"ok: {len(projects)} projects")
