@@ -20,10 +20,12 @@
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="800">
   <meta property="og:image:alt" content="Mission Control replay of a saved engine trace, marked scripted harness.">
+  <meta property="og:locale" content="en_CA">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Orbit: AI teams you can audit · Sherif Morsi">
   <meta name="twitter:description" content="AI teams you can audit: agents that plan, act, and refuse to state anything they can't prove.">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/img/orbit-mission.webp">
+  <meta name="twitter:image:alt" content="Mission Control replay of a saved engine trace, marked scripted harness.">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -41,6 +43,7 @@
     <div class="header-tools">
       <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
         <a href="../#work">Work</a>
+        <a href="../#about">About</a>
         <a href="../#experience">Experience</a>
         <a href="../#contact">Contact</a>
         <a href="../resume/Sherif_Morsi_Resume.pdf">Resume</a>
@@ -60,6 +63,7 @@
         <a class="button" href="https://github.com/shmorsi/orbit-multi-agent" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a class="text-link" href="#try">Run it yourself</a>
       </div>
+      <p class="stack"><span class="label">Stack</span> Python, PyTorch, QLoRA, Claude API</p>
     </header>
 
     <div class="wrap">
@@ -117,8 +121,8 @@
           <p class="big">Every claim has to point at evidence. If the evidence does not hold, the claim does not ship.</p>
           <ul>
             <li><strong>Roles, v1.</strong> A planner writes at most four steps, or an empty plan when the notes cannot answer. A worker takes one step at a time. A critic accepts grounded claims and sends the rest back, at most twice. Every measured number on this page is from this three-role team.</li>
-            <li><strong>Tools, on device.</strong> Six sandboxed tools: a Python cell, a calculator, file read, a per-run file write, keyword search over the bundled notes, and an offline web cache. Nothing in the tool path opens a network connection.</li>
-            <li><strong>The grounding gate.</strong> After the critic, a gate keeps a claim only when the cited tool result contains it, or a successful Python call printed it. Otherwise it refuses.</li>
+            <li><strong>Tools, on device.</strong> Six sandboxed tools: a Python cell that can read a bundled file by path, a calculator, file read, a per-run file write, keyword search over the bundled notes, tables, and logs, and an offline web cache. Nothing in the tool path opens a network connection.</li>
+            <li><strong>The grounding gate.</strong> After the critic, a gate keeps a claim only when the cited tool result contains it, a successful Python call printed it, or the count equals the matching lines in the cited text. Otherwise it refuses. The measured table below was scored on the earlier harness, before that matching-lines rule.</li>
             <li><strong>Frozen tests.</strong> Dev questions train and tune. The 12-task test file stays frozen and is scored once per model. A leakage check rejects any test id, question or snippet in the training files.</li>
           </ul>
           <h3>Six roles, v2</h3>
@@ -139,14 +143,29 @@
         <h2 id="s-results">Measured result</h2>
         <div class="prose">
           <p class="big">Fine-tuning taught the format. Task success did not clear zero.</p>
-          <p>Measured once on the frozen test. Schema-valid tool calls rose from 0.61 to 0.78, and that interval sits above zero. Task success went from 2 to 3 of 12, an interval that includes zero, and the adapter missed one trap it should have refused.</p>
+          <p>Measured once on the frozen test. Schema-valid tool calls: <span data-bind="orbit.stats.schemaValid.display">0.61 → 0.78</span>, and that interval sits above zero. Task success: <span data-bind="orbit.stats.taskSuccess.display">3 vs 2 of 12</span>, an interval that includes zero, and the adapter missed one trap it should have refused.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="v1 results" data-table="orbit.tables.v1"></div>
           <div class="table-wrap" tabindex="0" role="region" aria-label="v1 paired comparison" data-table="orbit.tables.v1Pairs"></div>
-          <p class="file-note">Evaluation pending: single agent vs team vs fine-tuned team on a frozen test set, under harness v3. The harness changed after the v1 run, so all four configurations must be scored again before any new comparison. Until then, the v1 numbers above stand alone.</p>
+          <p class="file-note">Evaluation pending: single agent vs team vs fine-tuned team on a frozen test set, under harness v3. The harness changed after the v1 run, so all four configurations must be scored again before any new comparison. Until then, the v1 numbers above stand alone. The six-role slot is filled only from a measured <code>results/v3_api/&lt;model&gt;/team_v2.json</code> (<code>make score-v2</code>). <code>python -m orbit_agents.eval.readme</code> rewrites the repository results block from committed files and leaves a missing file as not scored.</p>
           <div class="slot-empty" aria-label="v2 results slot" data-slot="orbit-v2" data-source="">
             <span class="label">v2, six roles</span>
             <strong>Not yet scored</strong>
-            <p>The six-role team is built and its traces replay above, but it has no frozen-test score. This slot stays empty until its result file exists.</p>
+            <p>The six-role API score is not in the repository. This slot stays empty until that result file exists. The traces above are a scripted harness, not this score.</p>
+          </div>
+          <div class="slot-empty" aria-label="Three-role API score" data-slot="orbit-score-v1" data-source="">
+            <span class="label">API score, three roles</span>
+            <strong>Not yet scored</strong>
+            <p>Empty until <code>results/v3_api/&lt;model&gt;/team_v1.json</code> is a measured model eval (<code>make score-v1</code>). The table above is the archived local run.</p>
+          </div>
+          <div class="slot-empty" aria-label="Distilled team score" data-slot="orbit-distill" data-source="">
+            <span class="label">Distilled team</span>
+            <strong>Not yet scored</strong>
+            <p>Empty until <code>results/v3_qwen1.5b/team_distill.json</code> is a measured model eval. The notebook writes that file once and does not invent a score.</p>
+          </div>
+          <div class="slot-empty" aria-label="Harness v3 rescore" data-slot="orbit-harness-v3" data-source="">
+            <span class="label">Harness v3</span>
+            <strong>Not yet scored</strong>
+            <p>Empty until <code>results/v3_qwen1.5b/</code> holds measured scores for the single agent, the team, the fine-tuned team, and the distilled team. <code>python -m orbit_agents.eval.readme</code> prints those rows from the committed files and leaves a missing file as not scored.</p>
           </div>
         </div>
       </section>

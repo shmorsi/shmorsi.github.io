@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Sherif Morsi · AI, ML and quant projects</title>
-  <meta name="description" content="Sherif Morsi, third-year Computer Science student at Concordia University in Montreal. I build AI that has to be right: models and agents measured against reality. Seeking AI/ML, quant and software internships for Winter 2027.">
+  <title>Sherif Morsi · AI/ML, language agents, quant</title>
+  <meta name="description" content="Sherif Morsi, third-year Computer Science student at Concordia University in Montreal. AI/ML and quant: language agents, LLM systems, and quantitative models measured on frozen tests. Seeking internships for Winter 2027.">
   <meta name="author" content="Sherif Morsi">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
@@ -15,16 +15,17 @@
   <meta property="og:site_name" content="Sherif Morsi">
   <meta property="og:locale" content="en_CA">
   <meta property="og:url" content="https://shmorsi.github.io/">
-  <meta property="og:title" content="Sherif Morsi · AI, ML and quant projects">
-  <meta property="og:description" content="I build AI that has to be right: models and agents measured against reality, not demos.">
+  <meta property="og:title" content="Sherif Morsi · AI/ML, language agents, quant">
+  <meta property="og:description" content="Language agents, LLM systems, and quantitative models, measured on frozen tests and reported as they landed.">
   <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Sherif Morsi, Computer Science student at Concordia University.">
+  <meta property="og:image:alt" content="Sherif Morsi. AI/ML and quant: language agents and LLM systems.">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Sherif Morsi · AI, ML and quant projects">
-  <meta name="twitter:description" content="I build AI that has to be right: models and agents measured against reality, not demos.">
+  <meta name="twitter:title" content="Sherif Morsi · AI/ML, language agents, quant">
+  <meta name="twitter:description" content="Language agents, LLM systems, and quantitative models, measured on frozen tests and reported as they landed.">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/og.png">
+  <meta name="twitter:image:alt" content="Sherif Morsi. AI/ML and quant: language agents and LLM systems.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -59,8 +60,8 @@
     <div class="header-tools">
       <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
         <a href="#work" data-section="work">Work</a>
+        <a href="#about" data-section="about">About</a>
         <a href="#experience" data-section="experience">Experience</a>
-        <a href="#profile" data-section="profile">Profile</a>
         <a href="#contact" data-section="contact">Contact</a>
         <a href="resume/Sherif_Morsi_Resume.pdf">Resume</a>
       </nav>
@@ -74,14 +75,15 @@
   <main id="main">
     <section class="hero wrap" aria-labelledby="hero-title">
       <div class="hero-main">
-        <p class="label">Computer Science, Concordia University, Montreal</p>
+        <p class="label">Computer Science · Concordia University · Montreal</p>
         <h1 id="hero-title">Sherif<br>Morsi</h1>
-        <p class="tagline">I build AI that has to be right: models and agents measured against reality, not demos.</p>
+        <p class="tagline">AI/ML and quant. Language agents and LLM systems, measured on frozen tests and reported as they landed.</p>
         <p class="hero-meta">Third-year student. Seeking AI/ML, quant and software internships from January 2027, for 4 to 16 months, anywhere in Canada.</p>
         <div class="actions">
-          <a class="button button-solid" href="#work">See the work</a>
-          <a class="button" href="resume/Sherif_Morsi_Resume.pdf" download>Download resume</a>
-          <a class="text-link" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
+          <a class="button button-solid" href="#work">Projects</a>
+          <a class="button" href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a class="button" href="resume/Sherif_Morsi_Resume.pdf" download>Resume</a>
+          <a class="button" href="#contact">Contact</a>
         </div>
       </div>
       <!-- Figures below mirror data/projects.json so they show without JavaScript. scripts/check_site.py fails if they drift. -->
@@ -98,7 +100,7 @@
       <div class="section-head" data-reveal>
         <p class="label">Work</p>
         <h2 id="work-title">Four missions</h2>
-        <p>Each one ships with its code, its tests, and the result as measured, including the parts that did not work.</p>
+        <p>Language agents, LLM systems, and quantitative ML. Each one ships with its code, its tests, and the result as measured, including the parts that did not work.</p>
       </div>
       <div data-mission-list="featured"><span id="tsfm"></span><span id="world-shock-lab"></span><span id="orbit"></span><span id="atlas"></span></div>
       <noscript>
@@ -153,17 +155,20 @@
       </article>
     </section>
 
-    <section class="section wrap" id="profile" aria-labelledby="profile-title">
+    <section class="section wrap" id="about" aria-labelledby="about-title">
+      <span id="profile"></span>
       <span id="skills"></span>
+      <div class="section-head" data-reveal>
+        <p class="label">About</p>
+        <h2 id="about-title">About</h2>
+      </div>
       <div class="split">
         <div data-reveal>
-          <p class="label">Profile</p>
-          <h2 id="profile-title" class="visually-hidden">Profile</h2>
-          <p class="lede" style="margin-top:14px">I build tested Python and PyTorch pipelines, leakage-checked forecasts, tool-calling agents, and macro-shock studies, with AI coding agents in the loop.</p>
+          <p class="lede">I build tested Python and PyTorch pipelines, leakage-checked forecasts, tool-calling agents, and macro-shock studies, with AI coding agents in the loop.</p>
           <dl class="facts">
             <div><dt>Based</dt><dd>Montreal, Quebec, Canada</dd></div>
             <div><dt>Status</dt><dd>Canadian permanent resident. UAE Golden Visa.</dd></div>
-            <div><dt>Open to</dt><dd>4, 8, 12, or 16-month internships anywhere in Canada</dd></div>
+            <div><dt>Open to</dt><dd>Internships of 4, 8, 12, or 16 months, anywhere in Canada</dd></div>
             <div><dt>Languages</dt><dd>English, Arabic, and French (learning)</dd></div>
             <div><dt>Also</dt><dd>QUARCC member. Arab Run Club Montreal. John Molson Book Club.</dd></div>
           </dl>
@@ -195,7 +200,7 @@
 
     <section class="section wrap contact" id="contact" aria-labelledby="contact-title">
       <p class="label">Contact</p>
-      <h2 id="contact-title">Let's talk</h2>
+      <h2 id="contact-title">Contact</h2>
       <p>Winter 2027 internships of 4, 8, 12, or 16 months, anywhere in Canada.</p>
       <a class="email" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
       <p class="phone"><a href="tel:+14385966468">+1 (438) 596-6468</a></p>

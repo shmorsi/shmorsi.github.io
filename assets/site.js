@@ -212,7 +212,8 @@
         ${specHtml(project, project.factIds || [])}
         <div class="actions">${(project.links || []).map(linkHtml).join("")}</div>
         <p class="caveat"><span class="label">Read this</span>${esc(project.caveat)}</p>
-        <ul class="tags" aria-label="Built with">${(project.tags || []).map((tag) => `<li>${esc(tag)}</li>`).join("")}</ul>
+        <p class="label">Stack</p>
+        <ul class="tags" aria-label="Stack">${(project.tags || []).map((tag) => `<li>${esc(tag)}</li>`).join("")}</ul>
       </div>
     </article>`;
 

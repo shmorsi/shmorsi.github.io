@@ -224,6 +224,87 @@ for loc in ("projects/tsfm.html", "projects/world-shock-lab.html", "projects/atl
     if f"https://shmorsi.github.io/{loc}</loc>" not in sitemap:
         errors.append(f"sitemap.xml is missing {loc}")
 
+# Pending results stay empty until a committed file exists. No placeholder score.
+wsl_page = (ROOT / "projects" / "world-shock-lab.html").read_text(encoding="utf-8")
+if 'data-slot="wsl-live-score"' not in wsl_page or "No decision has been scored" not in wsl_page:
+    errors.append("world-shock-lab page must keep the October decision score pending")
+wsl_slot = re.search(r'data-slot="wsl-live-score".*?</div>', wsl_page, re.S)
+if wsl_slot and "%" in re.sub(r"<[^>]+>", " ", wsl_slot.group(0)):
+    errors.append("world-shock-lab live-score slot must not show a percentage")
+tsfm_page = (ROOT / "projects" / "tsfm.html").read_text(encoding="utf-8")
+tsfm_slot = re.search(r'data-slot="tsfm-patch-test"[^>]*>(.*?)</div>', tsfm_page, re.S)
+if not tsfm_slot or "Not scored" not in tsfm_slot.group(1) or re.search(r"\d", re.sub(r"<[^>]+>", " ", tsfm_slot.group(1))):
+    errors.append("tsfm headline test slot must say 'Not scored' and must not show a number")
+tsfm_distill = re.search(r'data-slot="tsfm-distill"[^>]*>(.*?)</div>', tsfm_page, re.S)
+if not tsfm_distill or "Not scored" not in tsfm_distill.group(1) or re.search(r"\d", re.sub(r"<[^>]+>", " ", tsfm_distill.group(1))):
+    errors.append("tsfm distillation slot must say 'Not scored' and must not show a number")
+v3_slot = re.search(r'data-slot="orbit-harness-v3"[^>]*>(.*?)</div>', orbit_page, re.S)
+if not v3_slot or "Not yet scored" not in v3_slot.group(1):
+    errors.append("orbit harness v3 slot must say 'Not yet scored'")
+elif "%" in re.sub(r"<[^>]+>", " ", v3_slot.group(1)):
+    errors.append("orbit harness v3 slot must not show a percentage")
+if 'data-slot="orbit-score-v1"' not in orbit_page or 'data-slot="orbit-distill"' not in orbit_page:
+    errors.append("orbit page needs pending slots for the three-role API score and the distilled team")
+for needle in ("team_v1.json", "team_distill.json", "make score-v2", "python -m orbit_agents.eval.readme"):
+    if needle not in orbit_page:
+        errors.append(f"orbit page must name the pending result path or command {needle!r}")
+
+# Internal links, image alts, and the tags a shared link needs.
+meta_needles = (
+    "<title>",
+    'name="description"',
+    'name="viewport"',
+    'rel="canonical"',
+    'property="og:title"',
+    'property="og:description"',
+    'property="og:image"',
+    'property="og:url"',
+    'name="twitter:card"',
+)
+for path in html_files:
+    page = path.read_text(encoding="utf-8")
+    if path.name != "404.html":
+        for needle in meta_needles:
+            if needle not in page:
+                errors.append(f"{path.relative_to(ROOT)} is missing {needle}")
+        if not re.search(r"<h1[\s>]", page):
+            errors.append(f"{path.relative_to(ROOT)} is missing an h1")
+    for tag in re.findall(r"<img\b[^>]*>", page, re.I):
+        if not re.search(r"\balt=", tag, re.I):
+            errors.append(f"{path.relative_to(ROOT)} has an img without alt")
+    for raw in re.findall(r'''(?:href|src)="([^"]+)"''', page):
+        if raw.startswith(("mailto:", "tel:", "data:", "javascript:", "http://", "https://")):
+            continue
+        url, _, frag = raw.partition("#")
+        url = url.split("?", 1)[0]
+        if url.startswith("/"):
+            target = (ROOT / url.lstrip("/")).resolve()
+        elif url == "":
+            target = path.resolve()
+        else:
+            target = (path.parent / url).resolve()
+        try:
+            target.relative_to(ROOT)
+        except ValueError:
+            errors.append(f"{path.relative_to(ROOT)} link {raw} leaves the site")
+            continue
+        if target.is_dir():
+            target = target / "index.html"
+        if not target.is_file():
+            errors.append(f"{path.relative_to(ROOT)} link {raw} does not resolve")
+            continue
+        if frag and target.suffix == ".html" and f'id="{frag}"' not in target.read_text(encoding="utf-8"):
+            errors.append(f"{path.relative_to(ROOT)} link {raw} has no matching id")
+
+for css_path in ROOT.rglob("*.css"):
+    for raw in re.findall(r"url\(\s*([^)]+?)\s*\)", css_path.read_text(encoding="utf-8")):
+        ref = raw.strip("\"'")
+        if ref.startswith(("data:", "http://", "https://")):
+            continue
+        target = (css_path.parent / ref).resolve()
+        if not target.is_file():
+            errors.append(f"{css_path.relative_to(ROOT)} url {ref} does not resolve")
+
 if errors:
     print("\n".join(errors))
     sys.exit(1)
