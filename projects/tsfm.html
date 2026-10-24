@@ -59,6 +59,7 @@
       <p class="label">02 / Deep learning</p>
       <h1>A time-series foundation model, from scratch</h1>
       <p class="cs-purpose">A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.</p>
+      <p class="cs-summary">Test CRPS <span data-bind="tsfm.stats.patchTest.display">0.688×</span> upstream AutoARIMA. <span data-bind="tsfm.headline.qualifier">patch_s2, one seed, 97 test configurations. 95% CI [0.624, 0.757], better.</span> Validation CRPS was <span data-bind="tsfm.stats.crps.display">0.605×</span> Seasonal Naive.</p>
       <p class="cs-summary">Decoder-only transformer, tokenizers, training loop and sampling in plain PyTorch. Pretrained on a pinned corpus plus synthetic Gaussian-process series. Scored with the official GIFT-Eval scoring code on data held out of training.</p>
       <div class="actions">
         <a class="button button-solid" href="https://github.com/shmorsi/tsfm-from-scratch" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -110,19 +111,23 @@
       <section class="cs-section" aria-labelledby="s-results">
         <h2 id="s-results">Results</h2>
         <div class="prose">
+          <h3>Test split: patch_s2</h3>
+          <p>Scored once from its checkpoint, one seed, 97 configurations. CRPS <span data-bind="tsfm.stats.patchTest.display">0.688×</span> upstream AutoARIMA, 95% CI [0.624, 0.757], better. Validation on 16 configurations was <span data-bind="tsfm.stats.crps.display">0.605×</span> Seasonal Naive.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="patch_s2 test scores" data-table="tsfm.tables.patchTest"></div>
+          <div class="slot-empty" aria-label="Headline model test score" data-slot="tsfm-patch-test" data-source="results/analysis/headline.json">
+            <span class="label">Headline model, test split</span>
+            <strong>0.688×</strong>
+            <p>patch_s2, one seed, 97 configurations. CRPS versus upstream AutoARIMA, 95% CI [0.624, 0.757], better.</p>
+          </div>
+
           <h3>Validation: bigger model, lower error</h3>
           <p>Zero-shot on <span data-bind="tsfm.stats.configs.display">16</span> configurations from datasets held out of pretraining. The largest run, patch_s2, has CRPS <span data-bind="tsfm.stats.crps.display">0.605×</span> and MASE <span data-bind="tsfm.stats.mase.display">0.840</span> relative to Seasonal Naive. Validation loss falls with compute as a power law with exponent <span data-bind="tsfm.stats.power.display">0.058</span> (95% interval <span data-bind="tsfm.stats.powerCi.display">0.051 to 0.064</span>) across <span data-bind="tsfm.stats.modelSizes.display">3</span> sizes.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="Validation scores" data-table="tsfm.tables.validation"></div>
 
-          <h3>Test split: a smaller model, scored once</h3>
-          <p>The patch_s2 weights were never committed, so that checkpoint has no test score and none is claimed. A separate, pre-registered CPU study trained a smaller model (<span data-bind="tsfm.stats.cpuParams.display">833,440</span> parameters), committed its weights, and scored the official test split once: <span data-bind="tsfm.stats.testConfigs.display">97</span> configurations, <span data-bind="tsfm.stats.testSeeds.display">3</span> seeds.</p>
+          <h3>Test split: a smaller CPU model, scored once</h3>
+          <p>A separate, pre-registered CPU study trained a smaller model (<span data-bind="tsfm.stats.cpuParams.display">833,440</span> parameters), committed its weights, and scored the official test split once: <span data-bind="tsfm.stats.testConfigs.display">97</span> configurations, <span data-bind="tsfm.stats.testSeeds.display">3</span> seeds.</p>
           <p>Its CRPS is <span data-bind="tsfm.stats.testCrps.display">1.109×</span> Seasonal Naive, no detectable difference, and <span data-bind="tsfm.stats.testArima.display">1.217×</span> AutoARIMA, worse. Split-conformal intervals fixed coverage and made CRPS worse.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="Test split scores" data-table="tsfm.tables.test"></div>
-          <div class="slot-empty" aria-label="Headline model test score" data-slot="tsfm-patch-test" data-source="">
-            <span class="label">Headline model, test split</span>
-            <strong>Not scored</strong>
-            <p>The headline checkpoint weights were never committed, so this slot stays empty. No test number is claimed for it.</p>
-          </div>
           <div class="slot-empty" aria-label="Distillation result" data-slot="tsfm-distill" data-source="">
             <span class="label">Distillation</span>
             <strong>Not scored</strong>
@@ -144,7 +149,7 @@
         <h2 id="s-limits">Limits</h2>
         <div class="prose">
           <div class="callout">
-            <p>The <span data-bind="tsfm.stats.crps.display">0.605×</span> headline is validation only: <span data-bind="tsfm.stats.configs.display">16</span> configurations, one seed. The model behind it has no test score.</p>
+            <p>The test headline is <span data-bind="tsfm.stats.patchTest.display">0.688×</span> upstream AutoARIMA. The <span data-bind="tsfm.stats.crps.display">0.605×</span> figure is validation only: <span data-bind="tsfm.stats.configs.display">16</span> configurations, one seed.</p>
             <p>The test-scored CPU model does not beat AutoARIMA, and its CRPS is not distinguishable from Seasonal Naive.</p>
             <p>Raw intervals undercover: the validation model's nominal <span data-bind="tsfm.stats.nominalInterval.display">80%</span> intervals cover <span data-bind="tsfm.stats.coverage.display">65%</span> of outcomes.</p>
             <p>The T4 budget cut the plan: three sizes instead of four to six, the second tokenizer trained but not scored, one seed.</p>

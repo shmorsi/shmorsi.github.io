@@ -320,6 +320,13 @@ a.frame:hover img { transform: scale(1.015); }
 .tags { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0; color: var(--dim); font-size: 14px; }
 .noscript-list { margin: 12px 0 0; padding-left: 18px; color: var(--muted); display: grid; gap: 8px; }
 
+.incident-shot, .incident-visual img {
+  width: 100%; height: auto; display: block;
+  border: 1px solid var(--line); background: #000;
+}
+.incident-visual { margin: 0 0 clamp(28px, 4vh, 48px); }
+.incident-visual figcaption { color: var(--dim); font-size: 14px; margin-top: 10px; }
+
 /* Orbit feature: full-bleed, the one loud section on the page. */
 .orbit-feature {
   width: 100vw; margin-left: calc(50% - 50vw);

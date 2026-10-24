@@ -1,17 +1,17 @@
 {
   "instructions": "Edit this file to update every measured figure on the site. Do not add a number unless it is in the resume or in a committed result file in the project's repository. The home page, case studies, and tables all read from here. Each project has one headline stat (headline.stat), three short facts (factIds), and a short caveat. Search this file for the old value and update every place it appears, including caveat text.",
-  "updated": "2026-10-23",
+  "updated": "2026-10-24",
   "projects": [
     {
       "id": "tsfm",
       "mission": "01",
       "code": "TSFM",
       "role": "featured",
-      "badge": "Validation",
+      "badge": "Test split",
       "kicker": "Deep learning",
       "title": "Time-series foundation model",
-      "summary": "A decoder-only transformer pretrained from scratch in PyTorch, then scored zero-shot on datasets held out of training after overlapping benchmark series were removed.",
-      "caveat": "The 0.605× is a validation result, and the 10.1M-parameter patch_s2 checkpoint has no test score. A smaller CPU model (833,440 parameters, 3 seeds, 97 configurations) was scored once on the test split: CRPS 1.109× Seasonal Naive, no detectable difference, and 1.217× AutoARIMA, worse.",
+      "summary": "A decoder-only transformer pretrained from scratch in PyTorch. On the test split, patch_s2, one seed, 97 configurations: CRPS 0.688× upstream AutoARIMA, 95% CI [0.624, 0.757], better. Validation CRPS was 0.605× Seasonal Naive.",
+      "caveat": "patch_s2 on the test split, one seed, 97 configurations: CRPS 0.688× upstream AutoARIMA, 95% CI [0.624, 0.757], better. Its validation CRPS was 0.605× Seasonal Naive, 16 configurations, one seed. A smaller CPU model (833,440 parameters, 3 seeds, 97 configurations) was scored once on the test split: CRPS 1.109× Seasonal Naive, no detectable difference, and 1.217× AutoARIMA, worse.",
       "image": {
         "src": "assets/img/tsfm-results.svg",
         "alt": "Validation chart of CRPS relative to Seasonal Naive for three pretrained transformers of increasing size.",
@@ -45,11 +45,16 @@
       ],
       "glanceIds": [
         "crps",
-        "testCrps",
+        "params",
         "flagged",
         "tests"
       ],
       "stats": {
+        "patchTest": {
+          "label": "Test CRPS vs upstream AutoARIMA",
+          "display": "0.688×",
+          "source": "tsfm-from-scratch results/analysis/headline.json, comparisons[0] primary crps ratio 0.6882908443335406, ci95 [0.6235557884852769, 0.7565564926709726], verdict better, seed_runs patch_s2. README shows 0.688 and [0.624, 0.757]. 97 official GIFT-Eval configurations, one seed."
+        },
         "crps": {
           "label": "Zero-shot CRPS vs Seasonal Naive, validation",
           "display": "0.605×",
@@ -298,13 +303,59 @@
               "0.932"
             ]
           ],
-          "source": "tsfm-from-scratch README test results tables, from results/analysis/cpu_study.json. patch_s2 has no test score because its weights were never committed (DEVIATIONS.md)."
+          "source": "tsfm-from-scratch README test results for the CPU model, from results/analysis/cpu_study.json. The patch_s2 test score is in tables.patchTest, from results/analysis/headline.json."
+        },
+        "patchTest": {
+          "caption": "patch_s2 on the GIFT-Eval test split, one seed, 97 configurations. The first row is the pre-registered primary comparison. Ratios below 1 are better.",
+          "headers": [
+            "Model",
+            "Versus",
+            "Metric",
+            "Ratio",
+            "95% CI",
+            "Verdict"
+          ],
+          "rows": [
+            [
+              "headline",
+              "upstream AutoARIMA",
+              "CRPS",
+              "0.688",
+              "[0.624, 0.757]",
+              "better"
+            ],
+            [
+              "headline",
+              "upstream AutoARIMA",
+              "MASE",
+              "0.851",
+              "[0.684, 0.986]",
+              "better"
+            ],
+            [
+              "headline",
+              "Seasonal Naive",
+              "CRPS",
+              "0.628",
+              "[0.569, 0.692]",
+              "better"
+            ],
+            [
+              "headline",
+              "Seasonal Naive",
+              "MASE",
+              "0.914",
+              "[0.848, 0.989]",
+              "better"
+            ]
+          ],
+          "source": "tsfm-from-scratch README test-split table for patch_s2, generated from results/analysis/headline.json. Primary CRPS ratio 0.6882908443335406 shown as 0.688; CI [0.6235557884852769, 0.7565564926709726] shown as [0.624, 0.757]."
         }
       },
       "purpose": "A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.",
       "headline": {
-        "stat": "crps",
-        "qualifier": "Validation only. 16 held-out configurations, one seed, 10.1M parameters."
+        "stat": "patchTest",
+        "qualifier": "patch_s2, one seed, 97 test configurations. 95% CI [0.624, 0.757], better."
       },
       "factIds": [
         "params",
@@ -660,8 +711,8 @@
       "badge": "Replay",
       "kicker": "AI agents",
       "title": "Orbit",
-      "summary": "Autonomous Incident Commander is a scripted demo on a fictional e-commerce corpus: the team counts errors in code, checks runbook thresholds, finds the bad deploy, and the auditor refuses a red-team agent's fake root cause. The measured results are still the frozen makerspace test, a local planner, worker and critic. The six-role team has not been scored.",
-      "caveat": "Measured once on a frozen 12-task test (3 agents, harness v2). Task success went from 2 to 3 of 12, and that gain is not significant: the paired interval includes zero. The harness has since changed to v3, and the rescore under v3 is pending. The six-role v2 team has not been scored.",
+      "summary": "Autonomous Incident Commander is a scripted demo on a fictional e-commerce corpus: the team counts errors in code, checks runbook thresholds, finds the bad deploy, and the auditor refuses a red-team agent's fake root cause. Measured results are the frozen makerspace test, including the claude-haiku-5-5 v1 and v2 API scores. The round table, the T4 distill run, and the Qwen harness-v3 rescores are still pending.",
+      "caveat": "Qwen2.5-1.5B QLoRA, harness v2, frozen 12-task test: schema-valid rate 0.607 to 0.780 (95% interval 0.001 to 0.339, above zero). Task success 2 of 12 to 3 of 12 (interval −0.167 to 0.333, includes zero). claude-haiku-5-5, harness v3, same frozen test: v1 team 1 of 12 with schema-valid 0.862, v2 team 0 of 12 with schema-valid 0.559. v2 minus v1 task success is −0.250 to 0.000 (includes zero); schema-valid is −0.425 to −0.174 (below zero). Still pending: the round table, the T4 distill run, and the harness-v3 rescores of the Qwen runs.",
       "image": {
         "src": "assets/img/orbit-mission.webp",
         "alt": "Mission Control replay of a saved engine trace, with planner, worker and critic, marked scripted harness.",
@@ -696,8 +747,8 @@
       "stats": {
         "schemaValid": {
           "label": "Schema-valid tool calls",
-          "display": "0.61 → 0.78",
-          "source": "orbit-multi-agent results/v2_qwen1.5b: team_base.json schema_valid_rate 0.6071428571428571, team_lora.json 0.7797619047619048, shown as 0.61 and 0.78. comparison.json team_lora_minus_team_base schema_valid_rate 95% paired bootstrap 0.0013888888888889117 to 0.33888888888888885. Resume: 0.61 to 0.78, 95% CI above zero."
+          "display": "0.607 → 0.780",
+          "source": "orbit-multi-agent README results block, shown to three decimal places, from results/v2_qwen1.5b: team_base.json schema_valid_rate 0.6071428571428571 shown as 0.607, team_lora.json 0.7797619047619048 shown as 0.780. comparison.json team_lora_minus_team_base schema_valid_rate 95% interval 0.001 to 0.339, above zero."
         },
         "taskSuccess": {
           "label": "Task success, adapter vs base team",
@@ -707,7 +758,7 @@
         "team": {
           "label": "Agents in the scored team",
           "display": "3",
-          "source": "orbit-multi-agent README: v1 is planner, worker and critic, and every measured number is a v1 team result. The v2 team (commander, scout, engineer, analyst, critic, auditor) is built in PR #11 and has not been scored."
+          "source": "orbit-multi-agent README: the archived local score is the three-role team (planner, worker, critic). The six-role API team is a separate measured run in results/v3_api/claude-haiku-5-5/team_v2.json."
         },
         "toolCount": {
           "label": "Sandboxed tools",
@@ -721,8 +772,8 @@
         },
         "tests": {
           "label": "pytest tests in CI",
-          "display": "94",
-          "source": "pytest collects 94 tests at orbit-multi-agent main 3d781c6 (collected on 2026-10-23). Resume: 94 pytest tests in CI."
+          "display": "146",
+          "source": "orbit-multi-agent GitHub Actions run 40057156728 on main 880468f: python -m pytest, 146 passed (Python 3.12 and 3.11)."
         },
         "tools": {
           "label": "Tools",
@@ -733,6 +784,26 @@
           "label": "Where a live run goes",
           "display": "Your machine",
           "source": "Orbit README: GitHub Pages replays the saved traces. The run form needs the local server."
+        },
+        "apiV1Tasks": {
+          "label": "Three-role API task success, claude-haiku-5-5",
+          "display": "1 of 12",
+          "source": "orbit-multi-agent results/v3_api/claude-haiku-5-5/team_v1.json: n_success 1, n_tasks 12, schema_valid_rate 0.8620039682539682 shown as 0.862, n_correct_refusals 1 of n_traps 2. README row: 1 of 12, schema-valid 0.862."
+        },
+        "apiV1Schema": {
+          "label": "Three-role API schema-valid rate",
+          "display": "0.862",
+          "source": "orbit-multi-agent results/v3_api/claude-haiku-5-5/team_v1.json schema_valid_rate 0.8620039682539682, README three decimals 0.862."
+        },
+        "apiV2Tasks": {
+          "label": "Six-role API task success, claude-haiku-5-5",
+          "display": "0 of 12",
+          "source": "orbit-multi-agent results/v3_api/claude-haiku-5-5/team_v2.json: n_success 0, n_tasks 12, schema_valid_rate 0.5589285714285714 shown as 0.559, n_correct_refusals 0 of n_traps 2. README row: 0 of 12, schema-valid 0.559."
+        },
+        "apiV2Schema": {
+          "label": "Six-role API schema-valid rate",
+          "display": "0.559",
+          "source": "orbit-multi-agent results/v3_api/claude-haiku-5-5/team_v2.json schema_valid_rate 0.5589285714285714, README three decimals 0.559."
         }
       },
       "tables": {
@@ -748,29 +819,29 @@
             [
               "Single agent, base model",
               "2 of 12",
-              "0.75",
+              "0.750",
               "2 of 2"
             ],
             [
               "Team, base model",
               "2 of 12",
-              "0.61",
+              "0.607",
               "2 of 2"
             ],
             [
               "Team plus QLoRA adapter",
               "3 of 12",
-              "0.78",
+              "0.780",
               "1 of 2"
             ],
             [
               "Team, distilled",
-              "Not scored",
+              "not scored",
               "",
               ""
             ]
           ],
-          "source": "orbit-multi-agent README results block and results/v2_qwen1.5b/*.json. Rates shown to two decimals: 0.75, 0.6071428571428571, 0.7797619047619048."
+          "source": "orbit-multi-agent README results block, shown to three decimal places, from results/v2_qwen1.5b. Team distill is not scored."
         },
         "v1Pairs": {
           "caption": "Paired bootstrap, team plus adapter minus team base, 10,000 resamples, 95% interval.",
@@ -795,12 +866,70 @@
             ]
           ],
           "source": "orbit-multi-agent results/v2_qwen1.5b/comparison.json, team_lora_minus_team_base, shown to three decimals."
+        },
+        "api": {
+          "caption": "API policy claude-haiku-5-5, harness v3, frozen test team-eval-v1. Each team scored once. Rates shown to three decimal places.",
+          "headers": [
+            "Run",
+            "Successes",
+            "Task-success rate",
+            "Schema-valid rate",
+            "Trap refusals"
+          ],
+          "rows": [
+            [
+              "v1 team (3 roles)",
+              "1 of 12",
+              "0.083",
+              "0.862",
+              "1 of 2"
+            ],
+            [
+              "v2 team (6 roles)",
+              "0 of 12",
+              "0.000",
+              "0.559",
+              "0 of 2"
+            ],
+            [
+              "Round-table team",
+              "not scored",
+              "",
+              "",
+              ""
+            ]
+          ],
+          "source": "orbit-multi-agent README API table and results/v3_api/claude-haiku-5-5/team_v1.json, team_v2.json. Round table is pending until team_v3.json is measured."
+        },
+        "apiPairs": {
+          "caption": "Paired bootstrap, v2 team minus v1 team, claude-haiku-5-5, 10,000 resamples, 95% interval.",
+          "headers": [
+            "Metric",
+            "Point",
+            "95% interval",
+            "Reading"
+          ],
+          "rows": [
+            [
+              "Task success rate",
+              "−0.083",
+              "−0.250 to 0.000",
+              "Includes zero."
+            ],
+            [
+              "Schema-valid rate",
+              "−0.303",
+              "−0.425 to −0.174",
+              "Below zero."
+            ]
+          ],
+          "source": "orbit-multi-agent results/v3_api/claude-haiku-5-5/comparison.json team_v2_minus_team_v1, shown to three decimals as in the README. Task success low −0.25 high 0.0 point −0.08333333333333333. Schema-valid low −0.425 high −0.17410714285714288 point −0.3030753968253968."
         }
       },
       "purpose": "Autonomous Incident Commander: a scripted demo of a fictional checkout outage, where the auditor refuses a fake root cause.",
       "headline": {
         "stat": "schemaValid",
-        "qualifier": "Team, base model to QLoRA adapter. Frozen 12-task test, 95% interval above zero."
+        "qualifier": "Qwen2.5-1.5B team, base model to QLoRA adapter. Frozen 12-task test, 95% interval above zero."
       },
       "factIds": [
         "team",

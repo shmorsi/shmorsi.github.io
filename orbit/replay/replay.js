@@ -30,9 +30,24 @@ const V2_ROLES = [
   ["auditor", "Auditor", "Audit"],
 ];
 
+const V3_ROLES = [
+  ["coordinator", "Coordinator", "Open"],
+  ["commander", "Commander", "Assign"],
+  ["researcher", "Researcher", "Read"],
+  ["scout", "Scout", "Search"],
+  ["engineer", "Engineer", "Code"],
+  ["analyst", "Analyst", "Draft"],
+  ["critic", "Critic", "Check"],
+  ["redteam", "Red team", "Attack"],
+  ["verifier", "Verifier", "Verify"],
+  ["auditor", "Auditor", "Gate"],
+];
+
 function teamOf(mission, events) {
   const rules = (mission && mission.flight_rules) || {};
-  if ((mission && mission.team) === "v2" || rules.team === "v2") return "v2";
+  const named = (mission && mission.team) || rules.team;
+  if (named === "v3" || named === "v2" || named === "v1") return named;
+  if (events.some((event) => event.agent === "coordinator" || event.agent === "redteam" || event.agent === "verifier")) return "v3";
   return events.some((event) => event.kind === "assign" || event.kind === "audit") ? "v2" : "v1";
 }
 
@@ -40,21 +55,23 @@ function setTeam(next) {
   team = next;
   document.body.dataset.team = next;
   const stage = document.getElementById("stage");
-  stage.querySelectorAll(".seat.v2").forEach((node) => node.remove());
-  for (const seat of Object.values(V1_SEATS)) seat.hidden = next === "v2";
-  if (next !== "v2") {
+  stage.querySelectorAll(".seat.v2, .seat.v3").forEach((node) => node.remove());
+  for (const seat of Object.values(V1_SEATS)) seat.hidden = next !== "v1";
+  if (next === "v1") {
     seats = V1_SEATS;
     return;
   }
+  const roles = next === "v3" ? V3_ROLES : V2_ROLES;
+  const reach = next === "v3" ? 40 : 38;
   seats = {};
   const anchor = document.getElementById("pulse-trail");
-  V2_ROLES.forEach(([key, label, verb], index) => {
-    const angle = -Math.PI / 2 + (index * Math.PI) / 3;
+  roles.forEach(([key, label, verb], index) => {
+    const angle = -Math.PI / 2 + (index * 2 * Math.PI) / roles.length;
     const seat = document.createElement("div");
-    seat.className = `seat v2 ${key}`;
-    seat.id = `seat-${key}`;
-    seat.style.left = `${50 + Math.cos(angle) * 38}%`;
-    seat.style.top = `${50 + Math.sin(angle) * 38}%`;
+    seat.className = `seat ${next} ${key}`;
+    seat.id = `seat-${next}-${key}`;
+    seat.style.left = `${50 + Math.cos(angle) * reach}%`;
+    seat.style.top = `${50 + Math.sin(angle) * reach}%`;
     seat.append(label);
     const small = document.createElement("small");
     small.textContent = verb;
@@ -139,6 +156,7 @@ function summarize(event) {
   if (payload && payload.verdict) return `${payload.verdict}: ${payload.reason || ""}`.trim();
   if (event.kind === "result") return `${event.tool} ${event.call}`;
   if (event.kind === "revise") return event.reason || "Revise";
+  if (event.kind === "gate") return event.reason || "Gate";
   if (event.kind === "invalid") return event.error || "Invalid";
   if (typeof event.content === "string") return event.content.replace(/\s+/g, " ").slice(0, 140);
   return event.kind;
@@ -162,6 +180,14 @@ function routeV2(event) {
 }
 
 function route(event) {
+  if (team === "v3") {
+    if (event.kind === "gate") return "Red team → Verifier";
+    if (event.agent === "coordinator") return "Coordinator · open";
+    if (event.agent === "researcher") return "Researcher → Tool";
+    if (event.agent === "redteam") return "Red team · claim";
+    if (event.agent === "verifier") return "Verifier · model";
+    return routeV2(event);
+  }
   if (team === "v2") return routeV2(event);
   if (event.agent === "planner") return "Planner → Worker";
   if (event.agent === "tool") return "Tool → Worker";
@@ -177,13 +203,13 @@ function renderRules(rules) {
   const root = document.getElementById("rules");
   root.replaceChildren();
   if (!rules) return;
-  const v2 = rules.team === "v2";
+  const roster = rules.team === "v3" ? V3_ROLES : rules.team === "v2" ? V2_ROLES : null;
   const tools = (key) => {
     const list = (rules.permissions && rules.permissions[key]) || [];
     return list.length ? ` Tools: ${list.join(", ")}.` : "";
   };
-  const roleCards = v2
-    ? V2_ROLES.map(([key, label]) => [label, rules[key] ? `${rules[key]}${tools(key)}` : ""])
+  const roleCards = roster
+    ? roster.map(([key, label]) => [label, rules[key] ? `${rules[key]}${tools(key)}` : ""])
     : [["Planner", rules.planner], ["Worker", rules.worker], ["Critic", rules.critic]];
   const cards = [
     ...roleCards,
@@ -247,7 +273,8 @@ function focusAgentV2(event) {
   const lit = event.agent === "tool" ? event.by : event.agent;
   if (seats[lit]) seats[lit].classList.add("lit");
   if (event.kind === "message") return;
-  if (event.kind === "assign") pulse("commander", event.role);
+  if (event.kind === "gate") pulse("redteam", "verifier");
+  else if (event.kind === "assign") pulse("commander", event.role);
   else if (event.kind === "result") pulse("tool", event.by || "analyst");
   else if (action === "tool") pulse(event.agent, "tool");
   else if (event.kind === "draft") pulse("analyst", "critic");
@@ -259,7 +286,7 @@ function focusAgentV2(event) {
 
 function focusAgent(event) {
   for (const seat of Object.values(seats)) seat.classList.remove("lit");
-  if (team === "v2") {
+  if (team === "v2" || team === "v3") {
     focusAgentV2(event);
     return;
   }
@@ -431,7 +458,7 @@ function paintIncidentNote(file) {
   if (!note) return;
   note.textContent = String(file).startsWith("incident/")
     ? "Scripted demo on a fictional corpus. Not a measured score."
-    : "Autonomous Incident Commander is a scripted demo on a fictional checkout corpus. It plays when traces/incident/index.json is present. Until then, these traces are the makerspace harness, not that demo and not a score.";
+    : "This trace is the makerspace harness. It is not the incident demo and not a measured score.";
 }
 
 async function loadIndex() {
