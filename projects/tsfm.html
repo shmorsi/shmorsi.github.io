@@ -14,17 +14,18 @@
   <meta property="og:url" content="https://shmorsi.github.io/projects/tsfm.html">
   <meta property="og:title" content="Time-series foundation model · Sherif Morsi">
   <meta property="og:description" content="A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.">
-  <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
+  <meta property="og:image" content="https://shmorsi.github.io/assets/og-tsfm.png">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Sherif Morsi. AI/ML and quant: language agents and LLM systems.">
+  <meta property="og:image:alt" content="Time-series foundation model. Test CRPS 0.688 times upstream AutoARIMA. 95% CI 0.624 to 0.757, better.">
   <meta property="og:site_name" content="Sherif Morsi">
   <meta property="og:locale" content="en_CA">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Time-series foundation model · Sherif Morsi">
   <meta name="twitter:description" content="A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.">
-  <meta name="twitter:image" content="https://shmorsi.github.io/assets/og.png">
-  <meta name="twitter:image:alt" content="Sherif Morsi. AI/ML and quant: language agents and LLM systems.">
+  <meta name="twitter:image" content="https://shmorsi.github.io/assets/og-tsfm.png">
+  <meta name="twitter:image:alt" content="Time-series foundation model. Test CRPS 0.688 times upstream AutoARIMA. 95% CI 0.624 to 0.757, better.">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -59,6 +60,7 @@
       <p class="label">02 / Deep learning</p>
       <h1>A time-series foundation model, from scratch</h1>
       <p class="cs-purpose">A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.</p>
+      <p class="proves"><span class="label">What it proves</span><span data-bind="tsfm.proves">A transformer trained from scratch is better than upstream AutoARIMA on the frozen test: CRPS 0.688×, 95% CI [0.624, 0.757].</span></p>
       <p class="cs-summary">Test CRPS <span data-bind="tsfm.stats.patchTest.display">0.688×</span> upstream AutoARIMA. <span data-bind="tsfm.headline.qualifier">patch_s2, one seed, 97 test configurations. 95% CI [0.624, 0.757], better.</span> Validation CRPS was <span data-bind="tsfm.stats.crps.display">0.605×</span> Seasonal Naive.</p>
       <p class="cs-summary">Decoder-only transformer, tokenizers, training loop and sampling in plain PyTorch. Pretrained on a pinned corpus plus synthetic Gaussian-process series. Scored with the official GIFT-Eval scoring code on data held out of training.</p>
       <div class="actions">
