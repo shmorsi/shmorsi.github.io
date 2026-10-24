@@ -491,6 +491,19 @@
     const seen = [...new Set(events.map((e) => e.agent).filter((a) => a && a !== "tool"))];
     roles = (team === "v2" && Array.isArray(rules.roles) ? [...rules.roles] : seen).sort((a, b) => rank(a) - rank(b));
     question.textContent = mission ? mission.question : "";
+    const kind = document.querySelector("[data-trace-kind]");
+    if (kind) {
+      kind.textContent = String(file).startsWith("incident/")
+        ? "This trace is the incident-commander scripted demo on a fictional corpus. It is not a measured score."
+        : "The trace open here is the makerspace harness. It is not the incident demo and not a score.";
+    }
+    const slot = document.querySelector("[data-incident-slot]");
+    if (slot && String(file).startsWith("incident/")) {
+      const strong = slot.querySelector("strong");
+      const copy = slot.querySelector("p");
+      if (strong) strong.textContent = "Scripted demo";
+      if (copy) copy.textContent = "Playing a shipped incident trace. Fictional corpus. Not a measured score.";
+    }
     const scripted = mission && mission.harness === "scripted_harness";
     const teamTag = team === "v2" ? `Team v2, ${roles.length} roles` : `Team v1, ${roles.length} roles`;
     tags.innerHTML = `<span class="scene-tag">Replay of a saved engine trace</span>${scripted ? `<span class="scene-tag warn">Scripted harness</span>` : ""}<span class="scene-tag">Not live</span><span class="scene-tag">Not a model score</span><span class="scene-tag">${esc(teamTag)}</span><span class="scene-tag">Task ${esc(mission ? mission.task_id : "")}</span>`;
@@ -530,7 +543,40 @@
   const wanted = params.get("trace");
   if (wanted && [...select.options].some((o) => o.value === wanted)) select.value = wanted;
 
-  load(select.value).then(() => {
+  const attachIncident = async () => {
+    try {
+      const res = await fetch(`${base}traces/incident/index.json`);
+      if (!res.ok) return;
+      const items = await res.json();
+      const shipped = (Array.isArray(items) ? items : []).filter((item) => {
+        const file = item && item.file;
+        return typeof file === "string" && file.length > 0 && !file.includes("..") && !file.startsWith("/") && !file.includes("\\");
+      });
+      if (!shipped.length) return;
+      const group = document.createElement("optgroup");
+      group.label = "Incident commander, scripted demo";
+      shipped.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = `incident/${item.file}`;
+        option.textContent = item.question || item.task_id || item.file;
+        group.append(option);
+      });
+      select.prepend(group);
+      const asked = params.get("trace");
+      if (asked && [...select.options].some((option) => option.value === asked)) select.value = asked;
+      else if (!asked) select.value = `incident/${shipped[0].file}`;
+    } catch { /* makerspace traces stay selected until the incident index ships */ }
+  };
+
+  attachIncident().then(async () => {
+    try {
+      await load(select.value);
+    } catch (error) {
+      if (!String(select.value).startsWith("incident/")) throw error;
+      select.value = [...select.options].some((option) => option.value === "v2/revise.jsonl") ? "v2/revise.jsonl" : "revise.jsonl";
+      await load(select.value);
+    }
+  }).then(() => {
     if (reduce) return;
     if (recording) { setTimeout(() => setPlaying(true), 900); return; }
     if (!("IntersectionObserver" in window)) return;

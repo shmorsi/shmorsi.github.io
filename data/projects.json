@@ -660,7 +660,7 @@
       "badge": "Replay",
       "kicker": "AI agents",
       "title": "Orbit",
-      "summary": "A local planner, worker and critic over a fictional makerspace corpus. The worker calls sandboxed tools, the critic sends weak claims back, and a grounding gate refuses what the cited tool result does not contain. A six-role v2 team now runs the same tasks and gate, and replays on the mission page.",
+      "summary": "Autonomous Incident Commander is a scripted demo on a fictional e-commerce corpus: the team counts errors in code, checks runbook thresholds, finds the bad deploy, and the auditor refuses a red-team agent's fake root cause. The measured results are still the frozen makerspace test, a local planner, worker and critic. The six-role team has not been scored.",
       "caveat": "Measured once on a frozen 12-task test (3 agents, harness v2). Task success went from 2 to 3 of 12, and that gain is not significant: the paired interval includes zero. The harness has since changed to v3, and the rescore under v3 is pending. The six-role v2 team has not been scored.",
       "image": {
         "src": "assets/img/orbit-mission.webp",
@@ -797,7 +797,7 @@
           "source": "orbit-multi-agent results/v2_qwen1.5b/comparison.json, team_lora_minus_team_base, shown to three decimals."
         }
       },
-      "purpose": "AI teams you can audit: agents that plan, act, and refuse to state anything they can't prove.",
+      "purpose": "Autonomous Incident Commander: a scripted demo of a fictional checkout outage, where the auditor refuses a fake root cause.",
       "headline": {
         "stat": "schemaValid",
         "qualifier": "Team, base model to QLoRA adapter. Frozen 12-task test, 95% interval above zero."

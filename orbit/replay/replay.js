@@ -407,6 +407,33 @@ async function loadTrace(file) {
   }
 }
 
+async function optionalIndex(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return Array.isArray(data) && data.length ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function incidentEntries(data) {
+  if (!Array.isArray(data)) return [];
+  return data.filter((item) => {
+    const file = item && item.file;
+    return typeof file === "string" && file.length > 0 && !file.includes("..") && !file.startsWith("/") && !file.includes("\\");
+  });
+}
+
+function paintIncidentNote(file) {
+  const note = document.getElementById("incident-note");
+  if (!note) return;
+  note.textContent = String(file).startsWith("incident/")
+    ? "Scripted demo on a fictional corpus. Not a measured score."
+    : "Autonomous Incident Commander is a scripted demo on a fictional checkout corpus. It plays when traces/incident/index.json is present. Until then, these traces are the makerspace harness, not that demo and not a score.";
+}
+
 async function loadIndex() {
   const response = await fetch("traces/index.json");
   const index = await response.json();
@@ -418,14 +445,29 @@ async function loadIndex() {
     option.textContent = `${item.task_id} · ${item.status}`;
     select.append(option);
   }
-  // Team v2 traces live in traces/v2/. A missing index there leaves the v1 list as it was.
-  try {
-    const v2Response = await fetch("traces/v2/index.json");
-    if (v2Response.ok) {
-      const v2Index = await v2Response.json();
-      const v1Group = document.createElement("optgroup");
-      v1Group.label = "Team v1, three roles";
-      v1Group.append(...select.children);
+  const [v2Index, incidentIndex] = await Promise.all([
+    optionalIndex("traces/v2/index.json"),
+    optionalIndex("traces/incident/index.json")
+  ]);
+  if (v2Index || incidentIndex) {
+    const v1Group = document.createElement("optgroup");
+    v1Group.label = "Team v1, three roles";
+    v1Group.append(...select.childNodes);
+    select.replaceChildren();
+    const incident = incidentEntries(incidentIndex);
+    if (incident.length) {
+      const incidentGroup = document.createElement("optgroup");
+      incidentGroup.label = "Incident commander, scripted demo";
+      for (const item of incident) {
+        const option = document.createElement("option");
+        option.value = `incident/${item.file}`;
+        option.textContent = item.question || `${item.task_id} · ${item.outcome || item.status}`;
+        incidentGroup.append(option);
+        index.push({ file: option.value });
+      }
+      select.append(incidentGroup);
+    }
+    if (v2Index) {
       const v2Group = document.createElement("optgroup");
       v2Group.label = "Team v2, six roles";
       for (const item of v2Index) {
@@ -435,15 +477,30 @@ async function loadIndex() {
         v2Group.append(option);
         index.push({ file: option.value });
       }
-      select.append(v1Group, v2Group);
+      select.append(v2Group);
     }
-  } catch (error) {
-    setNotice("");
+    select.append(v1Group);
   }
   const requested = params.get("trace");
-  const choice = index.some((item) => item.file === requested) ? requested : "revise.jsonl";
+  const incident = incidentEntries(incidentIndex);
+  const incidentDefault = incident.length ? `incident/${incident[0].file}` : "";
+  const makerspaceDefault = [...select.options].some((option) => option.value === "v2/revise.jsonl")
+    ? "v2/revise.jsonl"
+    : "revise.jsonl";
+  const choice = index.some((item) => item.file === requested)
+    ? requested
+    : (incidentDefault || makerspaceDefault);
   if ([...select.options].some((option) => option.value === choice)) select.value = choice;
-  await loadTrace(select.value);
+  paintIncidentNote(select.value);
+  try {
+    await loadTrace(select.value);
+  } catch (error) {
+    if (!String(select.value).startsWith("incident/")) throw error;
+    select.value = makerspaceDefault;
+    paintIncidentNote(select.value);
+    setNotice("The incident index is present, but that trace file is not. Playing the makerspace harness.");
+    await loadTrace(select.value);
+  }
 }
 
 function markLive() {

@@ -148,7 +148,7 @@ button, input, select, textarea {
 
 .question {
   min-height: 2.6em;
-  margin: 0 0 22px;
+  margin: 8px 0 22px;
   color: var(--ink);
   letter-spacing: 0.01em;
   line-height: 1.45;

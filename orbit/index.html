@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Orbit: AI teams you can audit · Sherif Morsi</title>
-  <meta name="description" content="Orbit is a local team of AI agents that plan, call sandboxed tools, cite every claim, and refuse what they cannot prove. Measured once on a frozen test, with the result reported as it came out.">
+  <title>Orbit: Autonomous Incident Commander · Sherif Morsi</title>
+  <meta name="description" content="Autonomous Incident Commander is a scripted Orbit demo on a fictional checkout outage. The auditor refuses a fake root cause. Measured results stay the frozen makerspace test.">
   <meta name="author" content="Sherif Morsi">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
@@ -14,16 +14,16 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Sherif Morsi">
   <meta property="og:url" content="https://shmorsi.github.io/orbit/">
-  <meta property="og:title" content="Orbit: AI teams you can audit · Sherif Morsi">
-  <meta property="og:description" content="AI teams you can audit: agents that plan, act, and refuse to state anything they can't prove.">
+  <meta property="og:title" content="Orbit: Autonomous Incident Commander · Sherif Morsi">
+  <meta property="og:description" content="A scripted demo on a fictional checkout outage. The auditor refuses a fake root cause. Measured results stay the frozen makerspace test.">
   <meta property="og:image" content="https://shmorsi.github.io/assets/img/orbit-mission.webp">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="800">
   <meta property="og:image:alt" content="Mission Control replay of a saved engine trace, marked scripted harness.">
   <meta property="og:locale" content="en_CA">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Orbit: AI teams you can audit · Sherif Morsi">
-  <meta name="twitter:description" content="AI teams you can audit: agents that plan, act, and refuse to state anything they can't prove.">
+  <meta name="twitter:title" content="Orbit: Autonomous Incident Commander · Sherif Morsi">
+  <meta name="twitter:description" content="A scripted demo on a fictional checkout outage. The auditor refuses a fake root cause. Measured results stay the frozen makerspace test.">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/img/orbit-mission.webp">
   <meta name="twitter:image:alt" content="Mission Control replay of a saved engine trace, marked scripted harness.">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
@@ -59,8 +59,8 @@
     <header class="cs-hero wrap">
       <a class="text-link back" href="../#orbit">All work</a>
       <p class="label">01 / AI agents</p>
-      <h1>AI teams you can audit</h1>
-      <p class="cs-purpose">Agents that plan, act, and refuse to state anything they can't prove.</p>
+      <h1>Autonomous Incident Commander</h1>
+      <p class="cs-purpose">A scripted demo on a fictional corpus. Agents investigate a checkout outage from logs, metrics, a deploy log, and a runbook, and the auditor refuses a red-team fake root cause.</p>
       <div class="actions">
         <a class="button button-solid" href="#scene">Watch a mission</a>
         <a class="button" href="https://github.com/shmorsi/orbit-multi-agent" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -105,7 +105,12 @@
           <summary>Read every step as text</summary>
           <ol data-transcript></ol>
         </details>
-        <p class="file-note">Each step is read from a JSONL trace the engine wrote. The clock is a replay clock, not measured latency. The scripted harness is a fixed check of the tools that follows each task's oracle, not a language model, so these replays show the protocol, not model skill.</p>
+        <p class="file-note">Each step is read from a JSONL trace the engine wrote. The clock is a replay clock, not measured latency. The scripted harness is a fixed check of the tools that follows each task's oracle, not a language model, so these replays show the protocol, not model skill. <span data-trace-kind>The trace open here is the makerspace harness. It is not the incident demo and not a score.</span></p>
+        <div class="slot-empty" data-incident-slot>
+          <span class="label">Incident replay</span>
+          <strong>Trace not shipped</strong>
+          <p>Autonomous Incident Commander plays here once the Orbit repository's incident traces are copied to <code>replay/traces/incident/</code>. Scripted demo, fictional corpus. No score is claimed for it.</p>
+        </div>
       </section>
     </div>
 
@@ -146,7 +151,7 @@
         <h2 id="s-results">Measured result</h2>
         <div class="prose">
           <p class="big">Fine-tuning taught the format. Task success did not clear zero.</p>
-          <p>Measured once on the frozen test. Schema-valid tool calls: <span data-bind="orbit.stats.schemaValid.display">0.61 → 0.78</span>, and that interval sits above zero. Task success: <span data-bind="orbit.stats.taskSuccess.display">3 vs 2 of 12</span>, an interval that includes zero, and the adapter missed one trap it should have refused.</p>
+          <p>These figures are the frozen makerspace test, not the incident demo. Measured once on the frozen test. Schema-valid tool calls: <span data-bind="orbit.stats.schemaValid.display">0.61 → 0.78</span>, and that interval sits above zero. Task success: <span data-bind="orbit.stats.taskSuccess.display">3 vs 2 of 12</span>, an interval that includes zero, and the adapter missed one trap it should have refused.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="v1 results" data-table="orbit.tables.v1"></div>
           <div class="table-wrap" tabindex="0" role="region" aria-label="v1 paired comparison" data-table="orbit.tables.v1Pairs"></div>
           <p class="file-note">Evaluation pending: single agent vs team vs fine-tuned team on a frozen test set, under harness v3. The harness changed after the v1 run, so all four configurations must be scored again before any new comparison. Until then, the v1 numbers above stand alone. The six-role slot is filled only from a measured <code>results/v3_api/&lt;model&gt;/team_v2.json</code> (<code>make score-v2</code>). <code>python -m orbit_agents.eval.readme</code> rewrites the repository results block from committed files and leaves a missing file as not scored.</p>
@@ -185,11 +190,11 @@
       <section class="cs-section" id="replay" aria-labelledby="s-replay">
         <h2 id="s-replay">Full replay</h2>
         <div class="prose">
-          <p>The full Mission Control console from the repository, with the mission log and flight rules. It loads the same saved traces, three per team. The run form at the bottom needs the local server; on this site it says so, and the saved traces still play.</p>
+          <p>The full Mission Control console from the repository, with the mission log and flight rules. It loads the saved makerspace traces. With no trace chosen, it features the incident demo once <code>replay/traces/incident/</code> is shipped, and until then it stays on the makerspace harness. The run form at the bottom needs the local server; on this site it says so, and the saved traces still play.</p>
           <div class="replay-embed">
-            <iframe src="replay/index.html?trace=v2/revise.jsonl" title="Mission Control replay of saved Orbit traces" loading="lazy"></iframe>
+            <iframe src="replay/index.html" title="Mission Control replay of saved Orbit traces" loading="lazy"></iframe>
           </div>
-          <p><a class="text-link" href="replay/index.html?trace=v2/revise.jsonl">Open the replay full screen</a></p>
+          <p><a class="text-link" href="replay/index.html">Open the replay full screen</a></p>
         </div>
       </section>
 

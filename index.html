@@ -136,13 +136,14 @@
               </ol>
             </div>
           </div>
-          <p class="schematic-note">Team v1, the scored team. Planner, worker, and critic, with tool calls and a grounding gate. The six-role team uses the same gate and is not yet scored. This diagram is drawn in the page, not a photograph.</p>
+          <p class="schematic-note">The diagram is the scored makerspace team: planner, worker, and critic, with tool calls and a grounding gate. The incident demo uses the same kind of gate and is not a score. This drawing is in the page, not a photograph.</p>
         </div>
         <div class="orbit-copy">
           <p class="label">01 / AI agents</p>
           <h2 id="orbit-title">Orbit</h2>
-          <p class="purpose">AI teams you can audit: agents that plan, act, and refuse to state anything they can't prove.</p>
-          <p class="orbit-arch">A planner writes the steps. A worker calls sandboxed tools. A critic accepts a grounded claim or sends it back. A gate keeps only what the cited tool result contains.</p>
+          <p class="purpose" data-bind="orbit.purpose">Autonomous Incident Commander: a scripted demo of a fictional checkout outage, where the auditor refuses a fake root cause.</p>
+          <p class="orbit-arch">Agents read logs, metrics, a deploy log, and a runbook. They count errors in code, check the runbook, name the bad deploy, and the auditor refuses a red-team agent's fake root cause. Scripted demo, fictional corpus.</p>
+          <p class="label">Frozen makerspace test</p>
           <div class="orbit-metrics">
             <div>
               <p class="orbit-fig" data-bind="orbit.stats.schemaValid.display">0.61 → 0.78</p>
