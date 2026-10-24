@@ -16,9 +16,13 @@
     scout: { label: "Scout", verb: "Reads the corpus", color: "var(--r-scout)", usesTools: true },
     engineer: { label: "Engineer", verb: "Runs code", color: "var(--r-worker)", usesTools: true },
     analyst: { label: "Analyst", verb: "Drafts the answer", color: "var(--r-analyst)", usesTools: true },
-    auditor: { label: "Auditor", verb: "Code, not a model", color: "var(--r-auditor)", judges: true }
+    auditor: { label: "Auditor", verb: "Code, not a model", color: "var(--r-auditor)", judges: true },
+    coordinator: { label: "Coordinator", verb: "Opens the table", color: "var(--ink)" },
+    researcher: { label: "Researcher", verb: "Reads the corpus", color: "var(--r-scout)", usesTools: true },
+    redteam: { label: "Red team", verb: "One unsupported claim", color: "var(--r-critic)" },
+    verifier: { label: "Verifier", verb: "Re-checks that claim", color: "var(--ink)", judges: true }
   };
-  const ORDER = ["commander", "planner", "scout", "engineer", "worker", "analyst", "critic", "auditor"];
+  const ORDER = ["coordinator", "commander", "planner", "researcher", "scout", "engineer", "worker", "analyst", "critic", "redteam", "verifier", "auditor"];
   const V2_EDGES = [
     ["commander", "scout"], ["commander", "engineer"], ["commander", "analyst"],
     ["scout", "tool"], ["engineer", "tool"], ["analyst", "tool"],
@@ -145,6 +149,7 @@
       return { who: name, text: `${event.status === "refuse" ? "Refused" : "Final answer"}: ${event.answer}`, key: event.agent, final: true };
     }
     if (event.kind === "invalid") return { who: name, text: `Schema error: ${event.error || "invalid"}`, key: event.agent };
+    if (event.kind === "gate") return { who: name, text: event.reason || "The code gate checks the red-team claim.", key: event.agent };
     if (Array.isArray(p.steps)) {
       const text = p.steps.length
         ? `Plan: ${p.steps.map((s) => `${s.goal}${s.role || s.tool ? ` (${[s.role, s.tool].filter(Boolean).join(", ")})` : ""}`).join("; ")}`
@@ -166,7 +171,7 @@
   /* v2 writes a parsed turn and then the event it becomes (draft, revise). Show the event once. */
   function compact(rows) {
     const list = rows.filter((r) => r.kind !== "mission" && r.kind !== "message");
-    if (team !== "v2") return list;
+    if (team !== "v2" && team !== "v3") return list;
     return list.filter((e, i) => {
       const next = list[i + 1];
       return !(e.kind === "parsed" && next && next.agent === e.agent && (next.kind === "draft" || next.kind === "revise"));
@@ -489,10 +494,17 @@
     team = (mission && mission.team) || rules.team || (rows.some((r) => r.kind === "assign" || r.kind === "audit") ? "v2" : "v1");
     events = compact(rows);
     const seen = [...new Set(events.map((e) => e.agent).filter((a) => a && a !== "tool"))];
-    roles = (team === "v2" && Array.isArray(rules.roles) ? [...rules.roles] : seen).sort((a, b) => rank(a) - rank(b));
+    roles = ((team === "v2" || team === "v3") && Array.isArray(rules.roles) ? [...rules.roles] : seen).sort((a, b) => rank(a) - rank(b));
     question.textContent = mission ? mission.question : "";
+    const kind = document.querySelector("[data-trace-kind]");
+    if (kind) {
+      kind.textContent = String(file).startsWith("incident/")
+        ? "This trace is the incident-commander scripted demo on a fictional corpus. It is not a measured score."
+        : "The trace open here is the makerspace harness. It is not the incident demo and not a score.";
+    }
     const scripted = mission && mission.harness === "scripted_harness";
-    const teamTag = team === "v2" ? `Team v2, ${roles.length} roles` : `Team v1, ${roles.length} roles`;
+    const incident = String(file).startsWith("incident/") || (mission && mission.scenario === "incident");
+    const teamTag = incident ? "Incident commander, scripted demo" : team === "v2" ? `Team v2, ${roles.length} roles` : `Team v1, ${roles.length} roles`;
     tags.innerHTML = `<span class="scene-tag">Replay of a saved engine trace</span>${scripted ? `<span class="scene-tag warn">Scripted harness</span>` : ""}<span class="scene-tag">Not live</span><span class="scene-tag">Not a model score</span><span class="scene-tag">${esc(teamTag)}</span><span class="scene-tag">Task ${esc(mission ? mission.task_id : "")}</span>`;
     if (transcript) {
       transcript.innerHTML = events.map((e) => { const d = describe(e); return `<li><strong>${esc(d.who)}.</strong> ${esc(d.text)}</li>`; }).join("")
@@ -530,7 +542,41 @@
   const wanted = params.get("trace");
   if (wanted && [...select.options].some((o) => o.value === wanted)) select.value = wanted;
 
-  load(select.value).then(() => {
+  const attachIncident = async () => {
+    try {
+      const res = await fetch(`${base}traces/incident/index.json`);
+      if (!res.ok) return;
+      if ([...select.options].some((option) => String(option.value).startsWith("incident/"))) return;
+      const items = await res.json();
+      const shipped = (Array.isArray(items) ? items : []).filter((item) => {
+        const file = item && item.file;
+        return typeof file === "string" && file.length > 0 && !file.includes("..") && !file.startsWith("/") && !file.includes("\\");
+      });
+      if (!shipped.length) return;
+      const group = document.createElement("optgroup");
+      group.label = "Incident commander, scripted demo";
+      shipped.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = `incident/${item.file}`;
+        option.textContent = item.question || item.task_id || item.file;
+        group.append(option);
+      });
+      select.prepend(group);
+      const asked = params.get("trace");
+      if (asked && [...select.options].some((option) => option.value === asked)) select.value = asked;
+      else if (!asked) select.value = `incident/${shipped[0].file}`;
+    } catch { /* makerspace traces stay selected until the incident index ships */ }
+  };
+
+  attachIncident().then(async () => {
+    try {
+      await load(select.value);
+    } catch (error) {
+      if (!String(select.value).startsWith("incident/")) throw error;
+      select.value = [...select.options].some((option) => option.value === "v2/revise.jsonl") ? "v2/revise.jsonl" : "revise.jsonl";
+      await load(select.value);
+    }
+  }).then(() => {
     if (reduce) return;
     if (recording) { setTimeout(() => setPlaying(true), 900); return; }
     if (!("IntersectionObserver" in window)) return;

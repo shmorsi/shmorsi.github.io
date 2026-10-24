@@ -30,9 +30,24 @@ const V2_ROLES = [
   ["auditor", "Auditor", "Audit"],
 ];
 
+const V3_ROLES = [
+  ["coordinator", "Coordinator", "Open"],
+  ["commander", "Commander", "Assign"],
+  ["researcher", "Researcher", "Read"],
+  ["scout", "Scout", "Search"],
+  ["engineer", "Engineer", "Code"],
+  ["analyst", "Analyst", "Draft"],
+  ["critic", "Critic", "Check"],
+  ["redteam", "Red team", "Attack"],
+  ["verifier", "Verifier", "Verify"],
+  ["auditor", "Auditor", "Gate"],
+];
+
 function teamOf(mission, events) {
   const rules = (mission && mission.flight_rules) || {};
-  if ((mission && mission.team) === "v2" || rules.team === "v2") return "v2";
+  const named = (mission && mission.team) || rules.team;
+  if (named === "v3" || named === "v2" || named === "v1") return named;
+  if (events.some((event) => event.agent === "coordinator" || event.agent === "redteam" || event.agent === "verifier")) return "v3";
   return events.some((event) => event.kind === "assign" || event.kind === "audit") ? "v2" : "v1";
 }
 
@@ -40,21 +55,23 @@ function setTeam(next) {
   team = next;
   document.body.dataset.team = next;
   const stage = document.getElementById("stage");
-  stage.querySelectorAll(".seat.v2").forEach((node) => node.remove());
-  for (const seat of Object.values(V1_SEATS)) seat.hidden = next === "v2";
-  if (next !== "v2") {
+  stage.querySelectorAll(".seat.v2, .seat.v3").forEach((node) => node.remove());
+  for (const seat of Object.values(V1_SEATS)) seat.hidden = next !== "v1";
+  if (next === "v1") {
     seats = V1_SEATS;
     return;
   }
+  const roles = next === "v3" ? V3_ROLES : V2_ROLES;
+  const reach = next === "v3" ? 40 : 38;
   seats = {};
   const anchor = document.getElementById("pulse-trail");
-  V2_ROLES.forEach(([key, label, verb], index) => {
-    const angle = -Math.PI / 2 + (index * Math.PI) / 3;
+  roles.forEach(([key, label, verb], index) => {
+    const angle = -Math.PI / 2 + (index * 2 * Math.PI) / roles.length;
     const seat = document.createElement("div");
-    seat.className = `seat v2 ${key}`;
-    seat.id = `seat-${key}`;
-    seat.style.left = `${50 + Math.cos(angle) * 38}%`;
-    seat.style.top = `${50 + Math.sin(angle) * 38}%`;
+    seat.className = `seat ${next} ${key}`;
+    seat.id = `seat-${next}-${key}`;
+    seat.style.left = `${50 + Math.cos(angle) * reach}%`;
+    seat.style.top = `${50 + Math.sin(angle) * reach}%`;
     seat.append(label);
     const small = document.createElement("small");
     small.textContent = verb;
@@ -139,6 +156,7 @@ function summarize(event) {
   if (payload && payload.verdict) return `${payload.verdict}: ${payload.reason || ""}`.trim();
   if (event.kind === "result") return `${event.tool} ${event.call}`;
   if (event.kind === "revise") return event.reason || "Revise";
+  if (event.kind === "gate") return event.reason || "Gate";
   if (event.kind === "invalid") return event.error || "Invalid";
   if (typeof event.content === "string") return event.content.replace(/\s+/g, " ").slice(0, 140);
   return event.kind;
@@ -162,6 +180,14 @@ function routeV2(event) {
 }
 
 function route(event) {
+  if (team === "v3") {
+    if (event.kind === "gate") return "Red team → Verifier";
+    if (event.agent === "coordinator") return "Coordinator · open";
+    if (event.agent === "researcher") return "Researcher → Tool";
+    if (event.agent === "redteam") return "Red team · claim";
+    if (event.agent === "verifier") return "Verifier · model";
+    return routeV2(event);
+  }
   if (team === "v2") return routeV2(event);
   if (event.agent === "planner") return "Planner → Worker";
   if (event.agent === "tool") return "Tool → Worker";
@@ -177,13 +203,13 @@ function renderRules(rules) {
   const root = document.getElementById("rules");
   root.replaceChildren();
   if (!rules) return;
-  const v2 = rules.team === "v2";
+  const roster = rules.team === "v3" ? V3_ROLES : rules.team === "v2" ? V2_ROLES : null;
   const tools = (key) => {
     const list = (rules.permissions && rules.permissions[key]) || [];
     return list.length ? ` Tools: ${list.join(", ")}.` : "";
   };
-  const roleCards = v2
-    ? V2_ROLES.map(([key, label]) => [label, rules[key] ? `${rules[key]}${tools(key)}` : ""])
+  const roleCards = roster
+    ? roster.map(([key, label]) => [label, rules[key] ? `${rules[key]}${tools(key)}` : ""])
     : [["Planner", rules.planner], ["Worker", rules.worker], ["Critic", rules.critic]];
   const cards = [
     ...roleCards,
@@ -247,7 +273,8 @@ function focusAgentV2(event) {
   const lit = event.agent === "tool" ? event.by : event.agent;
   if (seats[lit]) seats[lit].classList.add("lit");
   if (event.kind === "message") return;
-  if (event.kind === "assign") pulse("commander", event.role);
+  if (event.kind === "gate") pulse("redteam", "verifier");
+  else if (event.kind === "assign") pulse("commander", event.role);
   else if (event.kind === "result") pulse("tool", event.by || "analyst");
   else if (action === "tool") pulse(event.agent, "tool");
   else if (event.kind === "draft") pulse("analyst", "critic");
@@ -259,7 +286,7 @@ function focusAgentV2(event) {
 
 function focusAgent(event) {
   for (const seat of Object.values(seats)) seat.classList.remove("lit");
-  if (team === "v2") {
+  if (team === "v2" || team === "v3") {
     focusAgentV2(event);
     return;
   }
@@ -407,6 +434,33 @@ async function loadTrace(file) {
   }
 }
 
+async function optionalIndex(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const data = await response.json();
+    return Array.isArray(data) && data.length ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function incidentEntries(data) {
+  if (!Array.isArray(data)) return [];
+  return data.filter((item) => {
+    const file = item && item.file;
+    return typeof file === "string" && file.length > 0 && !file.includes("..") && !file.startsWith("/") && !file.includes("\\");
+  });
+}
+
+function paintIncidentNote(file) {
+  const note = document.getElementById("incident-note");
+  if (!note) return;
+  note.textContent = String(file).startsWith("incident/")
+    ? "Scripted demo on a fictional corpus. Not a measured score."
+    : "This trace is the makerspace harness. It is not the incident demo and not a measured score.";
+}
+
 async function loadIndex() {
   const response = await fetch("traces/index.json");
   const index = await response.json();
@@ -418,14 +472,29 @@ async function loadIndex() {
     option.textContent = `${item.task_id} · ${item.status}`;
     select.append(option);
   }
-  // Team v2 traces live in traces/v2/. A missing index there leaves the v1 list as it was.
-  try {
-    const v2Response = await fetch("traces/v2/index.json");
-    if (v2Response.ok) {
-      const v2Index = await v2Response.json();
-      const v1Group = document.createElement("optgroup");
-      v1Group.label = "Team v1, three roles";
-      v1Group.append(...select.children);
+  const [v2Index, incidentIndex] = await Promise.all([
+    optionalIndex("traces/v2/index.json"),
+    optionalIndex("traces/incident/index.json")
+  ]);
+  if (v2Index || incidentIndex) {
+    const v1Group = document.createElement("optgroup");
+    v1Group.label = "Team v1, three roles";
+    v1Group.append(...select.childNodes);
+    select.replaceChildren();
+    const incident = incidentEntries(incidentIndex);
+    if (incident.length) {
+      const incidentGroup = document.createElement("optgroup");
+      incidentGroup.label = "Incident commander, scripted demo";
+      for (const item of incident) {
+        const option = document.createElement("option");
+        option.value = `incident/${item.file}`;
+        option.textContent = item.question || `${item.task_id} · ${item.outcome || item.status}`;
+        incidentGroup.append(option);
+        index.push({ file: option.value });
+      }
+      select.append(incidentGroup);
+    }
+    if (v2Index) {
       const v2Group = document.createElement("optgroup");
       v2Group.label = "Team v2, six roles";
       for (const item of v2Index) {
@@ -435,15 +504,30 @@ async function loadIndex() {
         v2Group.append(option);
         index.push({ file: option.value });
       }
-      select.append(v1Group, v2Group);
+      select.append(v2Group);
     }
-  } catch (error) {
-    setNotice("");
+    select.append(v1Group);
   }
   const requested = params.get("trace");
-  const choice = index.some((item) => item.file === requested) ? requested : "revise.jsonl";
+  const incident = incidentEntries(incidentIndex);
+  const incidentDefault = incident.length ? `incident/${incident[0].file}` : "";
+  const makerspaceDefault = [...select.options].some((option) => option.value === "v2/revise.jsonl")
+    ? "v2/revise.jsonl"
+    : "revise.jsonl";
+  const choice = index.some((item) => item.file === requested)
+    ? requested
+    : (incidentDefault || makerspaceDefault);
   if ([...select.options].some((option) => option.value === choice)) select.value = choice;
-  await loadTrace(select.value);
+  paintIncidentNote(select.value);
+  try {
+    await loadTrace(select.value);
+  } catch (error) {
+    if (!String(select.value).startsWith("incident/")) throw error;
+    select.value = makerspaceDefault;
+    paintIncidentNote(select.value);
+    setNotice("The incident index is present, but that trace file is not. Playing the makerspace harness.");
+    await loadTrace(select.value);
+  }
 }
 
 function markLive() {

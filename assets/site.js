@@ -87,7 +87,7 @@
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && nav.classList.contains("open")) { close(); menuButton.focus(); }
     });
-    window.matchMedia("(min-width: 981px)").addEventListener?.("change", close);
+    window.matchMedia("(min-width: 1181px)").addEventListener?.("change", close);
   }
 
   const status = document.querySelector("[data-copy-status]");
@@ -200,10 +200,18 @@
     return `<a class="frame${fit}" href="${esc(href(site))}"${ext(site)} tabindex="-1" aria-hidden="true">${img}${chip}</a>`;
   };
 
+  /* Display order is a presentation choice. projects.json mission codes stay as stored. */
+  const PRESENT = ["orbit", "tsfm", "world-shock-lab", "atlas"];
+  const presentOrder = (id) => {
+    const index = PRESENT.indexOf(id);
+    return index === -1 ? PRESENT.length : index;
+  };
+  const presentNo = (id) => String(presentOrder(id) + 1).padStart(2, "0");
+
   const missionHtml = (project) => `<article class="mission" id="${esc(project.id)}" aria-labelledby="${esc(project.id)}-title" data-reveal>
       <header class="mission-head">
-        <p class="label mission-num">Mission ${esc(project.mission)} / ${esc(project.kicker)}</p>
-        <h3 id="${esc(project.id)}-title">${esc(project.title)}</h3>
+        <p class="label mission-num">${esc(presentNo(project.id))} / ${esc(project.kicker)}</p>
+        <h2 id="${esc(project.id)}-title">${esc(project.title)}</h2>
         <p class="purpose">${esc(project.purpose)}</p>
       </header>
       <div class="mission-media">${mediaHtml(project)}</div>
@@ -233,7 +241,11 @@
   const hydrate = (data) => {
     const byId = Object.fromEntries(data.projects.map((project) => [project.id, project]));
     document.querySelectorAll("[data-mission-list]").forEach((mount) => {
-      mount.innerHTML = data.projects.filter((project) => project.role === "featured").map(missionHtml).join("");
+      if (mount.dataset.static === "true") return;
+      const featured = data.projects
+        .filter((project) => project.role === "featured")
+        .sort((a, b) => presentOrder(a.id) - presentOrder(b.id));
+      mount.innerHTML = featured.map(missionHtml).join("");
     });
     document.querySelectorAll("[data-headline]").forEach((node) => {
       const project = byId[node.dataset.headline];
@@ -271,9 +283,177 @@
       .then(hydrate)
       .catch(() => {
         document.querySelectorAll("[data-mission-list]").forEach((mount) => {
+          if (mount.dataset.static === "true") return;
           mount.innerHTML = `<p class="caveat">Measured results could not be loaded from data/projects.json. The project links below still work.</p>`;
         });
       });
   }
+
+  /* Decorative packet on the Orbit schematic. Lines are redrawn from the nodes, so the picture tracks the layout. */
+  const mountSchematic = () => {
+    const root = document.querySelector("[data-schematic]");
+    if (!root) return;
+    const stage = root.querySelector(".schematic-stage");
+    const svg = root.querySelector(".schematic-links");
+    const packet = root.querySelector("[data-packet]");
+    const nodes = {};
+    root.querySelectorAll("[data-node]").forEach((el) => { nodes[el.dataset.node] = el; });
+    const motion = window.matchMedia("(prefers-reduced-motion: no-preference)");
+    let points = [];
+    let centers = {};
+    let raf = 0;
+    let running = false;
+    let resizeTimer = 0;
+
+    const anchor = (el, which) => {
+      const s = stage.getBoundingClientRect();
+      const b = el.getBoundingClientRect();
+      const x = b.left - s.left;
+      const y = b.top - s.top;
+      if (which === "left") return [x, y + b.height / 2];
+      if (which === "right") return [x + b.width, y + b.height / 2];
+      if (which === "top") return [x + b.width / 2, y];
+      return [x + b.width / 2, y + b.height];
+    };
+    const samples = (a, b, n = 16) => {
+      const pts = [];
+      for (let i = 0; i <= n; i += 1) {
+        const t = i / n;
+        pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+      }
+      return pts;
+    };
+    const curve = (a, b, c, n = 22) => {
+      const pts = [];
+      for (let i = 0; i <= n; i += 1) {
+        const t = i / n;
+        const u = 1 - t;
+        pts.push([
+          u * u * a[0] + 2 * u * t * c[0] + t * t * b[0],
+          u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]
+        ]);
+      }
+      return pts;
+    };
+    const pathOf = (pts) => `M ${pts.map((p) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" L ")}`;
+    const place = (pt, hot) => {
+      packet.style.transform = `translate(${pt[0]}px, ${pt[1]}px) translate(-50%, -50%)`;
+      packet.classList.add("is-on");
+      root.querySelectorAll("[data-node]").forEach((el) => {
+        el.classList.toggle("is-hot", el.dataset.node === hot);
+      });
+    };
+    const nearest = (pt) => {
+      let best = "gate";
+      let bestD = Infinity;
+      Object.entries(centers).forEach(([name, c]) => {
+        const d = (c[0] - pt[0]) ** 2 + (c[1] - pt[1]) ** 2;
+        if (d < bestD) { bestD = d; best = name; }
+      });
+      return best;
+    };
+    const draw = () => {
+      const w = stage.clientWidth;
+      const h = stage.clientHeight;
+      if (!w || !h) return;
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      const stacked = w < 640;
+      const parts = [];
+      points = [];
+      if (stacked) {
+        const seq = ["planner", "worker", "tools", "critic", "gate"];
+        for (let i = 0; i < seq.length - 1; i += 1) {
+          const a = anchor(nodes[seq[i]], "bottom");
+          const b = anchor(nodes[seq[i + 1]], "top");
+          const pts = samples(a, b, 12);
+          parts.push(`<path d="${pathOf(pts)}"></path>`);
+          points.push(...pts);
+        }
+      } else {
+        const pr = anchor(nodes.planner, "right");
+        const wl = anchor(nodes.worker, "left");
+        const wb = anchor(nodes.worker, "bottom");
+        const tt = anchor(nodes.tools, "top");
+        const wr = anchor(nodes.worker, "right");
+        const cl = anchor(nodes.critic, "left");
+        const cb = anchor(nodes.critic, "bottom");
+        const gt = anchor(nodes.gate, "top");
+        const ct = anchor(nodes.critic, "top");
+        const wt = anchor(nodes.worker, "top");
+        const rev = curve(ct, wt, [(ct[0] + wt[0]) / 2, Math.min(ct[1], wt[1]) - 28]);
+        [
+          [pr, wl],
+          [wb, tt],
+          [wr, cl],
+          [cb, gt]
+        ].forEach(([a, b]) => {
+          const pts = samples(a, b);
+          parts.push(`<path d="${pathOf(pts)}"></path>`);
+        });
+        parts.push(`<path class="revise" d="${pathOf(rev)}"></path>`);
+        points.push(
+          ...samples(pr, wl),
+          ...samples(wb, tt),
+          ...samples(tt, wb),
+          ...samples(wr, cl),
+          ...rev,
+          ...samples(wr, cl),
+          ...samples(cb, gt)
+        );
+      }
+      svg.innerHTML = parts.join("");
+      const stageBox = stage.getBoundingClientRect();
+      centers = {};
+      Object.entries(nodes).forEach(([name, el]) => {
+        const b = el.getBoundingClientRect();
+        centers[name] = [b.left - stageBox.left + b.width / 2, b.top - stageBox.top + b.height / 2];
+      });
+      if (!motion.matches && points.length) place(points[points.length - 1], "gate");
+    };
+    const tick = (now) => {
+      if (!running) return;
+      if (!points.length) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      const duration = 10000;
+      const idx = Math.min(points.length - 1, Math.floor(((now % duration) / duration) * points.length));
+      const pt = points[idx];
+      place(pt, nearest(pt));
+      raf = requestAnimationFrame(tick);
+    };
+    const start = () => {
+      if (running || !motion.matches) return;
+      running = true;
+      raf = requestAnimationFrame(tick);
+    };
+    const stop = () => {
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+    draw();
+    requestAnimationFrame(draw);
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) start();
+        else stop();
+      });
+    }, { threshold: 0.12 });
+    io.observe(stage);
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(draw, 60);
+    }, { passive: true });
+    motion.addEventListener?.("change", () => {
+      draw();
+      if (motion.matches) start();
+      else stop();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop();
+      else start();
+    });
+  };
+  mountSchematic();
   reveal(document);
 })();

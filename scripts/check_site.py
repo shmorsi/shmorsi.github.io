@@ -138,8 +138,22 @@ if v2_index.exists():
         header = json.loads(trace.read_text().splitlines()[0]) if trace.exists() else {}
         if header.get("team") != "v2" or header.get("harness") != "scripted_harness":
             errors.append(f"v2 trace {item['file']} must be a team v2 scripted-harness trace")
-if 'value="v2/revise.jsonl" selected' not in orbit_page:
-    errors.append("orbit scene must open on the v2 revise trace")
+if 'value="incident/report.jsonl" selected' not in orbit_page:
+    errors.append("orbit scene must open on the incident report trace")
+incident_index = ROOT / "orbit" / "replay" / "traces" / "incident" / "index.json"
+if not incident_index.exists():
+    errors.append("missing bundled incident index")
+else:
+    for item in json.loads(incident_index.read_text()):
+        trace = ROOT / "orbit" / "replay" / "traces" / "incident" / item["file"]
+        if not trace.exists():
+            errors.append(f"missing bundled incident trace {item['file']}")
+            continue
+        header = json.loads(trace.read_text().splitlines()[0])
+        if header.get("harness") != "scripted_harness" or header.get("scenario") != "incident":
+            errors.append(f"incident trace {item['file']} must be a scripted incident trace")
+if "not shipped" in orbit_page.lower() or "not shipped" in replay_html.lower():
+    errors.append("incident traces are shipped; the site must not say they are not shipped")
 for label in ("Replay of a saved engine trace", "Scripted harness", "Not live", "Not a model score"):
     if label not in orbit_page or label not in (ROOT / "orbit" / "scene.js").read_text(encoding="utf-8"):
         errors.append(f"orbit scene must keep the label {label!r} in the page and in scene.js")
@@ -182,8 +196,12 @@ if "test split was not scored" in json.dumps(tsfm).lower():
 for needle in ("833,440", "1.109", "1.217", "no detectable difference", "worse"):
     if needle not in tsfm.get("caveat", ""):
         errors.append(f"tsfm caveat must state {needle!r} for the test-scored CPU model")
-if "patch_s2" not in tsfm.get("caveat", "") or "no test score" not in tsfm.get("caveat", ""):
-    errors.append("tsfm caveat must say the patch_s2 headline has no test score")
+tsfm_caveat = tsfm.get("caveat", "")
+for needle in ("0.688", "0.624", "0.757", "patch_s2", "better"):
+    if needle not in tsfm_caveat:
+        errors.append(f"tsfm caveat must state the patch_s2 test headline {needle!r}")
+if "no test score" in tsfm_caveat.lower() or "test pending" in tsfm_caveat.lower():
+    errors.append("tsfm caveat must not say the patch_s2 test is pending or unscored")
 atlas = projects.get("atlas")
 if atlas is None or not (ROOT / "projects" / "atlas.html").exists():
     errors.append("ATLAS needs its project entry and projects/atlas.html")
@@ -233,8 +251,9 @@ if wsl_slot and "%" in re.sub(r"<[^>]+>", " ", wsl_slot.group(0)):
     errors.append("world-shock-lab live-score slot must not show a percentage")
 tsfm_page = (ROOT / "projects" / "tsfm.html").read_text(encoding="utf-8")
 tsfm_slot = re.search(r'data-slot="tsfm-patch-test"[^>]*>(.*?)</div>', tsfm_page, re.S)
-if not tsfm_slot or "Not scored" not in tsfm_slot.group(1) or re.search(r"\d", re.sub(r"<[^>]+>", " ", tsfm_slot.group(1))):
-    errors.append("tsfm headline test slot must say 'Not scored' and must not show a number")
+tsfm_slot_text = re.sub(r"<[^>]+>", " ", tsfm_slot.group(1)) if tsfm_slot else ""
+if not tsfm_slot or "0.688" not in tsfm_slot_text or "Not scored" in tsfm_slot_text:
+    errors.append("tsfm headline test slot must show the measured 0.688 test figure")
 tsfm_distill = re.search(r'data-slot="tsfm-distill"[^>]*>(.*?)</div>', tsfm_page, re.S)
 if not tsfm_distill or "Not scored" not in tsfm_distill.group(1) or re.search(r"\d", re.sub(r"<[^>]+>", " ", tsfm_distill.group(1))):
     errors.append("tsfm distillation slot must say 'Not scored' and must not show a number")
