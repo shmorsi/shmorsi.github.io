@@ -3,8 +3,325 @@
   "updated": "2026-10-24",
   "projects": [
     {
-      "id": "tsfm",
+      "id": "orbit",
       "mission": "01",
+      "code": "ORBIT",
+      "role": "featured",
+      "badge": "code-eval-v2",
+      "kicker": "Agent systems",
+      "title": "Orbit",
+      "purpose": "Orbit Code: a planner, a coder, a test runner, and a reviewer. The reviewer can refuse a patch that fails the hidden tests or edits the tests.",
+      "proves": "A reviewer can refuse a patch. The team passed 29 of 32 frozen tasks and a single agent passed 27. The paired 95% interval, 0.000 to 0.15625, includes zero, so that gap is not an improvement.",
+      "summary": "Orbit Code, code-eval-v2, claude-haiku-5-5, scored once: team with reviewer 29 of 32, single agent 27 of 32. Paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero. Qwen2.5-1.5B-Instruct, harness v3, scored once: fine-tuned schema-valid rate 0.333 to 0.764, 95% interval above zero; task success interval includes zero.",
+      "caveat": "code-eval-v2, claude-haiku-5-5, 32 frozen tasks, scored once: team with reviewer passed 29 of 32, single agent passed 27 of 32. The paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero, so that gap is not an improvement. Estimated cost is 0.0183623 USD for the team and 0.006672 USD for the single agent. Reviewer refusals were 1 of 32 on the team run and 2 of 32 on the single-agent run. On the team run, mf-span and zip-safe failed the hidden test and were not refused. On the single-agent run, mf-span, mf-csv, and zip-safe failed and were not refused. Qwen2.5-1.5B-Instruct, harness v3, frozen 12-task test, scored once: schema-valid rate 0.333 on the base team to 0.764 with the fine-tuned adapter (95% interval on the difference 0.264 to 0.607, above zero). Task success 2 of 12 to 4 of 12 (interval −0.167 to 0.500, includes zero), so task success is not an improvement. The fine-tuned team refused 1 of 2 traps. The distilled team passed 2 of 12, schema-valid 0.448; against the base team that schema-valid interval is −0.064 to 0.278 and includes zero. The result files name the model and the adapters. They do not name the GPU. Boardroom and the incident commander are scripted demos, not scores.",
+      "image": {
+        "src": "orbit/media/orbit-code-poster.webp",
+        "alt": "Orbit Code still frame: planner, coder, test runner, and reviewer around a patch. The clip is a visual, not the score.",
+        "width": 1080,
+        "height": 675
+      },
+      "tags": [
+        "Python",
+        "PyTorch",
+        "Transformers",
+        "Claude API"
+      ],
+      "links": [
+        {
+          "label": "Mission page",
+          "href": "orbit/",
+          "kind": "site"
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/shmorsi/orbit-multi-agent",
+          "kind": "repo",
+          "external": true
+        }
+      ],
+      "glanceIds": [
+        "codeTeamPass",
+        "codeSinglePass",
+        "codeTeamRefusals",
+        "loraSchema"
+      ],
+      "factIds": [
+        "codeSinglePass",
+        "codeTeamRefusals",
+        "loraSchema"
+      ],
+      "headline": {
+        "stat": "codeTeamPass",
+        "qualifier": "claude-haiku-5-5, code-eval-v2, 32 tasks, scored once. Single agent passed 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero."
+      },
+      "stats": {
+        "codeTeamPass": {
+          "label": "Tasks passed, team with reviewer",
+          "display": "29 of 32",
+          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/team.json n_pass 29, n_tasks 32, pass_at_1 0.90625, tests_passed_rate 0.90625, config_label Team with reviewer, model claude-haiku-5-5, protocol code-eval-v2, status measured. Scored once. comparison.json pairs.team_minus_single.pass_at_1 point 0.0625, low 0.0, high 0.15625, n 32, n_resamples 10000, seed 0. The interval includes zero."
+        },
+        "codeSinglePass": {
+          "label": "Tasks passed, single agent",
+          "display": "27 of 32",
+          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/single.json n_pass 27, n_tasks 32, pass_at_1 0.84375, tests_passed_rate 0.84375, config_label Single agent, model claude-haiku-5-5, protocol code-eval-v2, status measured. Scored once."
+        },
+        "codeTeamRefusals": {
+          "label": "Reviewer refusals, team",
+          "display": "1 of 32",
+          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/team.json n_reviewer_rejections 1, reviewer_rejection_rate 0.03125, n_tasks 32. The refused task is email-local (status refuse, hidden_passed_rate 0)."
+        },
+        "codeSingleRefusals": {
+          "label": "Reviewer refusals, single agent",
+          "display": "2 of 32",
+          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/single.json n_reviewer_rejections 2, reviewer_rejection_rate 0.0625, n_tasks 32. The refused tasks are mf-backoff and email-local (status refuse, hidden_passed_rate 0)."
+        },
+        "codeTeamPassRate": {
+          "label": "pass_at_1, team with reviewer",
+          "display": "0.90625",
+          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/team.json pass_at_1 0.90625, exactly 29/32. Shown in full, not rounded to three decimals."
+        },
+        "codeSinglePassRate": {
+          "label": "pass_at_1, single agent",
+          "display": "0.84375",
+          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/single.json pass_at_1 0.84375, exactly 27/32. Shown in full, not rounded to three decimals."
+        },
+        "loraSchema": {
+          "label": "Schema-valid rate, fine-tuned vs base team",
+          "display": "0.333 → 0.764",
+          "source": "data/measurements/orbit/v3_qwen1.5b/team_base.json schema_valid_rate 0.3333333333333333 shown as 0.333; data/measurements/orbit/v3_qwen1.5b/team_lora.json schema_valid_rate 0.763888888888889 shown as 0.764. Model Qwen/Qwen2.5-1.5B-Instruct. Adapter finetune/outputs/adapter."
+        },
+        "loraTasks": {
+          "label": "Task success, fine-tuned vs base team",
+          "display": "4 vs 2 of 12",
+          "source": "data/measurements/orbit/v3_qwen1.5b/team_lora.json n_success 4 of n_tasks 12; data/measurements/orbit/v3_qwen1.5b/team_base.json n_success 2 of 12."
+        },
+        "loraSchemaCi": {
+          "label": "95% interval, schema-valid, fine-tuned minus base",
+          "display": "0.264 to 0.607",
+          "source": "data/measurements/orbit/v3_qwen1.5b/comparison.json pairs.team_lora_minus_team_base.schema_valid_rate point 0.4305555555555556, low 0.2638888888888889, high 0.6069444444444444, n_resamples 10000, seed 0, method paired_percentile_bootstrap. Reading: Above zero."
+        },
+        "loraTaskCi": {
+          "label": "95% interval, task success, fine-tuned minus base",
+          "display": "−0.167 to 0.500",
+          "source": "data/measurements/orbit/v3_qwen1.5b/comparison.json pairs.team_lora_minus_team_base.task_success_rate point 0.16666666666666666, low -0.16666666666666666, high 0.5. Reading: Includes zero. The interval includes zero, so task success is not an improvement."
+        },
+        "distillTasks": {
+          "label": "Task success, distilled team",
+          "display": "2 of 12",
+          "source": "data/measurements/orbit/v3_qwen1.5b/team_distill.json n_success 2, n_tasks 12, adapter finetune/outputs-distill/adapter, model Qwen/Qwen2.5-1.5B-Instruct, status measured."
+        },
+        "distillSchema": {
+          "label": "Schema-valid rate, distilled team",
+          "display": "0.448",
+          "source": "data/measurements/orbit/v3_qwen1.5b/team_distill.json schema_valid_rate 0.4483134920634921 shown as 0.448."
+        },
+        "distillSchemaCi": {
+          "label": "95% interval, schema-valid, distill minus base",
+          "display": "−0.064 to 0.278",
+          "source": "data/measurements/orbit/v3_qwen1.5b/comparison.json pairs.team_distill_minus_team_base.schema_valid_rate point 0.11498015873015872, low -0.06448412698412702, high 0.27777777777777773. Reading: Includes zero."
+        },
+        "baseTeamSchema": {
+          "label": "Schema-valid rate, base team",
+          "display": "0.333",
+          "source": "data/measurements/orbit/v3_qwen1.5b/team_base.json schema_valid_rate 0.3333333333333333 shown as 0.333."
+        },
+        "baseTeamTasks": {
+          "label": "Task success, base team",
+          "display": "2 of 12",
+          "source": "data/measurements/orbit/v3_qwen1.5b/team_base.json n_success 2 of n_tasks 12."
+        },
+        "singleQwenTasks": {
+          "label": "Task success, single agent, Qwen base",
+          "display": "2 of 12",
+          "source": "data/measurements/orbit/v3_qwen1.5b/single_base.json n_success 2 of n_tasks 12. Both successes are the two traps (correct_refusal true). The other ten tasks were refusals and did not pass."
+        },
+        "singleQwenSchema": {
+          "label": "Schema-valid rate, single agent, Qwen base",
+          "display": "1.000",
+          "source": "data/measurements/orbit/v3_qwen1.5b/single_base.json schema_valid_rate 1.0 shown as 1.000. Every turn was schema-valid, including refusals that failed the task."
+        },
+        "loraTraps": {
+          "label": "Trap refusals, fine-tuned team",
+          "display": "1 of 2",
+          "source": "data/measurements/orbit/v3_qwen1.5b/team_lora.json n_correct_refusals 1 of n_traps 2."
+        },
+        "qwenTasks": {
+          "label": "Frozen tasks, harness v3",
+          "display": "12",
+          "source": "data/measurements/orbit/v3_qwen1.5b/team_lora.json n_tasks 12, split test, note: One score on the frozen test. comparison.json pairs use n 12."
+        }
+      },
+      "tables": {
+        "code": {
+          "caption": "code-eval-v2, claude-haiku-5-5, frozen test, 32 tasks, scored once. The policy saw the issue and the source files, not the hidden tests. pass_at_1 is the exact ratio. Paired 95% interval on pass@1, team minus single, is 0.000 to 0.15625 (point 0.0625) and includes zero, so the gap is not an improvement.",
+          "headers": [
+            "Run",
+            "Tasks passed",
+            "pass_at_1",
+            "Reviewer refusals",
+            "Failed tasks not refused"
+          ],
+          "rows": [
+            [
+              "Single agent",
+              "27 of 32",
+              "0.84375",
+              "2 of 32",
+              "3"
+            ],
+            [
+              "Team with reviewer",
+              "29 of 32",
+              "0.90625",
+              "1 of 32",
+              "2"
+            ]
+          ],
+          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/single.json and team.json. Failed tasks not refused are counted from per_task where pass is false and reviewer_rejected is false: single mf-span, mf-csv, zip-safe; team mf-span, zip-safe."
+        },
+        "qwen": {
+          "caption": "Harness v3 rescore. Qwen2.5-1.5B-Instruct, frozen 12-task test, scored once. Rates and mean steps to three decimal places. The single agent's schema-valid rate is 1.000 because its refusals were schema-valid, not because it solved the tasks.",
+          "headers": [
+            "Run",
+            "Successes",
+            "Schema-valid rate",
+            "Mean steps",
+            "Trap refusals"
+          ],
+          "rows": [
+            [
+              "Single agent, base",
+              "2 of 12",
+              "1.000",
+              "1.000",
+              "2 of 2"
+            ],
+            [
+              "Team, base",
+              "2 of 12",
+              "0.333",
+              "6.667",
+              "2 of 2"
+            ],
+            [
+              "Team, fine-tuned adapter",
+              "4 of 12",
+              "0.764",
+              "5.333",
+              "1 of 2"
+            ],
+            [
+              "Team, distilled adapter",
+              "2 of 12",
+              "0.448",
+              "6.167",
+              "2 of 2"
+            ]
+          ],
+          "source": "data/measurements/orbit/v3_qwen1.5b/single_base.json, team_base.json, team_lora.json (adapter finetune/outputs/adapter), team_distill.json (adapter finetune/outputs-distill/adapter). status measured on each file."
+        },
+        "qwenPairs": {
+          "caption": "Paired percentile bootstrap, 10,000 resamples, seed 0, 95% interval, from comparison.json. An interval that includes zero is not an improvement. An interval entirely below zero is worse on that metric. No difference means the point and both ends are zero.",
+          "headers": [
+            "Comparison",
+            "Metric",
+            "Point",
+            "95% interval",
+            "Reading"
+          ],
+          "rows": [
+            [
+              "Team base minus single base",
+              "Task success",
+              "0.000",
+              "0.000 to 0.000",
+              "No difference."
+            ],
+            [
+              "Team base minus single base",
+              "Schema-valid rate",
+              "−0.667",
+              "−0.844 to −0.490",
+              "Below zero."
+            ],
+            [
+              "Fine-tuned minus base team",
+              "Task success",
+              "+0.167",
+              "−0.167 to 0.500",
+              "Includes zero."
+            ],
+            [
+              "Fine-tuned minus base team",
+              "Schema-valid rate",
+              "+0.431",
+              "0.264 to 0.607",
+              "Above zero."
+            ],
+            [
+              "Fine-tuned team minus single base",
+              "Task success",
+              "+0.167",
+              "−0.167 to 0.500",
+              "Includes zero."
+            ],
+            [
+              "Fine-tuned team minus single base",
+              "Schema-valid rate",
+              "−0.236",
+              "−0.311 to −0.186",
+              "Below zero."
+            ],
+            [
+              "Distill minus base team",
+              "Task success",
+              "0.000",
+              "0.000 to 0.000",
+              "No difference."
+            ],
+            [
+              "Distill minus base team",
+              "Schema-valid rate",
+              "+0.115",
+              "−0.064 to 0.278",
+              "Includes zero."
+            ],
+            [
+              "Distill minus fine-tuned",
+              "Task success",
+              "−0.167",
+              "−0.500 to 0.167",
+              "Includes zero."
+            ],
+            [
+              "Distill minus fine-tuned",
+              "Schema-valid rate",
+              "−0.316",
+              "−0.401 to −0.209",
+              "Below zero."
+            ],
+            [
+              "Distill minus single base",
+              "Task success",
+              "0.000",
+              "0.000 to 0.000",
+              "No difference."
+            ],
+            [
+              "Distill minus single base",
+              "Schema-valid rate",
+              "−0.552",
+              "−0.642 to −0.437",
+              "Below zero."
+            ]
+          ],
+          "source": "data/measurements/orbit/v3_qwen1.5b/comparison.json status measured, kind comparison, n_resamples 10000, seed 0, method paired_percentile_bootstrap. Points and intervals shown to three decimals."
+        }
+      }
+    },
+    {
+      "id": "tsfm",
+      "mission": "02",
       "code": "TSFM",
       "role": "featured",
       "badge": "Test split",
@@ -362,11 +679,12 @@
         "flagged",
         "tests"
       ],
-      "purposeSource": "tsfm-from-scratch DATA_CARD.md: the upstream pretraining corpus, described upstream as non-leaking, contained exact or rescaled copies of GIFT-Eval series, some inside the test windows. All 801 flagged series were removed."
+      "purposeSource": "tsfm-from-scratch DATA_CARD.md: the upstream pretraining corpus, described upstream as non-leaking, contained exact or rescaled copies of GIFT-Eval series, some inside the test windows. All 801 flagged series were removed.",
+      "proves": "A transformer trained from scratch is better than upstream AutoARIMA on the frozen test: CRPS 0.688×, 95% CI [0.624, 0.757]."
     },
     {
       "id": "world-shock-lab",
-      "mission": "02",
+      "mission": "03",
       "code": "World Shock Lab",
       "role": "featured",
       "badge": "Live site",
@@ -701,241 +1019,8 @@
         "tsxBoc",
         "replications",
         "assets"
-      ]
-    },
-    {
-      "id": "orbit",
-      "mission": "03",
-      "code": "ORBIT",
-      "role": "featured",
-      "badge": "Replay",
-      "kicker": "AI agents",
-      "title": "Orbit",
-      "summary": "Autonomous Incident Commander is a scripted demo on a fictional e-commerce corpus: the team counts errors in code, checks runbook thresholds, finds the bad deploy, and the auditor refuses a red-team agent's fake root cause. Measured results are the frozen makerspace test, including the claude-haiku-5-5 v1 and v2 API scores. The round table, the T4 distill run, and the Qwen harness-v3 rescores are still pending.",
-      "caveat": "Qwen2.5-1.5B QLoRA, harness v2, frozen 12-task test: schema-valid rate 0.607 to 0.780 (95% interval 0.001 to 0.339, above zero). Task success 2 of 12 to 3 of 12 (interval −0.167 to 0.333, includes zero). claude-haiku-5-5, harness v3, same frozen test: v1 team 1 of 12 with schema-valid 0.862, v2 team 0 of 12 with schema-valid 0.559. v2 minus v1 task success is −0.250 to 0.000 (includes zero); schema-valid is −0.425 to −0.174 (below zero). Still pending: the round table, the T4 distill run, and the harness-v3 rescores of the Qwen runs.",
-      "image": {
-        "src": "assets/img/orbit-mission.webp",
-        "alt": "Mission Control replay of a saved engine trace, with planner, worker and critic, marked scripted harness.",
-        "width": 1280,
-        "height": 800
-      },
-      "tags": [
-        "Python",
-        "PyTorch",
-        "QLoRA",
-        "Claude API"
       ],
-      "links": [
-        {
-          "label": "Mission page",
-          "href": "orbit/",
-          "kind": "site"
-        },
-        {
-          "label": "GitHub",
-          "href": "https://github.com/shmorsi/orbit-multi-agent",
-          "kind": "repo",
-          "external": true
-        }
-      ],
-      "glanceIds": [
-        "schemaValid",
-        "taskSuccess",
-        "toolCount",
-        "tests"
-      ],
-      "stats": {
-        "schemaValid": {
-          "label": "Schema-valid tool calls",
-          "display": "0.607 → 0.780",
-          "source": "orbit-multi-agent README results block, shown to three decimal places, from results/v2_qwen1.5b: team_base.json schema_valid_rate 0.6071428571428571 shown as 0.607, team_lora.json 0.7797619047619048 shown as 0.780. comparison.json team_lora_minus_team_base schema_valid_rate 95% interval 0.001 to 0.339, above zero."
-        },
-        "taskSuccess": {
-          "label": "Task success, adapter vs base team",
-          "display": "3 vs 2 of 12",
-          "source": "orbit-multi-agent results/v2_qwen1.5b: team_lora 3 of 12, team_base 2 of 12. Paired bootstrap −0.16666666666666666 to 0.3333333333333333 includes zero: not significant."
-        },
-        "team": {
-          "label": "Agents in the scored team",
-          "display": "3",
-          "source": "orbit-multi-agent README: the archived local score is the three-role team (planner, worker, critic). The six-role API team is a separate measured run in results/v3_api/claude-haiku-5-5/team_v2.json."
-        },
-        "toolCount": {
-          "label": "Sandboxed tools",
-          "display": "6",
-          "source": "orbit-multi-agent README: sandboxed Python, calculator, corpus file read, per-run file write, keyword retrieval, offline web cache. Nothing in the tool path opens a socket. Resume: 6 sandboxed tools."
-        },
-        "testTasks": {
-          "label": "Frozen test tasks",
-          "display": "12",
-          "source": "orbit-multi-agent README results: frozen test team-eval-v1, 12 tasks."
-        },
-        "tests": {
-          "label": "pytest tests in CI",
-          "display": "146",
-          "source": "orbit-multi-agent GitHub Actions run 40057156728 on main 880468f: python -m pytest, 146 passed (Python 3.12 and 3.11)."
-        },
-        "tools": {
-          "label": "Tools",
-          "display": "On device",
-          "source": "Orbit README: nothing in the tool path opens a socket."
-        },
-        "host": {
-          "label": "Where a live run goes",
-          "display": "Your machine",
-          "source": "Orbit README: GitHub Pages replays the saved traces. The run form needs the local server."
-        },
-        "apiV1Tasks": {
-          "label": "Three-role API task success, claude-haiku-5-5",
-          "display": "1 of 12",
-          "source": "orbit-multi-agent results/v3_api/claude-haiku-5-5/team_v1.json: n_success 1, n_tasks 12, schema_valid_rate 0.8620039682539682 shown as 0.862, n_correct_refusals 1 of n_traps 2. README row: 1 of 12, schema-valid 0.862."
-        },
-        "apiV1Schema": {
-          "label": "Three-role API schema-valid rate",
-          "display": "0.862",
-          "source": "orbit-multi-agent results/v3_api/claude-haiku-5-5/team_v1.json schema_valid_rate 0.8620039682539682, README three decimals 0.862."
-        },
-        "apiV2Tasks": {
-          "label": "Six-role API task success, claude-haiku-5-5",
-          "display": "0 of 12",
-          "source": "orbit-multi-agent results/v3_api/claude-haiku-5-5/team_v2.json: n_success 0, n_tasks 12, schema_valid_rate 0.5589285714285714 shown as 0.559, n_correct_refusals 0 of n_traps 2. README row: 0 of 12, schema-valid 0.559."
-        },
-        "apiV2Schema": {
-          "label": "Six-role API schema-valid rate",
-          "display": "0.559",
-          "source": "orbit-multi-agent results/v3_api/claude-haiku-5-5/team_v2.json schema_valid_rate 0.5589285714285714, README three decimals 0.559."
-        }
-      },
-      "tables": {
-        "v1": {
-          "caption": "v1, 3 agents. Measured once on the frozen 12-task test team-eval-v1. Qwen2.5-1.5B-Instruct, QLoRA on 307 train and 71 tune dialogues. Harness v2.",
-          "headers": [
-            "Run",
-            "Successes",
-            "Schema-valid rate",
-            "Trap refusals"
-          ],
-          "rows": [
-            [
-              "Single agent, base model",
-              "2 of 12",
-              "0.750",
-              "2 of 2"
-            ],
-            [
-              "Team, base model",
-              "2 of 12",
-              "0.607",
-              "2 of 2"
-            ],
-            [
-              "Team plus QLoRA adapter",
-              "3 of 12",
-              "0.780",
-              "1 of 2"
-            ],
-            [
-              "Team, distilled",
-              "not scored",
-              "",
-              ""
-            ]
-          ],
-          "source": "orbit-multi-agent README results block, shown to three decimal places, from results/v2_qwen1.5b. Team distill is not scored."
-        },
-        "v1Pairs": {
-          "caption": "Paired bootstrap, team plus adapter minus team base, 10,000 resamples, 95% interval.",
-          "headers": [
-            "Metric",
-            "Point",
-            "95% interval",
-            "Reading"
-          ],
-          "rows": [
-            [
-              "Task success rate",
-              "+0.083",
-              "−0.167 to +0.333",
-              "Includes zero. Not significant."
-            ],
-            [
-              "Schema-valid rate",
-              "+0.173",
-              "+0.001 to +0.339",
-              "Above zero."
-            ]
-          ],
-          "source": "orbit-multi-agent results/v2_qwen1.5b/comparison.json, team_lora_minus_team_base, shown to three decimals."
-        },
-        "api": {
-          "caption": "API policy claude-haiku-5-5, harness v3, frozen test team-eval-v1. Each team scored once. Rates shown to three decimal places.",
-          "headers": [
-            "Run",
-            "Successes",
-            "Task-success rate",
-            "Schema-valid rate",
-            "Trap refusals"
-          ],
-          "rows": [
-            [
-              "v1 team (3 roles)",
-              "1 of 12",
-              "0.083",
-              "0.862",
-              "1 of 2"
-            ],
-            [
-              "v2 team (6 roles)",
-              "0 of 12",
-              "0.000",
-              "0.559",
-              "0 of 2"
-            ],
-            [
-              "Round-table team",
-              "not scored",
-              "",
-              "",
-              ""
-            ]
-          ],
-          "source": "orbit-multi-agent README API table and results/v3_api/claude-haiku-5-5/team_v1.json, team_v2.json. Round table is pending until team_v3.json is measured."
-        },
-        "apiPairs": {
-          "caption": "Paired bootstrap, v2 team minus v1 team, claude-haiku-5-5, 10,000 resamples, 95% interval.",
-          "headers": [
-            "Metric",
-            "Point",
-            "95% interval",
-            "Reading"
-          ],
-          "rows": [
-            [
-              "Task success rate",
-              "−0.083",
-              "−0.250 to 0.000",
-              "Includes zero."
-            ],
-            [
-              "Schema-valid rate",
-              "−0.303",
-              "−0.425 to −0.174",
-              "Below zero."
-            ]
-          ],
-          "source": "orbit-multi-agent results/v3_api/claude-haiku-5-5/comparison.json team_v2_minus_team_v1, shown to three decimals as in the README. Task success low −0.25 high 0.0 point −0.08333333333333333. Schema-valid low −0.425 high −0.17410714285714288 point −0.3030753968253968."
-        }
-      },
-      "purpose": "Autonomous Incident Commander: a scripted demo of a fictional checkout outage, where the auditor refuses a fake root cause.",
-      "headline": {
-        "stat": "schemaValid",
-        "qualifier": "Qwen2.5-1.5B team, base model to QLoRA adapter. Frozen 12-task test, 95% interval above zero."
-      },
-      "factIds": [
-        "team",
-        "toolCount",
-        "tests"
-      ]
+      "proves": "A 10 bp Fed surprise moves the TSX −1.10% on announcement day. The 90% band, −1.59 to −0.61, excludes zero."
     },
     {
       "id": "atlas",
@@ -1243,8 +1328,9 @@
           ],
           "source": "atlas docs/LOCAL_LATENCY.json."
         }
-      }
+      },
+      "proves": "One local solve traces a cost shock through 405 country-sector nodes. On the one held-out year, ridge beat every neural and graph model."
     }
   ],
-  "tagline": "I build AI that has to be right: models and agents measured against reality, not demos."
+  "tagline": "AI engineer building agent systems and models from scratch."
 }

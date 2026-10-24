@@ -1,4 +1,12 @@
 @font-face {
+  font-family: "Inter Tight Fallback";
+  src: local("Arial");
+  size-adjust: 97%;
+  ascent-override: 92%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+@font-face {
   font-family: "Inter Tight";
   src: url("fonts/inter-tight-latin.woff2") format("woff2");
   font-weight: 400 700;
@@ -33,9 +41,10 @@
 html, body {
   margin: 0;
   min-height: 100%;
+  overflow-x: clip;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+  font-family: "Inter Tight", "Inter Tight Fallback", "Helvetica Neue", Arial, sans-serif;
   font-weight: 450;
   -webkit-font-smoothing: antialiased;
 }
@@ -378,23 +387,27 @@ body[data-team="v2"] .ring { inset: 24%; }
 .controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 22px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .controls button, .speed {
   border: 1px solid rgba(255, 255, 255, 0.34);
   padding: 0 14px;
-  min-height: 44px;
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
   font-weight: 600;
+  max-width: 100%;
+  min-width: 0;
 }
+.speed select { max-width: 100%; width: min(280px, 100%); }
 .controls button#play { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
 .controls button[aria-pressed="true"] {
@@ -434,7 +447,7 @@ label {
   color: var(--muted);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 input, select, textarea {
@@ -519,7 +532,7 @@ textarea { min-height: 72px; resize: vertical; grid-column: 1 / -1; }
 
 .rules h3 {
   margin: 0 0 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;

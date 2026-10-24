@@ -1,0 +1,251 @@
+%=====================================================================
+% Sherif Morsi - Base Resume: ML / AI / Software Development / Quant (LaTeX template)
+% Compiles on Overleaf with pdfLaTeX (Menu > Compiler > pdfLaTeX).
+%
+% HOW TO EDIT WITHOUT BREAKING THE FORMAT
+%   * Do NOT touch anything above "\begin{document}" (the PREAMBLE).
+%     All fonts, margins, rules, spacing and bullet styles live there.
+%   * Below \begin{document}, only change the TEXT inside { }.
+%     Look for the "% EDIT:" comments.
+%   * Bullet:        \resumeItem{Your sentence here}
+%   * Job / school:  \resumeSubheading{Title}{Dates}{Organization}{Location}
+%   * Project:       \resumeProjectHeading{Name $|$ \emph{Tools} $|$ Link}{Year}
+%   * Bold a word:   \textbf{word}
+%   * Special chars: write \& \% \$ \# \_ (with a backslash), and $\times$ for x
+%   * To add a bullet, copy an existing \resumeItem{...} line (keep the
+%     trailing \vspace{-1pt} on every bullet except the last one in a list).
+%   * To add a job/project, copy a whole block from \resumeSubheading /
+%     \resumeProjectHeading down to its \resumeItemListEnd.
+%   * Keep it to 1 page: after editing, check the PDF is still 1 page.
+%=====================================================================
+
+%-------------------------
+% ML Resume in Latex
+% Author : Sherif Morsi
+%-------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage[english]{babel}
+\input{glyphtounicode}
+
+\pagestyle{empty}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \vspace{-9pt}\bfseries\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-6.5pt}]
+
+\pdfgentounicode=1
+
+% Custom commands
+\newcommand{\resumeItem}[1]{%
+  \item\small{%
+    \parbox[t]{\linewidth}{%
+      \linespread{0.81}\selectfont
+      #1\par
+      \ifnum\prevgraf>1
+        \vspace{2.3pt}%
+      \fi
+    }%
+    \vspace{-2pt}%
+  }%
+}
+
+\newcommand{\resumeSubheading}[4]{ \vspace{-2pt}\item \textbf{#1}\hfill #2\\ \textbf{\small #3}\hfill \textit{\small #4}\\ \vspace{-4.5pt} }
+
+\newcommand{\resumeProjectHeading}[2]{
+  \item {\small #1\hfill #2\par}
+  \vspace{-4pt}
+}
+
+\newcommand{\resumeSimpleProjectHeading}[1]{
+  \item {\small #1\par}
+  \vspace{-4pt}
+}
+
+\newcommand{\resumeSubHeadingListStart}{%
+  \begin{itemize}[leftmargin=0.15in, label={}, itemsep=6pt, topsep=2pt, parsep=0pt, partopsep=0pt]
+}
+
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{
+  \begin{itemize}[leftmargin=0.15in, label=-]
+}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-7pt}}
+
+% Helper macros (pure shortcuts, they produce the exact same output)
+% \githubLink{url}       -> bold underlined "GitHub" link used in project headings
+% \skillLine{Label}{items} -> one line of the Technical Skills section
+\newcommand{\githubLink}[1]{\href{#1}{\textbf{\underline{GitHub}}}}
+\newcommand{\skillLine}[2]{\textbf{#1}{: #2} \\ \vspace{-1pt}}
+
+%=====================================================================
+%                       CONTENT STARTS HERE
+%=====================================================================
+\begin{document}
+
+%-----------HEADER-----------
+% EDIT: name, location, phone, links. \href{real link}{\underline{shown text}}
+\begin{center}
+    {\Huge \textbf{Sherif Morsi}} \\ \vspace{-2pt}
+\small Montreal, QC, Canada $|$
++1 (438) 596-6468 $|$
+\href{mailto:shmorsi@outlook.com}{\underline{shmorsi@outlook.com}} $|$
+\href{https://www.linkedin.com/in/sherif-morsi-a17628295}{\underline{linkedin.com/in/sherif-morsi-a17628295}} \\
+\small Canadian Permanent Resident $|$
+\href{https://github.com/shmorsi}{\underline{github.com/shmorsi}} $|$
+\href{https://shmorsi.github.io/}{\underline{shmorsi.github.io}}
+\end{center}
+\vspace{-14pt} % header gap (was -25pt; -14pt keeps "Summary" below the header so ATS reads it in order)
+
+%-----------SUMMARY-----------
+% EDIT: summary text only (keep it to 2 lines, max 3-4 bold terms)
+\section{Summary}
+\small{
+Concordia Computer Science student seeking AI/ML, software, and quant internships. Trained \textbf{PyTorch} models on 5G telemetry at Nokia; builds tool-calling \textbf{AI agents}, QLoRA fine-tunes, and leakage-safe forecasting models in tested \textbf{Python}.
+}
+
+%-----------EDUCATION-----------
+\vspace{-5pt}
+\section{Education}
+\resumeSubHeadingListStart
+
+  % EDIT: {School}{Location}{Degree}{Date}
+  \resumeSubheading
+    {Concordia University}{Montreal, QC, Canada}
+    {Bachelor of Computer Science}{Expected May 2028}
+    \resumeItemListStart
+      \resumeItem{\textbf{Availability:} Winter 2027 (Jan to Apr 2027) for 4, 8, 12, or 16 months}
+      \resumeItem{\textbf{Coursework:} Data Structures and Algorithms, Object-Oriented Programming, Artificial Intelligence, Machine Learning, Linear Algebra, Multivariable Calculus}
+    \resumeItemListEnd
+\resumeSubHeadingListEnd
+\vspace{-3pt}
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+\resumeSubHeadingListStart
+
+% EDIT: {Job title}{Dates}{Company}{Location}
+\resumeSubheading
+{AI \& Machine Learning Intern}{Aug 2026 - Sep 2026}
+{Nokia}{Cairo, Egypt}
+\vspace{-2pt}
+\resumeItemListStart
+\resumeItem{Trained and evaluated Python and \textbf{PyTorch} models on wireless network telemetry to forecast 5G \textbf{energy demand}}\vspace{-1pt}
+\resumeItem{Developed \textbf{data and ML pipelines} for 5G energy telemetry, to support automated network management and optimization}\vspace{-1pt}
+\resumeItem{Presented findings on wireless networking and 5G-related energy challenges to cross-functional teams of data scientists and engineers; led the project proposal and requirements review}\vspace{-2pt}
+\resumeItemListEnd
+
+% EDIT: {Title}{Dates}{Company}{Location}  (a job shadow, never "Intern" or "Engineer")
+\resumeSubheading
+{Credit Analyst Job Shadow}{Aug 2025 - Sep 2025}
+{Qatar National Bank (QNB)}{Cairo, Egypt}
+\vspace{-2pt}
+\resumeItemListStart
+\resumeItem{Shadowed credit analysts reviewing SME financial records as part of the bank's credit-review process}\vspace{-1pt}
+\resumeItem{Built \textbf{Python} utilities and \textbf{SQL} queries to preprocess and validate SME financial records, improving the data quality and reliability of credit-review data}\vspace{-1pt}
+\resumeItem{Tested and documented these scripts and fixes with the team so they stayed maintainable and easy to debug}
+\resumeItemListEnd
+
+\resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\vspace{-8pt}
+\section{Projects}
+\resumeSubHeadingListStart
+\vspace{-5pt}
+
+% EDIT: {\textbf{Name} $|$ \emph{Tools} $|$ \githubLink{repo url}}{Year}
+\resumeProjectHeading
+{\textbf{Orbit (Agentic AI, Multi-Agent Tool Calling)} $|$ \emph{Python, PyTorch, QLoRA, Claude API} $|$ \githubLink{https://github.com/shmorsi/orbit-multi-agent}}{2026}
+\vspace{-2pt}
+\resumeItemListStart
+\resumeItem{Built a planner, coder, test runner, and reviewer; the reviewer rejects a patch that fails the hidden tests or edits the tests}\vspace{-1pt}
+\resumeItem{On code-eval-v2 (32 frozen bug-fix tasks, claude-haiku-5-5, scored once), the team passed \textbf{29/32} and a single agent \textbf{27/32}; estimated cost \textbf{\$0.025}. The paired 95\% interval on pass@1 is \textbf{0.000 to 0.15625} and includes zero, so the team is not significantly better}\vspace{-1pt}
+\resumeItem{QLoRA-tuned \textbf{Qwen2.5-1.5B} on harness v3: schema-valid rate \textbf{0.333 to 0.764} (95\% CI 0.264 to 0.607, above zero). Task success was \textbf{4/12 vs 2/12} (95\% CI $-$0.167 to 0.500, includes zero)}
+\resumeItemListEnd
+\vspace{-5pt}
+
+\resumeProjectHeading
+{\textbf{Time-Series Foundation Model (Transformers, Forecasting)} $|$ \emph{Python, PyTorch, pytest, GitHub Actions} $|$ \githubLink{https://github.com/shmorsi/tsfm-from-scratch}}{2026}
+\vspace{-2pt}
+\resumeItemListStart
+\resumeItem{Pretrained a \textbf{10.1M-parameter} decoder-only transformer from scratch. On the frozen test (patch\_s2, one seed, 97 \mbox{configurations}), CRPS was \textbf{0.688$\times$} upstream AutoARIMA, 95\% CI \textbf{[0.624, 0.757]}, better}\vspace{-1pt}
+\resumeItem{Validation CRPS was \textbf{0.605$\times$ Seasonal Naive} (16 configurations, one seed). A content audit flagged \textbf{801 of 447,229} series and excluded them; the corpus kept is \textbf{443,258} series across \textbf{77} datasets}
+\resumeItemListEnd
+\vspace{-5pt}
+
+\resumeProjectHeading
+{\textbf{World Shock Lab (Econometrics, Macro Shocks)} $|$ \emph{Python, PyTorch, DuckDB, TypeScript} $|$ \githubLink{https://github.com/shmorsi/world-shock-lab} $|$ \href{https://shmorsi.github.io/world-shock-lab/}{\textbf{\underline{Live Site}}}}{2026}
+\vspace{-2pt}
+\resumeItemListStart
+\resumeItem{Estimated Fed, Bank of Canada, and OPEC surprise effects on \textbf{53} assets: a 10 bp Fed surprise moves the TSX \textbf{$-$1.10\%} (90\% band $-$1.59 to $-$0.61); the same-size BoC surprise moves it \textbf{$-$0.19\%}}\vspace{-1pt}
+\resumeItem{Replicated \textbf{11 of 13} published findings on sign and 90\% band. Quantile gradient boosting cut 5\% pinball loss by \textbf{0.112} versus a Gaussian projection (90\% CI $-$0.228 to $-$0.010). Slowest throttled phone view: \textbf{2.703 s}}
+\resumeItemListEnd
+\vspace{-5pt}
+
+\resumeProjectHeading
+{\textbf{ATLAS (Production Networks)} $|$ \emph{Python, PyTorch, FastAPI} $|$ \githubLink{https://github.com/shmorsi/atlas}}{2026}
+\vspace{-2pt}
+\resumeItemListStart
+\resumeItem{Traced a hypothetical cost shock through \textbf{405} country-sector nodes (local median \textbf{11.0 ms}). On the one held-out year, ridge test RMSE \textbf{14.00} was below every saved graph and no-graph checkpoint}
+\resumeItemListEnd
+
+\resumeSubHeadingListEnd
+
+%-----------CERTIFICATIONS & AFFILIATIONS-----------
+\vspace{-6pt}
+\section{Certifications \& Affiliations} \vspace{-2pt}
+\resumeSubHeadingListStart
+
+% EDIT: certificates (keep "\quad \hspace{-0.17in}" between them, "\hfill" after the last)
+\resumeSimpleProjectHeading{
+\textbf{Anthropic:} Building with the Claude API, Claude Code 101, Claude 101 \textbar{} \textbf{IBM:} Machine Learning with Python \hfill
+}
+\vspace{-3pt}
+
+% EDIT: club line
+\resumeSimpleProjectHeading{\textbf{Quantitative Research and Competitions Club (QUARCC)} $|$ \emph{Member, Concordia University}: Exploring machine learning concepts, statistical modeling, and quantitative research through data-driven problem-solving}
+\vspace{-0.5pt}
+
+\resumeSubHeadingListEnd
+
+%-----------TECHNICAL SKILLS-----------
+% EDIT: \skillLine{Label}{comma-separated items}
+\section{Technical Skills}
+\vspace{-4pt}
+\begin{itemize}[leftmargin=0.15in, label={}]
+\small{\item{
+\skillLine{Languages}{\textbf{Python}, \textbf{SQL}, C++, \textbf{Java}, C, R, JavaScript, TypeScript, Bash, MATLAB}
+\skillLine{Machine Learning}{\textbf{PyTorch}, TensorFlow, \textbf{scikit-learn}, Deep Learning, Supervised/Unsupervised Learning, Regression, \textbf{Transformers}, \textbf{Time-Series Forecasting}}
+\skillLine{ML Methods}{\textbf{Feature Engineering}, \textbf{Cross-Validation}, Transfer Learning, Computer Vision, NLP, \textbf{Model Evaluation}, Mixed Precision}
+\skillLine{AI / LLMs}{\textbf{LLMs}, \textbf{AI Agents}, \textbf{Tool Calling}, \textbf{Prompt Engineering}, QLoRA, Distillation, Claude API, Hugging Face}
+\skillLine{Quant / Risk}{\textbf{Econometrics}, Event Studies, Monte Carlo, Probabilistic Forecasting, \textbf{CVaR}, \textbf{Portfolio Optimization}, Walk-Forward Validation}
+\skillLine{Data / Libraries}{\textbf{Pandas}, \textbf{NumPy}, SciPy, Matplotlib, OpenCV, \textbf{FastAPI}, \textbf{DuckDB}, \textbf{SQLite}, Parquet, cvxpy, statsmodels}
+\skillLine{Developer Tools}{\textbf{Git}, \textbf{GitHub Actions (CI/CD)}, \textbf{pytest}, Playwright, Jupyter, Colab, Claude Code, Cursor, Codex, VS Code}
+\skillLine{Office / BI}{Excel (Advanced), Power BI, PowerPoint, Microsoft 365}
+}}
+\end{itemize}
+
+\end{document}

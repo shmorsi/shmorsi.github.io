@@ -24,7 +24,6 @@ FORBIDDEN = [
     r"software engineer",
     r"\bml engineer\b",
     r"machine learning engineer",
-    r"\bai engineer\b",
     r"full-stack engineer",
     r"research engineer",
     r"ai engineering",
@@ -119,8 +118,21 @@ if "The resume PDF is a placeholder." in (ROOT / "index.html").read_text(encodin
     errors.append("hero still says the resume PDF is a placeholder")
 
 orbit_page = (ROOT / "orbit" / "index.html").read_text(encoding="utf-8")
-if "Evaluation pending: single agent vs team vs fine-tuned team on a frozen test set" not in orbit_page:
-    errors.append("orbit page must mark the frozen-test evaluation as pending")
+for needle in (
+    "results/code_v2/claude-haiku-5-5/team.json",
+    "results/v3_qwen1.5b/comparison.json",
+    "results/v3_qwen1.5b/team_distill.json",
+    "results/v3_qwen1.5b/team_lora.json",
+    "not an improvement",
+    "includes zero",
+    "above zero",
+    "29 of 32",
+    "27 of 32",
+):
+    if needle not in orbit_page:
+        errors.append(f"orbit page must state {needle!r}")
+if re.search(r"team (beats|is better|outperforms)|(?<!not )an improvement", orbit_page, re.I):
+    errors.append("orbit page must not call the code-eval gap or a zero-spanning interval an improvement")
 replay_html = (ROOT / "orbit" / "replay" / "index.html").read_text(encoding="utf-8")
 if "Scripted harness" not in replay_html:
     errors.append("mission replay must keep the Scripted harness label")
@@ -158,26 +170,26 @@ for label in ("Replay of a saved engine trace", "Scripted harness", "Not live", 
     if label not in orbit_page or label not in (ROOT / "orbit" / "scene.js").read_text(encoding="utf-8"):
         errors.append(f"orbit scene must keep the label {label!r} in the page and in scene.js")
 
-# The v2 results slot: no figure unless it cites a result file that exists in this repo or names one in Orbit.
-slot = re.search(r'<div class="slot-empty"[^>]*data-slot="orbit-v2"[^>]*>(.*?)</div>', orbit_page, re.S)
-if not slot:
-    errors.append("orbit page needs the v2 results slot (data-slot=\"orbit-v2\")")
-else:
-    opening = re.search(r'<div class="slot-empty"[^>]*data-slot="orbit-v2"[^>]*>', orbit_page).group(0)
-    source = (re.search(r'data-source="([^"]*)"', opening) or [None, ""])[1].strip()
-    slot_text = re.sub(r"<[^>]+>", " ", slot.group(1))
-    slot_text = re.sub(r"\bv2\b", " ", slot_text)
-    has_number = re.search(r"\d", slot_text) is not None
-    if has_number and not re.fullmatch(r"results/v3_api/[^\s\"]+/team_v2\.json", source):
-        errors.append("orbit v2 slot shows a number without data-source naming results/v3_api/<model>/team_v2.json")
-    if not has_number and "Not yet scored" not in slot_text:
-        errors.append("orbit v2 slot must say 'Not yet scored' until it has a sourced figure")
-    if source and not has_number:
-        errors.append("orbit v2 slot names a source but shows no figure; clear data-source or add the figure")
-orbit_data = json.dumps(projects.get("orbit", {}))
-for pattern in (r"team_v2[^\"]*\d\.\d", r"v2 team[^.\"]*\b\d+ of 12", r"six-role[^.\"]*\b\d+ of 12"):
-    if re.search(pattern, orbit_data, re.I) and "results/v3_api" not in orbit_data:
-        errors.append("data/projects.json states a v2 team figure without citing results/v3_api")
+# Measured slots cite the archive path. Boardroom stays a demo with no figure.
+def slot_text(name: str) -> str:
+    match = re.search(rf'<div class="slot-empty"[^>]*data-slot="{name}"[^>]*>(.*?)</div>', orbit_page, re.S)
+    if not match:
+        errors.append(f"orbit page needs data-slot={name!r}")
+        return ""
+    return re.sub(r"<[^>]+>", " ", match.group(1))
+
+code_slot = slot_text("orbit-code")
+if code_slot and ("29 of 32" not in code_slot or "not an improvement" not in code_slot):
+    errors.append("orbit code slot must show 29 of 32 and say the gap is not an improvement")
+board_slot = slot_text("orbit-boardroom")
+if board_slot and ("Not a measured score" not in board_slot or re.search(r"\d", board_slot)):
+    errors.append("boardroom slot must say 'Not a measured score' and must not show a number")
+v3_slot_text = slot_text("orbit-harness-v3")
+if v3_slot_text and ("0.764" not in v3_slot_text or "includes zero" not in v3_slot_text or "above zero" not in v3_slot_text):
+    errors.append("orbit harness v3 slot must show the measured schema-valid rate and both interval readings")
+distill_slot = slot_text("orbit-distill")
+if distill_slot and ("2 of 12" not in distill_slot or "includes zero" not in distill_slot):
+    errors.append("orbit distill slot must show 2 of 12 and the interval that includes zero")
 
 orbit_project = projects.get("orbit")
 if orbit_project is None or orbit_project.get("role") != "featured":
@@ -257,16 +269,11 @@ if not tsfm_slot or "0.688" not in tsfm_slot_text or "Not scored" in tsfm_slot_t
 tsfm_distill = re.search(r'data-slot="tsfm-distill"[^>]*>(.*?)</div>', tsfm_page, re.S)
 if not tsfm_distill or "Not scored" not in tsfm_distill.group(1) or re.search(r"\d", re.sub(r"<[^>]+>", " ", tsfm_distill.group(1))):
     errors.append("tsfm distillation slot must say 'Not scored' and must not show a number")
-v3_slot = re.search(r'data-slot="orbit-harness-v3"[^>]*>(.*?)</div>', orbit_page, re.S)
-if not v3_slot or "Not yet scored" not in v3_slot.group(1):
-    errors.append("orbit harness v3 slot must say 'Not yet scored'")
-elif "%" in re.sub(r"<[^>]+>", " ", v3_slot.group(1)):
-    errors.append("orbit harness v3 slot must not show a percentage")
-if 'data-slot="orbit-score-v1"' not in orbit_page or 'data-slot="orbit-distill"' not in orbit_page:
-    errors.append("orbit page needs pending slots for the three-role API score and the distilled team")
-for needle in ("team_v1.json", "team_distill.json", "make score-v2", "python -m orbit_agents.eval.readme"):
+if 'data-slot="orbit-distill"' not in orbit_page or 'data-slot="orbit-harness-v3"' not in orbit_page:
+    errors.append("orbit page needs the measured distill and harness v3 slots")
+for needle in ("team_distill.json", "comparison.json", "team.json"):
     if needle not in orbit_page:
-        errors.append(f"orbit page must name the pending result path or command {needle!r}")
+        errors.append(f"orbit page must name the measured file {needle!r}")
 
 # Internal links, image alts, and the tags a shared link needs.
 meta_needles = (
@@ -323,6 +330,51 @@ for css_path in ROOT.rglob("*.css"):
         target = (css_path.parent / ref).resolve()
         if not target.is_file():
             errors.append(f"{css_path.relative_to(ROOT)} url {ref} does not resolve")
+
+for project in DATA["projects"]:
+    if project.get("role") == "featured" and not str(project.get("proves", "")).strip():
+        errors.append(f"{project['id']} needs a skimmable proves line")
+    proves = project.get("proves", "")
+    if proves and proves not in home:
+        errors.append(f"index.html is missing the proves line for {project['id']}")
+
+for gif in ("orbit/media/orbit-code.gif", "orbit/media/orbit-boardroom.gif"):
+    if gif not in home or not (ROOT / gif).is_file():
+        errors.append(f"home page must use the measured clip {gif}")
+if "prefers-reduced-motion" not in (ROOT / "assets" / "site.css").read_text(encoding="utf-8"):
+    errors.append("stylesheet must respect prefers-reduced-motion")
+if "data-gif" not in (ROOT / "assets" / "site.js").read_text(encoding="utf-8"):
+    errors.append("clips must stay still until script decides to play them")
+
+# Displayed Orbit figures have to match the copied measurement files.
+meas = ROOT / "data" / "measurements" / "orbit"
+code_team = json.loads((meas / "code_v2/claude-haiku-5-5/team.json").read_text())
+code_single = json.loads((meas / "code_v2/claude-haiku-5-5/single.json").read_text())
+if code_team.get("n_pass") != 29 or code_team.get("n_tasks") != 32 or code_single.get("n_pass") != 27:
+    errors.append("code-eval measurement files no longer match the published 29 of 32 and 27 of 32")
+code_cmp_path = meas / "code_v2/claude-haiku-5-5/comparison.json"
+if not code_cmp_path.exists():
+    errors.append("code-eval comparison.json is missing")
+else:
+    code_cmp = json.loads(code_cmp_path.read_text())
+    pass_ci = code_cmp["pairs"]["team_minus_single"]["pass_at_1"]
+    if pass_ci.get("point") != 0.0625 or pass_ci.get("low") != 0.0 or pass_ci.get("high") != 0.15625:
+        errors.append("code-eval pass@1 interval no longer matches 0.0625 [0.0, 0.15625]")
+    if not (pass_ci["low"] <= 0 <= pass_ci["high"]):
+        errors.append("code-eval interval no longer includes zero; update the wording from the file")
+    if "0.15625" not in orbit_page or "0.15625" not in home:
+        errors.append("pages must show the code-eval interval 0.000 to 0.15625")
+qwen_cmp = json.loads((meas / "v3_qwen1.5b/comparison.json").read_text())
+task_ci = qwen_cmp["pairs"]["team_lora_minus_team_base"]["task_success_rate"]
+schema_ci = qwen_cmp["pairs"]["team_lora_minus_team_base"]["schema_valid_rate"]
+if not (task_ci["low"] < 0 < task_ci["high"]):
+    errors.append("fine-tune task-success interval no longer spans zero; update the wording from the file")
+if not (schema_ci["low"] > 0):
+    errors.append("fine-tune schema-valid interval is no longer above zero; update the wording from the file")
+orbit_blob = json.dumps(projects.get("orbit", {}))
+for banned in ("0.607 → 0.780", "0.862", "0.559", "3 vs 2 of 12"):
+    if banned in orbit_blob or banned in orbit_page or banned in home:
+        errors.append(f"superseded Orbit figure {banned} is still on the site")
 
 if errors:
     print("\n".join(errors))

@@ -213,6 +213,7 @@
         <p class="label mission-num">${esc(presentNo(project.id))} / ${esc(project.kicker)}</p>
         <h2 id="${esc(project.id)}-title">${esc(project.title)}</h2>
         <p class="purpose">${esc(project.purpose)}</p>
+        ${project.proves ? `<p class="proves"><span class="label">What it proves</span>${esc(project.proves)}</p>` : ""}
       </header>
       <div class="mission-media">${mediaHtml(project)}</div>
       <div class="mission-body">
@@ -454,6 +455,45 @@
       else start();
     });
   };
+  /* Clips stay on a still frame until they are on screen, and they never autoplay when motion is reduced. */
+  document.querySelectorAll(".clip").forEach((clip) => {
+    const img = clip.querySelector("img[data-gif]");
+    const button = clip.querySelector("[data-clip-toggle]");
+    if (!img || !button) return;
+    const gif = img.dataset.gif;
+    const poster = img.dataset.poster;
+    const motion = window.matchMedia("(prefers-reduced-motion: no-preference)");
+    let userPaused = false;
+    let active = false;
+    const paint = (playing) => {
+      const next = playing ? gif : poster;
+      if (next && img.getAttribute("src") !== next) img.setAttribute("src", next);
+      active = playing;
+      button.textContent = playing ? "Pause clip" : "Play clip";
+      button.setAttribute("aria-pressed", playing ? "true" : "false");
+    };
+    button.addEventListener("click", () => {
+      if (active) { userPaused = true; paint(false); }
+      else { userPaused = false; paint(true); }
+    });
+    if ("IntersectionObserver" in window) {
+      let primed = false;
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const visible = entry.isIntersecting && entry.intersectionRatio >= 0.4;
+          /* A clip already on screen stays a still frame so the first paint is not a large GIF. */
+          if (!primed) { primed = true; if (visible) return; }
+          if (visible && motion.matches && !userPaused) paint(true);
+          else if (!entry.isIntersecting && active && !userPaused) paint(false);
+        });
+      }, { threshold: [0, 0.4] });
+      io.observe(clip);
+    }
+    motion.addEventListener?.("change", () => {
+      if (!motion.matches && active && !userPaused) paint(false);
+    });
+  });
+
   mountSchematic();
   reveal(document);
 })();
