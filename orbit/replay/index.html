@@ -2,13 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
-  <title>Orbit: Multi-Agent Mission Control</title>
+  <meta name="color-scheme" content="dark">
+  <title>Orbit replay · Sherif Morsi</title>
+  <meta name="description" content="Mission Control replays a saved Orbit engine trace. Scripted harness, not a live model and not a score.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://shmorsi.github.io/orbit/replay/">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Sherif Morsi">
+  <meta property="og:locale" content="en_CA">
+  <meta property="og:url" content="https://shmorsi.github.io/orbit/replay/">
+  <meta property="og:title" content="Orbit replay · Sherif Morsi">
+  <meta property="og:description" content="Mission Control replays a saved Orbit engine trace. Scripted harness, not a live model and not a score.">
+  <meta property="og:image" content="https://shmorsi.github.io/assets/img/orbit-mission.webp">
+  <meta property="og:image:alt" content="Mission Control replay of a saved engine trace, marked scripted harness.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Orbit replay · Sherif Morsi">
+  <meta name="twitter:description" content="Mission Control replays a saved Orbit engine trace. Scripted harness, not a live model and not a score.">
+  <meta name="twitter:image" content="https://shmorsi.github.io/assets/img/orbit-mission.webp">
+  <meta name="twitter:image:alt" content="Mission Control replay of a saved engine trace, marked scripted harness.">
   <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/inter-tight-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <a class="skip" href="#replay-main">Skip to content</a>
   <header class="bar">
     <div class="brand">Orbit <span>Multi-Agent Mission Control</span></div>
     <div class="meters">
@@ -19,7 +38,7 @@
     <div id="harness" class="harness-chip" hidden>Scripted harness</div>
     <div id="badge" class="badge inflight">In flight</div>
   </header>
-  <main class="layout">
+  <main class="layout" id="replay-main">
     <section class="stage-wrap">
       <p class="eyebrow">Task</p>
       <p id="question" class="question">Loading a saved engine trace.</p>
@@ -76,7 +95,7 @@
           </label>
         </div>
         <button type="submit">Run</button>
-        <p id="notice" class="notice" role="status"></p>
+        <p id="notice" class="notice" role="status">Saved traces play on this page. Run needs the local server from <code>make demo</code>.</p>
       </form>
     </section>
     <aside class="side">
