@@ -59,7 +59,10 @@
     <a class="wordmark" href="./">Sherif Morsi</a>
     <div class="header-tools">
       <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
-        <a href="#work" data-section="work">Work</a>
+        <a href="#orbit" data-section="orbit">Orbit</a>
+        <a href="#tsfm" data-section="tsfm">TSFM</a>
+        <a href="#world-shock-lab" data-section="world-shock-lab">Shock Lab</a>
+        <a href="#atlas" data-section="atlas">ATLAS</a>
         <a href="#about" data-section="about">About</a>
         <a href="#experience" data-section="experience">Experience</a>
         <a href="#contact" data-section="contact">Contact</a>
@@ -81,37 +84,195 @@
         <p class="hero-meta">Third-year student. Seeking AI/ML, quant and software internships from January 2027, for 4 to 16 months, anywhere in Canada.</p>
         <div class="actions">
           <a class="button button-solid" href="#work">Projects</a>
-          <a class="button" href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a class="button" href="resume/Sherif_Morsi_Resume.pdf" download>Resume</a>
-          <a class="button" href="#contact">Contact</a>
+          <a class="button" href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a class="button" href="https://www.linkedin.com/in/sherif-morsi-a17628295/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         </div>
       </div>
       <!-- Figures below mirror data/projects.json so they show without JavaScript. scripts/check_site.py fails if they drift. -->
-      <ol class="mission-index" aria-label="Four projects, one result each">
-        <li data-headline="tsfm"><a href="#tsfm"><span class="label mission-num">01</span><strong>Time-series foundation model</strong><span class="fig">0.605×</span><span class="fig-label">Zero-shot CRPS vs Seasonal Naive, validation</span></a></li>
-        <li data-headline="world-shock-lab"><a href="#world-shock-lab"><span class="label mission-num">02</span><strong>World Shock Lab</strong><span class="fig">−1.10%</span><span class="fig-label">TSX move on a 10 bp Fed surprise</span></a></li>
-        <li data-headline="orbit"><a href="#orbit"><span class="label mission-num">03</span><strong>Orbit</strong><span class="fig">0.61 → 0.78</span><span class="fig-label">Schema-valid tool calls</span></a></li>
+      <ol class="mission-index" aria-label="Projects">
+        <li data-headline="orbit"><a href="#orbit"><span class="label mission-num">01</span><strong>Orbit</strong><span class="fig">0.61 → 0.78</span><span class="fig-label">Schema-valid tool calls</span></a></li>
+        <li data-headline="tsfm"><a href="#tsfm"><span class="label mission-num">02</span><strong>Time-series foundation model</strong><span class="fig">0.605×</span><span class="fig-label">Zero-shot CRPS vs Seasonal Naive, validation</span></a></li>
+        <li data-headline="world-shock-lab"><a href="#world-shock-lab"><span class="label mission-num">03</span><strong>World Shock Lab</strong><span class="fig">−1.10%</span><span class="fig-label">TSX move on a 10 bp Fed surprise</span></a></li>
         <li data-headline="atlas"><a href="#atlas"><span class="label mission-num">04</span><strong>ATLAS</strong><span class="fig">405</span><span class="fig-label">Country-sector nodes in one scenario solve</span></a></li>
       </ol>
     </section>
 
-    <section class="section wrap" id="work" aria-labelledby="work-title">
+    <section class="section wrap" id="work" aria-label="Work">
       <span id="missions"></span>
-      <div class="section-head" data-reveal>
-        <p class="label">Work</p>
-        <h2 id="work-title">Four missions</h2>
-        <p>Language agents, LLM systems, and quantitative ML. Each one ships with its code, its tests, and the result as measured, including the parts that did not work.</p>
+      <article class="orbit-feature" id="orbit" aria-labelledby="orbit-title">
+        <div class="orbit-visual">
+          <p class="label">Architecture</p>
+          <div class="schematic" data-schematic>
+            <div class="schematic-stage">
+              <svg class="schematic-links" aria-hidden="true"></svg>
+              <span class="packet" data-packet aria-hidden="true"></span>
+              <ol class="schematic-nodes">
+                <li class="node" data-node="planner">
+                  <span class="label">Planner</span>
+                  <strong>Writes the steps</strong>
+                  <span class="node-sub">Or an empty plan when the notes cannot answer.</span>
+                </li>
+                <li class="node" data-node="worker">
+                  <span class="label">Worker</span>
+                  <strong>Calls a tool, or answers</strong>
+                  <span class="node-sub">One step at a time.</span>
+                </li>
+                <li class="node" data-node="critic">
+                  <span class="label">Critic</span>
+                  <strong>Accepts, or sends it back</strong>
+                  <span class="node-sub">Sends a weak claim back.</span>
+                </li>
+                <li class="node node-tools" data-node="tools">
+                  <span class="label">Tool calling</span>
+                  <strong><span data-bind="orbit.stats.toolCount.display">6</span> sandboxed tools</strong>
+                  <span class="node-sub">On this machine. Nothing in the tool path opens a socket.</span>
+                </li>
+                <li class="node node-gate" data-node="gate">
+                  <span class="label">Guardrail</span>
+                  <strong>Grounding gate</strong>
+                  <span class="node-sub">Refuses a claim the cited tool result does not contain.</span>
+                </li>
+              </ol>
+            </div>
+          </div>
+          <p class="schematic-note">Team v1, the scored team. Planner, worker, and critic, with tool calls and a grounding gate. The six-role team uses the same gate and is not yet scored. This diagram is drawn in the page, not a photograph.</p>
+        </div>
+        <div class="orbit-copy">
+          <p class="label">01 / AI agents</p>
+          <h2 id="orbit-title">Orbit</h2>
+          <p class="purpose">AI teams you can audit: agents that plan, act, and refuse to state anything they can't prove.</p>
+          <p class="orbit-arch">A planner writes the steps. A worker calls sandboxed tools. A critic accepts a grounded claim or sends it back. A gate keeps only what the cited tool result contains.</p>
+          <div class="orbit-metrics">
+            <div>
+              <p class="orbit-fig" data-bind="orbit.stats.schemaValid.display">0.61 → 0.78</p>
+              <p class="fig-label" data-bind="orbit.stats.schemaValid.label">Schema-valid tool calls</p>
+              <p class="qualifier" data-bind="orbit.headline.qualifier">Team, base model to QLoRA adapter. Frozen 12-task test, 95% interval above zero.</p>
+            </div>
+            <div>
+              <p class="orbit-fig" data-bind="orbit.stats.taskSuccess.display">3 vs 2 of 12</p>
+              <p class="fig-label" data-bind="orbit.stats.taskSuccess.label">Task success, adapter vs base team</p>
+              <p class="qualifier">Includes zero. Not significant.</p>
+            </div>
+          </div>
+          <dl class="spec">
+            <div><dt data-bind="orbit.stats.team.label">Agents in the scored team</dt><dd data-bind="orbit.stats.team.display">3</dd></div>
+            <div><dt data-bind="orbit.stats.toolCount.label">Sandboxed tools</dt><dd data-bind="orbit.stats.toolCount.display">6</dd></div>
+            <div><dt data-bind="orbit.stats.tests.label">pytest tests in CI</dt><dd data-bind="orbit.stats.tests.display">94</dd></div>
+          </dl>
+          <p class="caveat"><span class="label">Read this</span><span data-bind="orbit.caveat">Measured once on a frozen 12-task test (3 agents, harness v2). Task success went from 2 to 3 of 12, and that gain is not significant: the paired interval includes zero. The harness has since changed to v3, and the rescore under v3 is pending. The six-role v2 team has not been scored.</span></p>
+          <ul class="pending" aria-label="Results not yet scored">
+            <li><span class="label">Pending</span><span>Six-role team</span><b>Not yet scored</b></li>
+            <li><span class="label">Pending</span><span>Three-role API score</span><b>Not yet scored</b></li>
+            <li><span class="label">Pending</span><span>Distilled team</span><b>Not yet scored</b></li>
+            <li><span class="label">Pending</span><span>Harness v3 rescore</span><b>Not yet scored</b></li>
+          </ul>
+          <div class="actions">
+            <a class="button button-solid" href="orbit/">Mission page</a>
+            <a class="button" href="https://github.com/shmorsi/orbit-multi-agent" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </div>
+        </div>
+      </article>
+
+      <div data-mission-list="static" data-static="true">
+        <article class="mission" id="tsfm" aria-labelledby="tsfm-title" data-reveal>
+          <header class="mission-head">
+            <p class="label">02 / Deep learning</p>
+            <h2 id="tsfm-title">Time-series foundation model</h2>
+            <p class="purpose">A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.</p>
+          </header>
+          <div class="mission-media">
+            <a class="frame contain" href="projects/tsfm.html" tabindex="-1" aria-hidden="true">
+              <img src="assets/img/tsfm-results.svg" alt="" width="1600" height="1000" decoding="async" loading="lazy">
+            </a>
+          </div>
+          <div class="mission-body">
+            <div class="figure-block">
+              <p class="hero-fig" data-bind="tsfm.stats.crps.display">0.605×</p>
+              <p class="fig-label" data-bind="tsfm.stats.crps.label">Zero-shot CRPS vs Seasonal Naive, validation</p>
+              <p class="qualifier" data-bind="tsfm.headline.qualifier">Validation only. 16 held-out configurations, one seed, 10.1M parameters.</p>
+            </div>
+            <dl class="spec">
+              <div><dt data-bind="tsfm.stats.params.label">Parameters, validation headline model</dt><dd data-bind="tsfm.stats.params.display">10.1M</dd></div>
+              <div><dt data-bind="tsfm.stats.flagged.label">Benchmark-overlap series removed</dt><dd data-bind="tsfm.stats.flagged.display">801</dd></div>
+              <div><dt data-bind="tsfm.stats.tests.label">Automated tests in CI</dt><dd data-bind="tsfm.stats.tests.display">150</dd></div>
+            </dl>
+            <div class="actions">
+              <a class="button button-solid" href="projects/tsfm.html">Case study</a>
+              <a class="button" href="https://github.com/shmorsi/tsfm-from-scratch" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <a class="text-link" href="https://github.com/shmorsi/tsfm-from-scratch/blob/main/RESEARCH_NOTE.md" target="_blank" rel="noopener noreferrer">Research note</a>
+            </div>
+            <p class="caveat"><span class="label">Read this</span><span data-bind="tsfm.caveat">The 0.605× is a validation result, and the 10.1M-parameter patch_s2 checkpoint has no test score. A smaller CPU model (833,440 parameters, 3 seeds, 97 configurations) was scored once on the test split: CRPS 1.109× Seasonal Naive, no detectable difference, and 1.217× AutoARIMA, worse.</span></p>
+          </div>
+        </article>
+
+        <article class="mission" id="world-shock-lab" aria-labelledby="world-shock-lab-title" data-reveal>
+          <header class="mission-head">
+            <p class="label">03 / Macro shocks and machine learning</p>
+            <h2 id="world-shock-lab-title">World Shock Lab</h2>
+            <p class="purpose">How a central-bank surprise ripples through 53 markets, with forecasts published before each decision.</p>
+          </header>
+          <div class="mission-media">
+            <a class="frame" href="https://shmorsi.github.io/world-shock-lab/" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">
+              <img src="assets/img/world-shock-lab-scenario.webp" alt="" width="1600" height="1000" decoding="async" loading="lazy">
+            </a>
+          </div>
+          <div class="mission-body">
+            <div class="figure-block">
+              <p class="hero-fig" data-bind="world-shock-lab.stats.tsxFed.display">−1.10%</p>
+              <p class="fig-label" data-bind="world-shock-lab.stats.tsxFed.label">TSX move on a 10 bp Fed surprise</p>
+              <p class="qualifier" data-bind="world-shock-lab.headline.qualifier">Announcement day, 90% band −1.59 to −0.61. Identified causal.</p>
+            </div>
+            <dl class="spec">
+              <div><dt data-bind="world-shock-lab.stats.tsxBoc.label">Same-size Bank of Canada surprise</dt><dd data-bind="world-shock-lab.stats.tsxBoc.display">−0.19%</dd></div>
+              <div><dt data-bind="world-shock-lab.stats.replications.label">Published findings replicated</dt><dd data-bind="world-shock-lab.stats.replications.display">11 of 13</dd></div>
+              <div><dt data-bind="world-shock-lab.stats.assets.label">Global assets</dt><dd data-bind="world-shock-lab.stats.assets.display">53</dd></div>
+            </dl>
+            <div class="actions">
+              <a class="button button-solid" href="https://shmorsi.github.io/world-shock-lab/" target="_blank" rel="noopener noreferrer">Live site</a>
+              <a class="button" href="https://github.com/shmorsi/world-shock-lab" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <a class="text-link" href="projects/world-shock-lab.html">Case study</a>
+            </div>
+            <p class="caveat"><span class="label">Read this</span><span data-bind="world-shock-lab.caveat">Machine learning did not beat the linear model on the average move in either pre-registered study. Quantile boosting won only on 5% tail pinball loss. None of 80 regime tests survived false-discovery control.</span></p>
+            <div class="slot-empty" aria-label="Live forecast score">
+              <span class="label">Pending</span>
+              <strong>No decision has been scored</strong>
+              <p>There is no track record yet. The case study keeps this slot empty until the live score files exist.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="mission" id="atlas" aria-labelledby="atlas-title" data-reveal>
+          <header class="mission-head">
+            <p class="label">04 / Economic research terminal</p>
+            <h2 id="atlas-title">ATLAS</h2>
+            <p class="purpose">An economic research terminal that traces how a cost shock travels through the world's production networks.</p>
+          </header>
+          <div class="mission-media">
+            <a class="frame" href="projects/atlas.html" tabindex="-1" aria-hidden="true">
+              <img src="assets/img/atlas-overview.webp" alt="" width="1440" height="900" decoding="async" loading="lazy">
+            </a>
+          </div>
+          <div class="mission-body">
+            <div class="figure-block">
+              <p class="hero-fig" data-bind="atlas.stats.nodes.display">405</p>
+              <p class="fig-label" data-bind="atlas.stats.nodes.label">Country-sector nodes in one scenario solve</p>
+              <p class="qualifier" data-bind="atlas.headline.qualifier">Seven OECD tables, 2016–2022. Historical structure, hypothetical cost scenarios.</p>
+            </div>
+            <dl class="spec">
+              <div><dt data-bind="atlas.stats.checkpoints.label">Trained PyTorch checkpoints</dt><dd data-bind="atlas.stats.checkpoints.display">12</dd></div>
+              <div><dt data-bind="atlas.stats.bestGraph.label">Best model, graph experiment</dt><dd data-bind="atlas.stats.bestGraph.display">Ridge</dd></div>
+              <div><dt data-bind="atlas.stats.scenarioMs.label">405-node scenario, local median</dt><dd data-bind="atlas.stats.scenarioMs.display">11.0 ms</dd></div>
+            </dl>
+            <div class="actions">
+              <a class="button button-solid" href="projects/atlas.html">Case study</a>
+              <a class="button" href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <a class="text-link" href="https://github.com/shmorsi/atlas/releases/tag/v0.1.2" target="_blank" rel="noopener noreferrer">Release v0.1.2</a>
+            </div>
+            <p class="caveat"><span class="label">Read this</span><span data-bind="atlas.caveat">A local research terminal, not a hosted service. In the graph experiment, ridge regression beat every neural and graph model on the one held-out year. Latencies are warm requests on one machine.</span></p>
+          </div>
+        </article>
       </div>
-      <div data-mission-list="featured"><span id="tsfm"></span><span id="world-shock-lab"></span><span id="orbit"></span><span id="atlas"></span></div>
-      <noscript>
-        <p>The figures load from <code>data/projects.json</code>. The projects are linked here.</p>
-        <ul class="noscript-list">
-          <li><a href="projects/tsfm.html">Time-series foundation model</a>, <a href="https://github.com/shmorsi/tsfm-from-scratch">GitHub</a></li>
-          <li><a href="https://shmorsi.github.io/world-shock-lab/">World Shock Lab live site</a>, <a href="https://github.com/shmorsi/world-shock-lab">GitHub</a></li>
-          <li><a href="orbit/">Orbit mission page</a>, <a href="https://github.com/shmorsi/orbit-multi-agent">GitHub</a></li>
-          <li><a href="projects/atlas.html">ATLAS case study</a>, <a href="https://github.com/shmorsi/atlas">GitHub</a></li>
-        </ul>
-      </noscript>
       <p class="file-note">Every figure on this site is read from <a href="data/projects.json"><code>data/projects.json</code></a>, and each one names the result file it came from.</p>
     </section>
 
@@ -215,7 +376,13 @@
 
   <footer class="site-footer">
     <span>© 2026 Sherif Morsi, Montreal</span>
-    <a href="#main">Back to top</a>
+    <span>
+      <a href="mailto:shmorsi@outlook.com">Email</a>
+      <a href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.linkedin.com/in/sherif-morsi-a17628295/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a href="resume/Sherif_Morsi_Resume.pdf">Resume</a>
+      <a href="#main">Back to top</a>
+    </span>
   </footer>
   <div class="copy-status" role="status" aria-live="polite" data-copy-status></div>
 </body>
