@@ -352,8 +352,18 @@ code_team = json.loads((meas / "code_v2/claude-haiku-5-5/team.json").read_text()
 code_single = json.loads((meas / "code_v2/claude-haiku-5-5/single.json").read_text())
 if code_team.get("n_pass") != 29 or code_team.get("n_tasks") != 32 or code_single.get("n_pass") != 27:
     errors.append("code-eval measurement files no longer match the published 29 of 32 and 27 of 32")
-if (meas / "code_v2/claude-haiku-5-5/comparison.json").exists():
-    errors.append("a code-eval comparison file appeared; revisit the no-interval claim before calling a gap an improvement")
+code_cmp_path = meas / "code_v2/claude-haiku-5-5/comparison.json"
+if not code_cmp_path.exists():
+    errors.append("code-eval comparison.json is missing")
+else:
+    code_cmp = json.loads(code_cmp_path.read_text())
+    pass_ci = code_cmp["pairs"]["team_minus_single"]["pass_at_1"]
+    if pass_ci.get("point") != 0.0625 or pass_ci.get("low") != 0.0 or pass_ci.get("high") != 0.15625:
+        errors.append("code-eval pass@1 interval no longer matches 0.0625 [0.0, 0.15625]")
+    if not (pass_ci["low"] <= 0 <= pass_ci["high"]):
+        errors.append("code-eval interval no longer includes zero; update the wording from the file")
+    if "0.15625" not in orbit_page or "0.15625" not in home:
+        errors.append("pages must show the code-eval interval 0.000 to 0.15625")
 qwen_cmp = json.loads((meas / "v3_qwen1.5b/comparison.json").read_text())
 task_ci = qwen_cmp["pairs"]["team_lora_minus_team_base"]["task_success_rate"]
 schema_ci = qwen_cmp["pairs"]["team_lora_minus_team_base"]["schema_valid_rate"]

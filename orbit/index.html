@@ -15,18 +15,18 @@
   <meta property="og:site_name" content="Sherif Morsi">
   <meta property="og:url" content="https://shmorsi.github.io/orbit/">
   <meta property="og:title" content="Orbit Code · Sherif Morsi">
-  <meta property="og:description" content="Team with reviewer: 29 of 32 frozen tasks. Single agent: 27 of 32. No interval in the file.">
+  <meta property="og:description" content="Team with reviewer: 29 of 32 frozen tasks. Single agent: 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero.">
   <meta property="og:image" content="https://shmorsi.github.io/assets/og-orbit.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Orbit Code. Team with reviewer passed 29 of 32 frozen tasks. Single agent passed 27 of 32. No interval in the file.">
+  <meta property="og:image:alt" content="Orbit Code. Team with reviewer passed 29 of 32 frozen tasks. Single agent passed 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero.">
   <meta property="og:locale" content="en_CA">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Orbit Code · Sherif Morsi">
-  <meta name="twitter:description" content="Team with reviewer: 29 of 32 frozen tasks. Single agent: 27 of 32. No interval in the file.">
+  <meta name="twitter:description" content="Team with reviewer: 29 of 32 frozen tasks. Single agent: 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero.">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/og-orbit.png">
-  <meta name="twitter:image:alt" content="Orbit Code. Team with reviewer passed 29 of 32 frozen tasks. Single agent passed 27 of 32. No interval in the file.">
+  <meta name="twitter:image:alt" content="Orbit Code. Team with reviewer passed 29 of 32 frozen tasks. Single agent passed 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero.">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -62,7 +62,7 @@
       <p class="label">01 / Agent systems</p>
       <h1>Orbit</h1>
       <p class="cs-purpose" data-bind="orbit.purpose">Orbit Code: a planner, a coder, a test runner, and a reviewer. The reviewer can refuse a patch that fails the hidden tests or edits the tests.</p>
-      <p class="proves"><span class="label">What it proves</span><span data-bind="orbit.proves">A reviewer can refuse a patch. The team passed 29 of 32 frozen tasks and a single agent passed 27. No interval is in the file, so that gap is not an improvement.</span></p>
+      <p class="proves"><span class="label">What it proves</span><span data-bind="orbit.proves">A reviewer can refuse a patch. The team passed 29 of 32 frozen tasks and a single agent passed 27. The paired 95% interval, 0.000 to 0.15625, includes zero, so that gap is not an improvement.</span></p>
       <figure class="clip">
         <div class="clip-frame">
           <img src="media/orbit-code-poster.webp" data-gif="media/orbit-code.gif" data-poster="media/orbit-code-poster.webp" width="1080" height="675" alt="Orbit Code clip: a planner, a coder, a test runner, and a reviewer working a patch. The reviewer can reject it. Still frame until the clip plays. Not the score." decoding="async">
@@ -85,13 +85,13 @@
         <h2 id="s-code">Orbit Code</h2>
         <div class="prose">
           <p class="big">The team passed 29 of 32. The single agent passed 27 of 32. That gap is not an improvement.</p>
-          <p>code-eval-v2, model claude-haiku-5-5, 32 frozen tasks, scored once. The policy saw the issue and the source files, not the hidden tests. The measured files have no paired interval. pass_at_1 is <span data-bind="orbit.stats.codeTeamPassRate.display">0.90625</span> for the team and <span data-bind="orbit.stats.codeSinglePassRate.display">0.84375</span> for the single agent, which is 29/32 and 27/32.</p>
+          <p>code-eval-v2, model claude-haiku-5-5, 32 frozen tasks, scored once. The policy saw the issue and the source files, not the hidden tests. The paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero. pass_at_1 is <span data-bind="orbit.stats.codeTeamPassRate.display">0.90625</span> for the team and <span data-bind="orbit.stats.codeSinglePassRate.display">0.84375</span> for the single agent, which is 29/32 and 27/32.</p>
           <p>The reviewer refused <span data-bind="orbit.stats.codeTeamRefusals.display">1 of 32</span> team tasks and <span data-bind="orbit.stats.codeSingleRefusals.display">2 of 32</span> single-agent tasks. On the team run, mf-span and zip-safe failed the hidden test and were not refused. On the single-agent run, mf-span, mf-csv, and zip-safe failed and were not refused. The reviewer can reject a patch. On this run it did not reject every hidden-test failure.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="Orbit Code results" data-table="orbit.tables.code"></div>
           <div class="slot-empty" aria-label="Orbit Code score" data-slot="orbit-code" data-source="results/code_v2/claude-haiku-5-5/team.json">
             <span class="label">Team with reviewer</span>
             <strong>29 of 32</strong>
-            <p>Single agent 27 of 32. No paired interval in the measured files, so the gap is not an improvement. claude-haiku-5-5, code-eval-v2, scored once. File <code>results/code_v2/claude-haiku-5-5/team.json</code>.</p>
+            <p>Single agent 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero, so the gap is not an improvement. claude-haiku-5-5, code-eval-v2, scored once. Files <code>results/code_v2/claude-haiku-5-5/team.json</code> and <code>results/code_v2/claude-haiku-5-5/comparison.json</code>.</p>
           </div>
         </div>
       </section>

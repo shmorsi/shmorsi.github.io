@@ -11,9 +11,9 @@
       "kicker": "Agent systems",
       "title": "Orbit",
       "purpose": "Orbit Code: a planner, a coder, a test runner, and a reviewer. The reviewer can refuse a patch that fails the hidden tests or edits the tests.",
-      "proves": "A reviewer can refuse a patch. The team passed 29 of 32 frozen tasks and a single agent passed 27. No interval is in the file, so that gap is not an improvement.",
-      "summary": "Orbit Code, code-eval-v2, claude-haiku-5-5, scored once: team with reviewer 29 of 32, single agent 27 of 32. The archive has no paired interval. Qwen2.5-1.5B-Instruct, harness v3, scored once: fine-tuned schema-valid rate 0.333 to 0.764, 95% interval above zero; task success interval includes zero.",
-      "caveat": "code-eval-v2, claude-haiku-5-5, 32 frozen tasks, scored once: team with reviewer passed 29 of 32, single agent passed 27 of 32. The measured files have no paired interval, so that gap is not an improvement. Reviewer refusals were 1 of 32 on the team run and 2 of 32 on the single-agent run. On the team run, mf-span and zip-safe failed the hidden test and were not refused. On the single-agent run, mf-span, mf-csv, and zip-safe failed and were not refused. Qwen2.5-1.5B-Instruct, harness v3, frozen 12-task test, scored once: schema-valid rate 0.333 on the base team to 0.764 with the fine-tuned adapter (95% interval on the difference 0.264 to 0.607, above zero). Task success 2 of 12 to 4 of 12 (interval −0.167 to 0.500, includes zero), so task success is not an improvement. The fine-tuned team refused 1 of 2 traps. The distilled team passed 2 of 12, schema-valid 0.448; against the base team that schema-valid interval is −0.064 to 0.278 and includes zero. The result files name the model and the adapters. They do not name the GPU. Boardroom and the incident commander are scripted demos, not scores.",
+      "proves": "A reviewer can refuse a patch. The team passed 29 of 32 frozen tasks and a single agent passed 27. The paired 95% interval, 0.000 to 0.15625, includes zero, so that gap is not an improvement.",
+      "summary": "Orbit Code, code-eval-v2, claude-haiku-5-5, scored once: team with reviewer 29 of 32, single agent 27 of 32. Paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero. Qwen2.5-1.5B-Instruct, harness v3, scored once: fine-tuned schema-valid rate 0.333 to 0.764, 95% interval above zero; task success interval includes zero.",
+      "caveat": "code-eval-v2, claude-haiku-5-5, 32 frozen tasks, scored once: team with reviewer passed 29 of 32, single agent passed 27 of 32. The paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero, so that gap is not an improvement. Estimated cost is 0.0183623 USD for the team and 0.006672 USD for the single agent. Reviewer refusals were 1 of 32 on the team run and 2 of 32 on the single-agent run. On the team run, mf-span and zip-safe failed the hidden test and were not refused. On the single-agent run, mf-span, mf-csv, and zip-safe failed and were not refused. Qwen2.5-1.5B-Instruct, harness v3, frozen 12-task test, scored once: schema-valid rate 0.333 on the base team to 0.764 with the fine-tuned adapter (95% interval on the difference 0.264 to 0.607, above zero). Task success 2 of 12 to 4 of 12 (interval −0.167 to 0.500, includes zero), so task success is not an improvement. The fine-tuned team refused 1 of 2 traps. The distilled team passed 2 of 12, schema-valid 0.448; against the base team that schema-valid interval is −0.064 to 0.278 and includes zero. The result files name the model and the adapters. They do not name the GPU. Boardroom and the incident commander are scripted demos, not scores.",
       "image": {
         "src": "orbit/media/orbit-code-poster.webp",
         "alt": "Orbit Code still frame: planner, coder, test runner, and reviewer around a patch. The clip is a visual, not the score.",
@@ -52,13 +52,13 @@
       ],
       "headline": {
         "stat": "codeTeamPass",
-        "qualifier": "claude-haiku-5-5, code-eval-v2, 32 tasks, scored once. Single agent passed 27 of 32. No paired interval in the measured files."
+        "qualifier": "claude-haiku-5-5, code-eval-v2, 32 tasks, scored once. Single agent passed 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero."
       },
       "stats": {
         "codeTeamPass": {
           "label": "Tasks passed, team with reviewer",
           "display": "29 of 32",
-          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/team.json n_pass 29, n_tasks 32, pass_at_1 0.90625, tests_passed_rate 0.90625, config_label Team with reviewer, model claude-haiku-5-5, protocol code-eval-v2, status measured. Scored once."
+          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/team.json n_pass 29, n_tasks 32, pass_at_1 0.90625, tests_passed_rate 0.90625, config_label Team with reviewer, model claude-haiku-5-5, protocol code-eval-v2, status measured. Scored once. comparison.json pairs.team_minus_single.pass_at_1 point 0.0625, low 0.0, high 0.15625, n 32, n_resamples 10000, seed 0. The interval includes zero."
         },
         "codeSinglePass": {
           "label": "Tasks passed, single agent",
@@ -153,7 +153,7 @@
       },
       "tables": {
         "code": {
-          "caption": "code-eval-v2, claude-haiku-5-5, frozen test, 32 tasks, scored once. The policy saw the issue and the source files, not the hidden tests. pass_at_1 is the exact ratio. No paired interval was measured, so the gap is not an improvement.",
+          "caption": "code-eval-v2, claude-haiku-5-5, frozen test, 32 tasks, scored once. The policy saw the issue and the source files, not the hidden tests. pass_at_1 is the exact ratio. Paired 95% interval on pass@1, team minus single, is 0.000 to 0.15625 (point 0.0625) and includes zero, so the gap is not an improvement.",
           "headers": [
             "Run",
             "Tasks passed",

@@ -116,17 +116,17 @@
           <p class="label">01 / Agent systems</p>
           <h2 id="orbit-title">Orbit</h2>
           <p class="purpose" data-bind="orbit.purpose">Orbit Code: a planner, a coder, a test runner, and a reviewer. The reviewer can refuse a patch that fails the hidden tests or edits the tests.</p>
-          <p class="proves"><span class="label">What it proves</span><span data-bind="orbit.proves">A reviewer can refuse a patch. The team passed 29 of 32 frozen tasks and a single agent passed 27. No interval is in the file, so that gap is not an improvement.</span></p>
+          <p class="proves"><span class="label">What it proves</span><span data-bind="orbit.proves">A reviewer can refuse a patch. The team passed 29 of 32 frozen tasks and a single agent passed 27. The paired 95% interval, 0.000 to 0.15625, includes zero, so that gap is not an improvement.</span></p>
           <div class="orbit-metrics">
             <div>
               <p class="orbit-fig" data-bind="orbit.stats.codeTeamPass.display">29 of 32</p>
               <p class="fig-label" data-bind="orbit.stats.codeTeamPass.label">Tasks passed, team with reviewer</p>
-              <p class="qualifier" data-bind="orbit.headline.qualifier">claude-haiku-5-5, code-eval-v2, 32 tasks, scored once. Single agent passed 27 of 32. No paired interval in the measured files.</p>
+              <p class="qualifier" data-bind="orbit.headline.qualifier">claude-haiku-5-5, code-eval-v2, 32 tasks, scored once. Single agent passed 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero.</p>
             </div>
             <div>
               <p class="orbit-fig" data-bind="orbit.stats.codeSinglePass.display">27 of 32</p>
               <p class="fig-label" data-bind="orbit.stats.codeSinglePass.label">Tasks passed, single agent</p>
-              <p class="qualifier">Same frozen test, scored once. No paired interval, so the gap is not an improvement.</p>
+              <p class="qualifier">Same frozen test, scored once. Paired 95% interval 0.000 to 0.15625, includes zero, so the gap is not an improvement.</p>
             </div>
           </div>
           <dl class="spec">
@@ -134,7 +134,7 @@
             <div><dt data-bind="orbit.stats.codeSingleRefusals.label">Reviewer refusals, single agent</dt><dd data-bind="orbit.stats.codeSingleRefusals.display">2 of 32</dd></div>
             <div><dt data-bind="orbit.stats.loraSchema.label">Schema-valid rate, fine-tuned vs base team</dt><dd data-bind="orbit.stats.loraSchema.display">0.333 → 0.764</dd></div>
           </dl>
-          <p class="caveat"><span class="label">Read this</span><span data-bind="orbit.caveat">code-eval-v2, claude-haiku-5-5, 32 frozen tasks, scored once: team with reviewer passed 29 of 32, single agent passed 27 of 32. The measured files have no paired interval, so that gap is not an improvement. Reviewer refusals were 1 of 32 on the team run and 2 of 32 on the single-agent run. On the team run, mf-span and zip-safe failed the hidden test and were not refused. On the single-agent run, mf-span, mf-csv, and zip-safe failed and were not refused. Qwen2.5-1.5B-Instruct, harness v3, frozen 12-task test, scored once: schema-valid rate 0.333 on the base team to 0.764 with the fine-tuned adapter (95% interval on the difference 0.264 to 0.607, above zero). Task success 2 of 12 to 4 of 12 (interval −0.167 to 0.500, includes zero), so task success is not an improvement. The fine-tuned team refused 1 of 2 traps. The distilled team passed 2 of 12, schema-valid 0.448; against the base team that schema-valid interval is −0.064 to 0.278 and includes zero. The result files name the model and the adapters. They do not name the GPU. Boardroom and the incident commander are scripted demos, not scores.</span></p>
+          <p class="caveat"><span class="label">Read this</span><span data-bind="orbit.caveat">code-eval-v2, claude-haiku-5-5, 32 frozen tasks, scored once: team with reviewer passed 29 of 32, single agent passed 27 of 32. The paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero, so that gap is not an improvement. Estimated cost is 0.0183623 USD for the team and 0.006672 USD for the single agent. Reviewer refusals were 1 of 32 on the team run and 2 of 32 on the single-agent run. On the team run, mf-span and zip-safe failed the hidden test and were not refused. On the single-agent run, mf-span, mf-csv, and zip-safe failed and were not refused. Qwen2.5-1.5B-Instruct, harness v3, frozen 12-task test, scored once: schema-valid rate 0.333 on the base team to 0.764 with the fine-tuned adapter (95% interval on the difference 0.264 to 0.607, above zero). Task success 2 of 12 to 4 of 12 (interval −0.167 to 0.500, includes zero), so task success is not an improvement. The fine-tuned team refused 1 of 2 traps. The distilled team passed 2 of 12, schema-valid 0.448; against the base team that schema-valid interval is −0.064 to 0.278 and includes zero. The result files name the model and the adapters. They do not name the GPU. Boardroom and the incident commander are scripted demos, not scores.</span></p>
           <div class="actions">
             <a class="button button-solid" href="orbit/">Mission page</a>
             <a class="button" href="https://github.com/shmorsi/orbit-multi-agent" target="_blank" rel="noopener noreferrer">GitHub</a>
