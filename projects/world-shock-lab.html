@@ -17,10 +17,14 @@
   <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Sherif Morsi, Computer Science student at Concordia University.">
+  <meta property="og:site_name" content="Sherif Morsi">
+  <meta property="og:locale" content="en_CA">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="World Shock Lab · Sherif Morsi">
   <meta name="twitter:description" content="How a central-bank surprise ripples through 53 markets, with forecasts published before each decision.">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/og.png">
+  <meta name="twitter:image:alt" content="Sherif Morsi, Computer Science student at Concordia University.">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -74,7 +78,7 @@
         <h2 id="s-problem">Problem</h2>
         <div class="prose">
           <p class="big">Markets move for many reasons at once. The question is what a surprise itself causes.</p>
-          <p>Markets move for many reasons at once, so a correlation between a decision and a stock index says little about cause. The project measures the response of world and Canadian markets to Federal Reserve and Bank of Canada surprises and to OPEC oil-supply news. It also asks whether the same shock matters more in some regimes, and whether machine learning forecasts announcement-day moves better than a linear model.</p>
+          <p>A correlation between a decision and a stock index says little about cause. The project measures the response of world and Canadian markets to Federal Reserve and Bank of Canada surprises and to OPEC oil-supply news. It also asks whether the same shock matters more in some regimes, and whether machine learning forecasts announcement-day moves better than a linear model.</p>
           <p>Every output is labelled as one of four kinds of evidence: identified causal, reduced form, model forecast, or hypothetical scenario.</p>
         </div>
       </section>
@@ -115,7 +119,7 @@
           <p>Six models predict the 1-day and 5-day move of eight assets after each FOMC, Bank of Canada, and OPEC announcement, using only that announcement's surprise and the state of the economy before it. Validation years chose the linear projection and a neural network. The test set, <span data-bind="world-shock-lab.stats.announcements.display">168</span> announcements from 2019 to 2026, was scored once.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="Machine learning comparison" data-table="world-shock-lab.tables.ml"></div>
           <p>The neural network's error minus the linear model's is <span data-bind="world-shock-lab.stats.mlGap.display">−0.003</span>, with a 90% interval of <span data-bind="world-shock-lab.stats.mlGapCi.display">−0.019 to +0.014</span> that includes zero. By the rule fixed in advance, there is no evidence that machine learning adds value.</p>
-          <p>A second pre-registered study, ml-study-v1, scores the same <span data-bind="world-shock-lab.stats.announcements.display">168</span> held-out announcements. The numbers are in <code>results/mlstudy/final.json</code> on <code>main</code>, merged on 2026-10-20 as commit <a href="https://github.com/shmorsi/world-shock-lab/commit/c955cc1527f915c9227f65e1ccbca058ce32d9a6">c955cc1</a>. <a href="https://github.com/shmorsi/world-shock-lab/pull/1">Pull request 1</a> is merged. The table above is the earlier benchmark and is unchanged.</p>
+          <p>A second pre-registered study, ml-study-v1, scores the same <span data-bind="world-shock-lab.stats.announcements.display">168</span> held-out announcements. The numbers are in <code>results/mlstudy/final.json</code> on <code>main</code>, merged on 2026-10-20 as commit <a href="https://github.com/shmorsi/world-shock-lab/commit/c955cc1527f915c9227f65e1ccbca058ce32d9a6" target="_blank" rel="noopener noreferrer">c955cc1</a>. <a href="https://github.com/shmorsi/world-shock-lab/pull/1" target="_blank" rel="noopener noreferrer">Pull request 1</a> is merged. The table above is the earlier benchmark and is unchanged.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="ml-study-v1 comparison" data-table="world-shock-lab.tables.mlStudy"></div>
           <p>Quantile gradient boosting cut 5% pinball loss to <span data-bind="world-shock-lab.stats.pinballQgbm.display">1.446</span>, versus <span data-bind="world-shock-lab.stats.pinballGauss.display">1.558</span> for the Gaussian linear baseline. The difference is <span data-bind="world-shock-lab.stats.pinballGap.display">−0.112</span>, with a 90% interval of <span data-bind="world-shock-lab.stats.pinballCi.display">−0.228 to −0.010</span>. The file's verdict is that this model adds value on the 5% tail. That is the pre-registered pinball loss, not a calibration claim.</p>
           <p>The temporal CNN's scaled mean error is <span data-bind="world-shock-lab.stats.tcnMae.display">1.157</span>, against <span data-bind="world-shock-lab.stats.lpMae.display">1.142</span> for the linear projection. The difference is <span data-bind="world-shock-lab.stats.tcnGap.display">+0.015</span>, with a 90% interval of <span data-bind="world-shock-lab.stats.tcnCi.display">−0.006 to +0.037</span>. That interval includes zero, so the temporal CNN did not beat the linear model on the mean.</p>
@@ -138,8 +142,13 @@
         <h2 id="s-live">Live forecasts</h2>
         <div class="prose">
           <p>Before each Fed and Bank of Canada decision, a conditional forecast is committed to the public repository: if the announcement moves the bank's own 2-year yield by −10, 0, or +10 basis points, here is the expected move in the Canadian 2-year, the Canadian dollar, and Canadian banks. Forecasts are not edited after publication. The first forecasts, for the decisions of <span data-bind="world-shock-lab.stats.forecastDecision.display">2026-10-28</span>, were published on <span data-bind="world-shock-lab.stats.forecastPublished.display">2026-10-13</span>.</p>
+          <div class="slot-empty" aria-label="Live forecast score" data-slot="wsl-live-score" data-source="">
+            <span class="label">Live score</span>
+            <strong>Pending</strong>
+            <p>No decision has been scored, so there is no track record. This slot stays empty until <code>live/scores/</code> in the World Shock Lab repository contains the score files for the decisions of <span data-bind="world-shock-lab.stats.forecastDecision.display">2026-10-28</span>. The scheduled live run writes those files after the outcomes are published. They are not filled in by hand.</p>
+          </div>
           <p>The scenario tool loads in <span data-bind="world-shock-lab.stats.phoneSeconds.display">under 3 s</span> on a throttled phone profile. <span data-bind="world-shock-lab.stats.tests.display">157</span> automated Python tests run in CI, and a full rerun took <span data-bind="world-shock-lab.stats.rerunMinutes.display">11 min</span> and reproduced the results. Tests fail if the site shows a number that is not in the result files.</p>
-          <p class="file-note">The live site stays at <a href="https://shmorsi.github.io/world-shock-lab/">shmorsi.github.io/world-shock-lab</a>, served from the World Shock Lab repository. Figures on this page are read from <a href="../data/projects.json"><code>data/projects.json</code></a>.</p>
+          <p class="file-note">The live site stays at <a href="https://shmorsi.github.io/world-shock-lab/" target="_blank" rel="noopener noreferrer">shmorsi.github.io/world-shock-lab</a>, served from the World Shock Lab repository. Figures on this page are read from <a href="../data/projects.json"><code>data/projects.json</code></a>.</p>
         </div>
       </section>
       <figure class="figure wide">

@@ -15,7 +15,21 @@ The site is the hub. Each project keeps its own repository; this site links to i
 
 ## Update a measured number
 
-Edit **[data/projects.json](data/projects.json)** only. Every page reads its figures from that file, and each figure names the result file it came from. Do not add a number unless it is in the resume or in a committed result file in the project's repository.
+Do not type a new figure into a page. Every displayed figure is read from **[data/projects.json](data/projects.json)**, and each one names the committed result it came from. `scripts/check_site.py` fails if the visible fallback text drifts from that file.
+
+The project repositories generate their own documents from those result files. Run the generator in the project repository after the result is committed. Copy a figure into `data/projects.json` only when that command printed it from a committed file, and keep the source path on the stat. Do not round it again here.
+
+| Pending result | Committed file, when it exists | Regenerate |
+|---|---|---|
+| Orbit three-role API score | `orbit-multi-agent` `results/v3_api/<model>/team_v1.json` (`make score-v1`) | `python -m orbit_agents.eval.readme` |
+| Orbit six-role API score | `results/v3_api/<model>/team_v2.json` (`make score-v2`) | same command; `make score-v2` runs it after the score |
+| Orbit distilled team | `results/v3_qwen1.5b/team_distill.json` | same command, once that file is a measured model eval |
+| World Shock Lab decision scores | `world-shock-lab` `live/scores/` for the published forecasts | `uv run wsl report docs` |
+| TSFM documents | `tsfm-from-scratch` `results/` | `uv run tsfm docs build` |
+
+`tsfm-from-scratch` has no distillation result and no distillation template on `main`. Its `scripts/make_portfolio_page.py` writes an older page layout. Do not point that script at this site.
+
+Until those files exist, the site leaves the matching slot empty: Orbit says "Not yet scored", the headline TSFM test says "Not scored", and the World Shock Lab live score says "Pending" with no track record. A missing file stays missing. The generators do not invent one.
 
 Each project has one headline figure (`headline.stat` plus its honest `headline.qualifier`), three short facts (`factIds`), a quiet `caveat`, and two prominent links: `kind: "site"` and `kind: "repo"`.
 
@@ -33,7 +47,7 @@ Case-study figures marked `data-video-src=""` are slots for walkthrough videos. 
 
 ```sh
 python3 -m http.server 4173      # preview at http://localhost:4173
-python3 scripts/check_site.py    # copy rules, figure binds, and required facts
+python3 scripts/check_site.py    # copy rules, figure binds, pending slots, and internal links
 ```
 
 The resume link points at `resume/Sherif_Morsi_Resume.pdf`. World Shock Lab's live site is served from the `world-shock-lab` repository at `https://shmorsi.github.io/world-shock-lab/`; do not add a `world-shock-lab/` directory here.
