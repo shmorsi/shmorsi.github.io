@@ -37,7 +37,7 @@ The home page's mission index and each `data-bind` span also carry the figure as
 
 ## Design
 
-Static HTML, one stylesheet (`assets/site.css`), one script (`assets/site.js`), and a self-hosted Inter Tight under the SIL Open Font License. Dark by default; light follows the OS, and the header toggle overrides it. Motion is a single fade on scroll, off under `prefers-reduced-motion`.
+Static HTML, one stylesheet (`assets/site.css`), one script (`assets/site.js`), and a self-hosted Inter Tight under the SIL Open Font License. No third-party font request. Dark by default, with a hairline grid, thin rules, and one ice-blue accent. Light follows the OS, and the header toggle overrides it. Motion is a single fade on scroll, off under `prefers-reduced-motion`. The same tokens cover the home page, the case studies, the Orbit mission page, and the replay console.
 
 The Orbit page has a mission-control scene (`orbit/scene.js`) that replays a saved engine trace from `orbit/replay/traces/`. It opens on a six-role v2 trace from `orbit/replay/traces/v2/` (copied from `mission/traces/v2/` in the Orbit repository) and keeps the three-role v1 traces in the same selector. Stations come from the roles in the trace; v2 adds states for assign, draft, revise, audit (one tick or cross per claim and number) and final. The full console in `orbit/replay/` plays both. A recorded clip of the v2 revise trace is in `orbit/media/orbit-mission-control.{webm,mp4,gif}` with a poster PNG. Every trace there comes from the scripted harness: a replay, not a model score.
 

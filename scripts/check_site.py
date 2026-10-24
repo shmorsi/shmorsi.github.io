@@ -235,6 +235,14 @@ tsfm_page = (ROOT / "projects" / "tsfm.html").read_text(encoding="utf-8")
 tsfm_slot = re.search(r'data-slot="tsfm-patch-test"[^>]*>(.*?)</div>', tsfm_page, re.S)
 if not tsfm_slot or "Not scored" not in tsfm_slot.group(1) or re.search(r"\d", re.sub(r"<[^>]+>", " ", tsfm_slot.group(1))):
     errors.append("tsfm headline test slot must say 'Not scored' and must not show a number")
+tsfm_distill = re.search(r'data-slot="tsfm-distill"[^>]*>(.*?)</div>', tsfm_page, re.S)
+if not tsfm_distill or "Not scored" not in tsfm_distill.group(1) or re.search(r"\d", re.sub(r"<[^>]+>", " ", tsfm_distill.group(1))):
+    errors.append("tsfm distillation slot must say 'Not scored' and must not show a number")
+v3_slot = re.search(r'data-slot="orbit-harness-v3"[^>]*>(.*?)</div>', orbit_page, re.S)
+if not v3_slot or "Not yet scored" not in v3_slot.group(1):
+    errors.append("orbit harness v3 slot must say 'Not yet scored'")
+elif "%" in re.sub(r"<[^>]+>", " ", v3_slot.group(1)):
+    errors.append("orbit harness v3 slot must not show a percentage")
 if 'data-slot="orbit-score-v1"' not in orbit_page or 'data-slot="orbit-distill"' not in orbit_page:
     errors.append("orbit page needs pending slots for the three-role API score and the distilled team")
 for needle in ("team_v1.json", "team_distill.json", "make score-v2", "python -m orbit_agents.eval.readme"):
