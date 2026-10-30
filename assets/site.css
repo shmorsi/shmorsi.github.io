@@ -768,6 +768,68 @@ tr.is-best th, tr.is-best td { color: var(--ink); font-weight: 600; }
   .certs { grid-template-columns: 1fr; }
 }
 
+/* Hero sky: a planet limb and four orbits drawn by site.js behind the name. */
+.hero { position: relative; isolation: isolate; }
+.hero-sky {
+  position: absolute; top: 0; left: 50%; width: 100vw; height: 100%;
+  transform: translateX(-50%); z-index: -1; pointer-events: none;
+}
+.mission-index {
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+.mission-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* Mission status: green when scored, amber and pulsing while live. */
+.status {
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+}
+.status::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; flex: none;
+  background: var(--r-scout);
+}
+.status.is-live::before { background: var(--r-worker); }
+@media (prefers-reduced-motion: no-preference) {
+  .status.is-live::before { animation: live-pulse 2.4s ease-in-out infinite; }
+  @keyframes live-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--r-worker) 60%, transparent); }
+    50% { box-shadow: 0 0 0 5px transparent; }
+  }
+}
+
+/* Method notes stay on the page, one click away. */
+details.caveat { border-top: 1px solid var(--line); }
+details.caveat > summary.label {
+  display: flex; align-items: center; gap: 12px; min-height: 48px;
+  cursor: pointer; list-style: none; color: var(--muted); margin: 0;
+}
+details.caveat > summary::-webkit-details-marker { display: none; }
+details.caveat > summary::after { content: "+"; font-size: 18px; font-weight: 400; letter-spacing: 0; line-height: 1; }
+details.caveat[open] > summary::after { content: "\2212"; }
+details.caveat > summary:hover { color: var(--ink); }
+details.caveat > p { padding-bottom: 12px; }
+
+/* Live forecast panel and countdown. */
+.t-minus { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; margin-top: 4px; }
+.t-minus-clock {
+  font-size: clamp(22px, 2.3vw, 34px); font-weight: 500; letter-spacing: 0.06em; line-height: 1;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.t-minus-clock:empty { display: none; }
+
+.beats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.orbit-metrics { grid-template-columns: 1fr; }
+.orbit-metrics > div + div { border-top: 1px solid var(--line); padding-top: 18px; }
+.orbit-metrics .orbit-fig { white-space: nowrap; }
+@media (max-width: 1180px) { .beats { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+  .hero .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hero .actions .button { width: 100%; padding: 0 12px; }
+  .mission-index .fig { font-size: clamp(20px, 6vw, 28px); }
+  .mission-top { flex-wrap: wrap; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
