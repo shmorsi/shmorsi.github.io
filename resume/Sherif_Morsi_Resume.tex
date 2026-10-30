@@ -123,7 +123,7 @@
 % EDIT: summary text only (keep it to 2 lines, max 3-4 bold terms)
 \section{Summary}
 \small{
-Concordia Computer Science student seeking AI/ML, software, and quant internships. Trained \textbf{PyTorch} models on 5G telemetry at Nokia; builds tool-calling \textbf{AI agents}, QLoRA fine-tunes, and leakage-safe forecasting models in tested \textbf{Python}.
+Computer Science student building \textbf{LLM agent systems}: multi-agent teams that talk in schema-checked JSON, signed mandates that bound what agents may do, \textbf{QLoRA} fine-tunes, and a \textbf{transformer} trained from scratch, each scored on a frozen eval.
 }
 
 %-----------EDUCATION-----------
@@ -136,7 +136,7 @@ Concordia Computer Science student seeking AI/ML, software, and quant internship
     {Concordia University}{Montreal, QC, Canada}
     {Bachelor of Computer Science}{Expected May 2028}
     \resumeItemListStart
-      \resumeItem{\textbf{Availability:} Winter 2027 (Jan to Apr 2027) for 4, 8, 12, or 16 months}
+      \resumeItem{\textbf{Availability:} Winter 2027 (Jan to Apr 2027) for 4, 8, 12, or 16 months, anywhere in Canada}
       \resumeItem{\textbf{Coursework:} Data Structures and Algorithms, Object-Oriented Programming, Artificial Intelligence, Machine Learning, Linear Algebra, Multivariable Calculus}
     \resumeItemListEnd
 \resumeSubHeadingListEnd
@@ -146,7 +146,7 @@ Concordia Computer Science student seeking AI/ML, software, and quant internship
 \section{Experience}
 \resumeSubHeadingListStart
 
-% EDIT: {Job title}{Dates}{Company}{Location}
+% EDIT: {Title}{Dates}{Company}{Location}
 \resumeSubheading
 {AI \& Machine Learning Intern}{Aug 2026 - Sep 2026}
 {Nokia}{Cairo, Egypt}
@@ -154,8 +154,9 @@ Concordia Computer Science student seeking AI/ML, software, and quant internship
 \resumeItemListStart
 \resumeItem{Trained and evaluated Python and \textbf{PyTorch} models on wireless network telemetry to forecast 5G \textbf{energy demand}}\vspace{-1pt}
 \resumeItem{Developed \textbf{data and ML pipelines} for 5G energy telemetry, to support automated network management and optimization}\vspace{-1pt}
-\resumeItem{Presented findings on wireless networking and 5G-related energy challenges to cross-functional teams of data scientists and engineers; led the project proposal and requirements review}\vspace{-2pt}
+\resumeItem{Trained in \textbf{agentic AI} for intent-based 5G network slicing (Amazon Bedrock); presented findings to cross-functional data science and engineering teams and led the project proposal and requirements review}
 \resumeItemListEnd
+\vspace{2pt}
 
 % EDIT: {Title}{Dates}{Company}{Location}  (a job shadow, never "Intern" or "Engineer")
 \resumeSubheading
@@ -163,89 +164,87 @@ Concordia Computer Science student seeking AI/ML, software, and quant internship
 {Qatar National Bank (QNB)}{Cairo, Egypt}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Shadowed credit analysts reviewing SME financial records as part of the bank's credit-review process}\vspace{-1pt}
-\resumeItem{Built \textbf{Python} utilities and \textbf{SQL} queries to preprocess and validate SME financial records, improving the data quality and reliability of credit-review data}\vspace{-1pt}
-\resumeItem{Tested and documented these scripts and fixes with the team so they stayed maintainable and easy to debug}
+\resumeItem{Built and documented \textbf{Python} utilities and \textbf{SQL} queries that preprocess and validate SME financial records for the bank's credit-review process, improving data quality and reliability}
 \resumeItemListEnd
+\vspace{2pt}
 
 \resumeSubHeadingListEnd
 
 %-----------PROJECTS-----------
-\vspace{-8pt}
+\vspace{-5pt}
 \section{Projects}
 \resumeSubHeadingListStart
 \vspace{-5pt}
 
 % EDIT: {\textbf{Name} $|$ \emph{Tools} $|$ \githubLink{repo url}}{Year}
 \resumeProjectHeading
-{\textbf{Orbit (Agentic AI, Multi-Agent Tool Calling)} $|$ \emph{Python, PyTorch, QLoRA, Claude API} $|$ \githubLink{https://github.com/shmorsi/orbit-multi-agent}}{2026}
+{\textbf{Aurvane (Agent Security, Delegation)} $|$ \emph{Python, Ed25519, MCP, JavaScript} $|$ \githubLink{https://github.com/shmorsi/aurvane} $|$ \href{https://shmorsi.github.io/aurvane/}{\textbf{\underline{Live Demo}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Built a planner, coder, test runner, and reviewer; the reviewer rejects a patch that fails the hidden tests or edits the tests}\vspace{-1pt}
-\resumeItem{QLoRA-tuned \textbf{Qwen2.5-1.5B} on harness v3: schema-valid rate \textbf{0.333 to 0.764} (95\% CI 0.264 to 0.607, above zero). Task success was \textbf{4/12 vs 2/12} (95\% CI $-$0.167 to 0.500, includes zero)}\vspace{-1pt}
-\resumeItem{On code-eval-v2 (32 frozen bug-fix tasks, claude-haiku-5-5, scored once), the team passed \textbf{29/32} and a single agent \textbf{27/32}; the team run cost \textbf{\$0.018}. The paired 95\% interval on pass@1 is \textbf{0.000 to 0.15625} and includes zero, so the team is not significantly better}
+\resumeItem{Built a trust layer between LLM agents and their tools: \textbf{Ed25519-signed mandates}, four checks on every action (identity, scope, bounds, provenance), a human Allow/Deny step when untrusted text picks a destination, and a hash-chained audit log}\vspace{-1pt}
+\resumeItem{\textbf{Agent-to-agent delegation:} sub-agents only receive strictly narrower mandates that verify back to the human's key. Ships as a Python SDK decorator and an \textbf{MCP server} for Claude Code or any MCP client; 46 tests in CI}\vspace{-1pt}
+\resumeItem{Against a simulated agent that obeys every \textbf{prompt injection} (60 paired tasks), attacks that landed fell from \textbf{30/30 to 7/30} and money lost from 12,135 to \textbf{135 CAD}, with 0 false alarms; a 12-attack red team: 8 contained, 2 capped, 2 through}
 \resumeItemListEnd
-\vspace{-5pt}
+\vspace{1pt}
 
 \resumeProjectHeading
-{\textbf{Time-Series Foundation Model (Transformers, Forecasting)} $|$ \emph{Python, PyTorch, pytest, GitHub Actions} $|$ \githubLink{https://github.com/shmorsi/tsfm-from-scratch}}{2026}
+{\textbf{Orbit (Multi-Agent Systems, Fine-Tuning)} $|$ \emph{Python, PyTorch, QLoRA, Claude API} $|$ \githubLink{https://github.com/shmorsi/orbit-multi-agent} $|$ \href{https://shmorsi.github.io/orbit/}{\textbf{\underline{Live Replay}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Pretrained a \textbf{10.1M-parameter} decoder-only transformer from scratch. On the frozen test (patch\_s2, one seed, 97 \mbox{configurations}), CRPS was \textbf{0.688$\times$} upstream AutoARIMA, 95\% CI \textbf{[0.624, 0.757]}, better}\vspace{-1pt}
-\resumeItem{Validation CRPS was \textbf{0.605$\times$ Seasonal Naive} (16 configurations, one seed). A content audit excluded \textbf{801 of 447,229} series; \textbf{443,258} pretraining series across \textbf{77} datasets were kept, plus 3,170 for validation}
+\resumeItem{Built a planner, coder, test runner, critic, and reviewer that talk in \textbf{schema-validated JSON} with per-role tool permissions; a code-level reviewer rejects patches that fail hidden tests or edit them, and every turn is a replayable JSONL trace}\vspace{-1pt}
+\resumeItem{\textbf{QLoRA}-tuned \textbf{Qwen2.5-1.5B} on agent dialogues: schema-valid tool-call rate \textbf{0.333 to 0.764} (95\% CI 0.264 to 0.607). Task success 4/12 vs 2/12 (CI includes zero)}\vspace{-1pt}
+\resumeItem{On 32 frozen bug-fix tasks with Claude Haiku, the team passed \textbf{29/32} and a single agent 27/32, for \textbf{\$0.018}; the paired 95\% CI (0.000 to 0.156) includes zero. One model interface over five backends}
 \resumeItemListEnd
-\vspace{-5pt}
+\vspace{-1pt}
 
 \resumeProjectHeading
-{\textbf{World Shock Lab (Econometrics, Macro Shocks)} $|$ \emph{Python, PyTorch, DuckDB, TypeScript} $|$ \githubLink{https://github.com/shmorsi/world-shock-lab} $|$ \href{https://shmorsi.github.io/world-shock-lab/}{\textbf{\underline{Live Site}}}}{2026}
+{\textbf{Time-Series Foundation Model (Transformers)} $|$ \emph{Python, PyTorch, pytest, GitHub Actions} $|$ \githubLink{https://github.com/shmorsi/tsfm-from-scratch}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Estimated Fed, Bank of Canada, and OPEC surprise effects on \textbf{53} assets: a 10 bp Fed surprise moves the TSX \textbf{$-$1.10\%} (90\% band $-$1.59 to $-$0.61); the same-size BoC surprise moves it \textbf{$-$0.19\%}}\vspace{-1pt}
-\resumeItem{Replicated \textbf{11 of 13} published findings on sign and 90\% band. Quantile gradient boosting cut 5\% pinball loss by \textbf{0.112} versus a Gaussian projection (90\% CI $-$0.228 to $-$0.010). Slowest throttled phone view: \textbf{2.703 s}}
+\resumeItem{Pretrained a \textbf{10.1M-parameter} decoder-only transformer from scratch on \textbf{443,258} series across 77 datasets. On the frozen test (97 configurations), CRPS was \textbf{0.688$\times$} AutoARIMA, 95\% CI [0.624, 0.757]}\vspace{-1pt}
+\resumeItem{A leakage audit caught a public benchmark corpus containing its own test data and removed \textbf{801 of 447,229} series before training; 170 automated tests in CI}
 \resumeItemListEnd
-\vspace{-5pt}
+\vspace{-1pt}
+
+\resumeProjectHeading
+{\textbf{World Shock Lab (Econometrics, ML)} $|$ \emph{Python, PyTorch, DuckDB, TypeScript} $|$ \githubLink{https://github.com/shmorsi/world-shock-lab} $|$ \href{https://shmorsi.github.io/world-shock-lab/}{\textbf{\underline{Live Site}}}}{2026}
+\vspace{-2pt}
+\resumeItemListStart
+\resumeItem{Estimated how Fed, Bank of Canada, and OPEC surprises move \textbf{53} assets (a 10 bp Fed surprise moves the TSX \textbf{$-$1.10\%}, 90\% band $-$1.59 to $-$0.61), replicated \textbf{11 of 13} published findings, and publishes forecasts before each decision}
+\resumeItemListEnd
+\vspace{-1pt}
 
 \resumeProjectHeading
 {\textbf{ATLAS (Production Networks)} $|$ \emph{Python, PyTorch, FastAPI} $|$ \githubLink{https://github.com/shmorsi/atlas}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Traced a hypothetical cost shock through \textbf{405} country-sector nodes (local median \textbf{11.0 ms}). On the one held-out year, ridge test RMSE \textbf{14.00} was below every saved graph and no-graph checkpoint}
+\resumeItem{Traced cost shocks through \textbf{405} country-sector nodes in \textbf{11.0 ms}; trained 12 PyTorch graph and no-graph checkpoints, and ridge still won on the held-out year (test RMSE 14.00)}
 \resumeItemListEnd
-
-\resumeSubHeadingListEnd
-
-%-----------CERTIFICATIONS & AFFILIATIONS-----------
-\vspace{-6pt}
-\section{Certifications \& Affiliations} \vspace{-2pt}
-\resumeSubHeadingListStart
-
-% EDIT: certificates (keep "\quad \hspace{-0.17in}" between them, "\hfill" after the last)
-\resumeSimpleProjectHeading{
-\textbf{Anthropic:} Building with the Claude API, Claude Code 101, Claude 101 \textbar{} \textbf{IBM:} Machine Learning with Python \hfill
-}
-\vspace{-3pt}
-
-% EDIT: club line
-\resumeSimpleProjectHeading{\textbf{Quantitative Research and Competitions Club (QUARCC)} $|$ \emph{Member, Concordia University}: Exploring machine learning concepts, statistical modeling, and quantitative research through data-driven problem-solving}
-\vspace{-0.5pt}
+\vspace{2pt}
 
 \resumeSubHeadingListEnd
 
 %-----------TECHNICAL SKILLS-----------
 % EDIT: \skillLine{Label}{comma-separated items}
+\vspace{-6pt}
 \section{Technical Skills}
 \vspace{-4pt}
 \begin{itemize}[leftmargin=0.15in, label={}]
 \small{\item{
-\skillLine{Languages}{\textbf{Python}, \textbf{SQL}, C++, \textbf{Java}, C, R, JavaScript, TypeScript, Bash, MATLAB}
-\skillLine{Machine Learning}{\textbf{PyTorch}, TensorFlow, \textbf{scikit-learn}, Deep Learning, Supervised/Unsupervised Learning, Regression, \textbf{Transformers}, \textbf{Time-Series Forecasting}}
-\skillLine{ML Methods}{\textbf{Feature Engineering}, \textbf{Cross-Validation}, Transfer Learning, Computer Vision, NLP, \textbf{Model Evaluation}, Mixed Precision}
-\skillLine{AI / LLMs}{\textbf{LLMs}, \textbf{AI Agents}, \textbf{Tool Calling}, \textbf{Prompt Engineering}, QLoRA, Distillation, Claude API, Hugging Face}
-\skillLine{Quant / Risk}{\textbf{Econometrics}, Event Studies, Monte Carlo, Probabilistic Forecasting, \textbf{CVaR}, \textbf{Portfolio Optimization}, Walk-Forward Validation}
-\skillLine{Data / Libraries}{\textbf{Pandas}, \textbf{NumPy}, SciPy, Matplotlib, OpenCV, \textbf{FastAPI}, \textbf{DuckDB}, \textbf{SQLite}, Parquet, cvxpy, statsmodels}
-\skillLine{Developer Tools}{\textbf{Git}, \textbf{GitHub Actions (CI/CD)}, \textbf{pytest}, Playwright, Jupyter, Colab, Claude Code, Cursor, Codex, VS Code}
-\skillLine{Office / BI}{Excel (Advanced), Power BI, PowerPoint, Microsoft 365}
+\skillLine{AI Agents / LLMs}{\textbf{LLM Agents}, \textbf{Multi-Agent Systems}, \textbf{Tool Calling}, Structured Outputs, \textbf{MCP}, Prompt Engineering, Prompt-Injection Defense, \textbf{QLoRA}, Distillation, LLM Evaluation, Claude API, Hugging Face}
+\skillLine{Machine Learning}{\textbf{PyTorch}, TensorFlow, \textbf{scikit-learn}, \textbf{Transformers}, Time-Series Forecasting, Feature Engineering, Cross-Validation, Bootstrap CIs, Mixed Precision}
+\skillLine{Languages}{\textbf{Python}, \textbf{SQL}, TypeScript, JavaScript, C++, Java, C, R, Bash}
+\skillLine{Data / Backend}{\textbf{Pandas}, \textbf{NumPy}, SciPy, \textbf{FastAPI}, DuckDB, SQLite, Parquet, statsmodels, Econometrics}
+\skillLine{Developer Tools}{\textbf{Git}, \textbf{GitHub Actions (CI/CD)}, \textbf{pytest}, Playwright, Docker, Jupyter, Colab, Claude Code, Cursor}
 }}
 \end{itemize}
+
+%-----------CERTIFICATIONS & AFFILIATIONS-----------
+\vspace{-12pt}
+\section{Certifications \& Affiliations} \vspace{-2pt}
+\resumeSubHeadingListStart
+% EDIT: one line each
+\resumeSimpleProjectHeading{\textbf{Anthropic:} Building with the Claude API, Claude Code 101, Claude 101 \textbar{} \textbf{IBM:} Machine Learning with Python \textbar{} \textbf{QUARCC} (Quantitative Research and Competitions Club), Member}
+\resumeSubHeadingListEnd
 
 \end{document}
