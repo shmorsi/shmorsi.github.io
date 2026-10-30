@@ -225,7 +225,7 @@ main, .site-footer { position: relative; z-index: 1; }
 .mission-index {
   list-style: none; margin: 0; padding: 0;
   width: 100vw; margin-left: calc(50% - 50vw);
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
   border-top: 1px solid var(--line);
   background: var(--bg);
 }
@@ -728,8 +728,10 @@ tr.is-best th, tr.is-best td { color: var(--ink); font-weight: 600; }
   .role, .split, .cs-section, .cs-figure { grid-template-columns: minmax(0, 1fr); }
   .certs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mission-index { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .mission-index li:nth-child(2) a { border-right: 0; }
-  .mission-index li:nth-child(odd) a { border-right: 1px solid var(--line); }
+  /* Five entries in two columns: the first spans the row so none sits alone. */
+  .mission-index li:first-child { grid-column: 1 / -1; }
+  .mission-index li:first-child a, .mission-index li:nth-child(odd) a { border-right: 0; }
+  .mission-index li:nth-child(even) a { border-right: 1px solid var(--line); }
   .mission-index a { border-bottom: 1px solid var(--line); }
   .orbit-feature { grid-template-columns: 1fr; }
   .beats { grid-template-columns: 1fr; }
@@ -742,7 +744,8 @@ tr.is-best th, tr.is-best td { color: var(--ink); font-weight: 600; }
   .wordmark { letter-spacing: 0.16em; font-size: 12px; }
   .mission-index { grid-template-columns: 1fr 1fr; }
   .mission-index a { padding: 14px 14px 12px; }
-  .mission-index li:nth-child(2n) a { border-right: 0; }
+  .mission-index li:nth-child(odd) a { border-right: 0; }
+  .mission-index li:nth-child(even) a { border-right: 1px solid var(--line); }
   .mission-index .fig { font-size: 28px; }
   .gallery { grid-template-columns: 1fr; }
   .skill-list div, .facts div { grid-template-columns: 1fr; gap: 4px; }
