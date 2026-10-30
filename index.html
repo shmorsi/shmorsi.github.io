@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Sherif Morsi · AI engineer</title>
-  <meta name="description" content="Sherif Morsi, an AI engineer building agent systems and models from scratch. Measured work: Orbit, a time-series foundation model, World Shock Lab, and ATLAS.">
+  <meta name="description" content="Sherif Morsi, an AI engineer building agent systems and models from scratch. Measured work: Glass, Orbit, a time-series foundation model, World Shock Lab, and ATLAS.">
   <meta name="author" content="Sherif Morsi">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
@@ -16,7 +16,7 @@
   <meta property="og:locale" content="en_CA">
   <meta property="og:url" content="https://shmorsi.github.io/">
   <meta property="og:title" content="Sherif Morsi · AI engineer">
-  <meta property="og:description" content="Agent systems and models, built from scratch. Orbit, a time-series foundation model, World Shock Lab, and ATLAS.">
+  <meta property="og:description" content="Agent systems and models, built from scratch. Glass, Orbit, a time-series foundation model, World Shock Lab, and ATLAS.">
   <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
   <meta property="og:image:alt" content="Sherif Morsi, AI engineer. Agent systems and models, built from scratch.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Sherif Morsi · AI engineer">
-  <meta name="twitter:description" content="Agent systems and models, built from scratch. Orbit, a time-series foundation model, World Shock Lab, and ATLAS.">
+  <meta name="twitter:description" content="Agent systems and models, built from scratch. Glass, Orbit, a time-series foundation model, World Shock Lab, and ATLAS.">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/og.png">
   <meta name="twitter:image:alt" content="Sherif Morsi, AI engineer. Agent systems and models, built from scratch.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -60,6 +60,7 @@
     <a class="wordmark" href="./">Sherif Morsi</a>
     <div class="header-tools">
       <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="#glass" data-section="glass">Glass</a>
         <a href="#orbit" data-section="orbit">Orbit</a>
         <a href="#tsfm" data-section="tsfm">TSFM</a>
         <a href="#world-shock-lab" data-section="world-shock-lab">Shock Lab</a>
@@ -94,15 +95,60 @@
       </div>
       <!-- Figures below mirror data/projects.json so they show without JavaScript. scripts/check_site.py fails if they drift. -->
       <ol class="mission-index" aria-label="Projects">
-        <li data-headline="orbit"><a href="#orbit"><span class="mission-top"><span class="label mission-num">01</span><span class="status">Scored once</span></span><strong>Orbit</strong><span class="fig">0.333 → 0.764</span><span class="fig-label">Schema-valid rate, fine-tuned vs base team</span></a></li>
-        <li data-headline="tsfm"><a href="#tsfm"><span class="mission-top"><span class="label mission-num">02</span><span class="status">Test scored</span></span><strong>Time-series foundation model</strong><span class="fig">0.688×</span><span class="fig-label">Test CRPS vs upstream AutoARIMA</span></a></li>
-        <li data-headline="world-shock-lab"><a href="#world-shock-lab"><span class="mission-top"><span class="label mission-num">03</span><span class="status is-live">Live</span></span><strong>World Shock Lab</strong><span class="fig">−1.10%</span><span class="fig-label">TSX move on a 10 bp Fed surprise</span></a></li>
-        <li data-headline="atlas"><a href="#atlas"><span class="mission-top"><span class="label mission-num">04</span><span class="status">Release v0.1.2</span></span><strong>ATLAS</strong><span class="fig">405</span><span class="fig-label">Country-sector nodes in one scenario solve</span></a></li>
+        <li data-headline="glass"><a href="#glass"><span class="mission-top"><span class="label mission-num">01</span><span class="status">Simulated</span></span><strong>Glass</strong><span class="fig">7 of 30</span><span class="fig-label">Attacks that landed, with Glass</span></a></li>
+        <li data-headline="orbit"><a href="#orbit"><span class="mission-top"><span class="label mission-num">02</span><span class="status">Scored once</span></span><strong>Orbit</strong><span class="fig">0.333 → 0.764</span><span class="fig-label">Schema-valid rate, fine-tuned vs base team</span></a></li>
+        <li data-headline="tsfm"><a href="#tsfm"><span class="mission-top"><span class="label mission-num">03</span><span class="status">Test scored</span></span><strong>Time-series foundation model</strong><span class="fig">0.688×</span><span class="fig-label">Test CRPS vs upstream AutoARIMA</span></a></li>
+        <li data-headline="world-shock-lab"><a href="#world-shock-lab"><span class="mission-top"><span class="label mission-num">04</span><span class="status is-live">Live</span></span><strong>World Shock Lab</strong><span class="fig">−1.10%</span><span class="fig-label">TSX move on a 10 bp Fed surprise</span></a></li>
+        <li data-headline="atlas"><a href="#atlas"><span class="mission-top"><span class="label mission-num">05</span><span class="status">Release v0.1.2</span></span><strong>ATLAS</strong><span class="fig">405</span><span class="fig-label">Country-sector nodes in one scenario solve</span></a></li>
       </ol>
     </section>
 
     <section class="section wrap" id="work" aria-label="Work">
       <span id="missions"></span>
+      <article class="orbit-feature glass-feature" id="glass" aria-labelledby="glass-title">
+        <div class="orbit-visual">
+          <p class="label">Glass · live replay</p>
+          <figure class="clip">
+            <div class="clip-frame">
+              <video data-film muted loop playsinline preload="metadata" poster="glass/media/glass-demo-poster.jpg" width="1920" height="1080" aria-label="Glass film: an agent inside its mandate shell. Hidden instructions try to email a stranger and charge a fake fee. With Glass they bounce off the shell; without Glass they land. No sound.">
+                <source src="glass/media/glass-demo.mp4" type="video/mp4">
+              </video>
+              <button class="clip-toggle" type="button" data-clip-toggle aria-pressed="false">Play film</button>
+            </div>
+            <figcaption>The same attacks with and without Glass. The film is a replay of recorded runs. The score is the number beside it.</figcaption>
+          </figure>
+        </div>
+        <div class="orbit-copy">
+          <p class="label">01 / Agent trust</p>
+          <h2 id="glass-title">Glass</h2>
+          <p class="purpose" data-bind="glass.purpose">Glass: every agent action, signed, bounded, visible. An agent may read anything, but untrusted text can never choose where money or data goes.</p>
+          <p class="proves"><span class="label">What it proves</span><span data-bind="glass.proves">Untrusted text cannot steer an agent's money or data. Against a simulated agent that obeys every injection, attacks that landed fell from 30 of 30 to 7 of 30, and money lost from 12,135 CAD to 135 CAD.</span></p>
+          <div class="orbit-metrics">
+            <div>
+              <p class="orbit-fig" data-bind="glass.stats.attacksWith.display">7 of 30</p>
+              <p class="fig-label" data-bind="glass.stats.attacksWith.label">Attacks that landed, with Glass</p>
+              <p class="qualifier" data-bind="glass.headline.qualifier">Simulated worst-case agent, 60 paired tasks, deterministic, run once. Without Glass, 30 of 30 landed.</p>
+            </div>
+            <div>
+              <p class="orbit-fig" data-bind="glass.stats.attacksWithout.display">30 of 30</p>
+              <p class="fig-label" data-bind="glass.stats.attacksWithout.label">Attacks that landed, without Glass</p>
+              <p class="qualifier">Same 30 poisoned tasks, same agent, no guard.</p>
+            </div>
+          </div>
+          <dl class="spec">
+            <div><dt data-bind="glass.stats.lossWith.label">Money lost with Glass, from 12,135 CAD</dt><dd data-bind="glass.stats.lossWith.display">135 CAD</dd></div>
+            <div><dt data-bind="glass.stats.cleanDone.label">Clean tasks completed, with Glass</dt><dd data-bind="glass.stats.cleanDone.display">30 of 30</dd></div>
+            <div><dt data-bind="glass.stats.falseAlarms.label">False alarms on clean tasks</dt><dd data-bind="glass.stats.falseAlarms.display">0</dd></div>
+          </dl>
+          <p class="caveat"><span class="label">Read this</span><span data-bind="glass.caveat">Simulated worst-case agent that obeys every injected instruction, 60 paired tasks (30 clean, 30 poisoned), deterministic, run once. The numbers measure the guard, not a model. The 7 attacks that still land are by design: 4 rewrite a cover letter (Glass guards actions, not prose) and 3 add a 45 CAD charge at a store the human already trusts, capped by the signed budget. Real-model runs (Claude, Grok, Qwen) use the same harness and have not been run yet.</span></p>
+          <div class="actions">
+            <a class="button button-solid" href="glass/">Live demo</a>
+            <a class="button" href="https://github.com/shmorsi/glass" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a class="text-link" href="https://github.com/shmorsi/glass/blob/main/LEARN.md" target="_blank" rel="noopener noreferrer">How it works</a>
+          </div>
+        </div>
+      </article>
+
       <article class="orbit-feature" id="orbit" aria-labelledby="orbit-title">
         <div class="orbit-visual">
           <p class="label">01 · Orbit Code</p>
@@ -115,7 +161,7 @@
           </figure>
         </div>
         <div class="orbit-copy">
-          <p class="label">01 / Agent systems</p>
+          <p class="label">02 / Agent systems</p>
           <h2 id="orbit-title">Orbit</h2>
           <p class="purpose" data-bind="orbit.purpose">Orbit Code: a planner, a coder, a test runner, and a reviewer. The reviewer can refuse a patch that fails the hidden tests or edits the tests.</p>
           <p class="proves"><span class="label">What it proves</span><span data-bind="orbit.proves">Fine-tuning a 1.5B model raised its schema-valid tool-call rate from 0.333 to 0.764, with a 95% interval above zero. In code repair, a reviewer can refuse a patch that fails the hidden tests.</span></p>
@@ -177,7 +223,7 @@
       <div data-mission-list="static" data-static="true">
         <article class="mission" id="tsfm" aria-labelledby="tsfm-title" data-reveal>
           <header class="mission-head">
-            <p class="label">02 / Deep learning</p>
+            <p class="label">03 / Deep learning</p>
             <h2 id="tsfm-title">Time-series foundation model</h2>
             <p class="purpose">A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.</p>
             <p class="proves"><span class="label">What it proves</span><span data-bind="tsfm.proves">A transformer trained from scratch is better than upstream AutoARIMA on the frozen test: CRPS 0.688×, 95% CI [0.624, 0.757].</span></p>
@@ -209,7 +255,7 @@
 
         <article class="mission" id="world-shock-lab" aria-labelledby="world-shock-lab-title" data-reveal>
           <header class="mission-head">
-            <p class="label">03 / Macro shocks and machine learning</p>
+            <p class="label">04 / Macro shocks and machine learning</p>
             <h2 id="world-shock-lab-title">World Shock Lab</h2>
             <p class="purpose">How a central-bank surprise ripples through 53 markets, with forecasts published before each decision.</p>
             <p class="proves"><span class="label">What it proves</span><span data-bind="world-shock-lab.proves">A 10 bp Fed surprise moves the TSX −1.10% on announcement day. The 90% band, −1.59 to −0.61, excludes zero.</span></p>
@@ -250,7 +296,7 @@
 
         <article class="mission" id="atlas" aria-labelledby="atlas-title" data-reveal>
           <header class="mission-head">
-            <p class="label">04 / Economic research terminal</p>
+            <p class="label">05 / Economic research terminal</p>
             <h2 id="atlas-title">ATLAS</h2>
             <p class="purpose">An economic research terminal that traces how a cost shock travels through the world's production networks.</p>
             <p class="proves"><span class="label">What it proves</span><span data-bind="atlas.proves">One local solve traces a cost shock through 405 country-sector nodes. On the one held-out year, ridge beat every neural and graph model.</span></p>

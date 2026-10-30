@@ -376,6 +376,32 @@ for banned in ("0.607 → 0.780", "0.862", "0.559", "3 vs 2 of 12"):
     if banned in orbit_blob or banned in orbit_page or banned in home:
         errors.append(f"superseded Orbit figure {banned} is still on the site")
 
+# Glass: displayed figures match the copied summary, and the page says they are simulated.
+glass = projects.get("glass")
+gsum_path = ROOT / "data" / "measurements" / "glass" / "worst-case_summary.json"
+if glass is None or glass.get("role") != "featured":
+    errors.append("Glass must be a featured project")
+elif not gsum_path.exists():
+    errors.append("data/measurements/glass/worst-case_summary.json is missing")
+else:
+    gsum = json.loads(gsum_path.read_text())
+    on, off = gsum["with_glass"], gsum["without_glass"]
+    want = {
+        "attacksWith": f"{on['attacks_landed']} of {on['poisoned_tasks']}",
+        "attacksWithout": f"{off['attacks_landed']} of {off['poisoned_tasks']}",
+        "cleanDone": f"{on['clean_completed']} of {on['clean_tasks']}",
+        "falseAlarms": str(on["clean_friction_events"]),
+    }
+    for key, display in want.items():
+        if glass["stats"][key]["display"] != display:
+            errors.append(f"glass.stats.{key} shows {glass['stats'][key]['display']!r} but the summary says {display!r}")
+    caveat = glass.get("caveat", "").lower()
+    for needle in ("simulated", "worst-case", "have not been run"):
+        if needle not in caveat:
+            errors.append(f"glass caveat must state {needle!r}")
+    if not (ROOT / "glass" / "index.html").is_file() or not (ROOT / "glass" / "media" / "glass-demo.mp4").is_file():
+        errors.append("glass/ needs index.html and media/glass-demo.mp4")
+
 if errors:
     print("\n".join(errors))
     sys.exit(1)

@@ -8,10 +8,11 @@ The site is the hub. Each project keeps its own repository; this site links to i
 
 | Order | One line | Live page | Code |
 |---|---|---|---|
-| 01 Orbit | Orbit Code: a planner, coder, test runner, and reviewer. On code-eval-v2 the team passed 29 of 32 and a single agent passed 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero, so that gap is not an improvement. | [Mission page](https://shmorsi.github.io/orbit/) | [orbit-multi-agent](https://github.com/shmorsi/orbit-multi-agent) |
-| 02 TSFM | patch_s2 on the test split: CRPS 0.688× upstream AutoARIMA, 95% CI [0.624, 0.757], better. Validation CRPS was 0.605× Seasonal Naive. | [Case study](https://shmorsi.github.io/projects/tsfm.html) | [tsfm-from-scratch](https://github.com/shmorsi/tsfm-from-scratch) |
-| 03 World Shock Lab | How a central-bank surprise ripples through 53 markets, with forecasts published before each decision. | [Live site](https://shmorsi.github.io/world-shock-lab/), [case study](https://shmorsi.github.io/projects/world-shock-lab.html) | [world-shock-lab](https://github.com/shmorsi/world-shock-lab) |
-| 04 ATLAS | An economic research terminal that traces how a cost shock travels through the world's production networks. | [Case study](https://shmorsi.github.io/projects/atlas.html) | [atlas](https://github.com/shmorsi/atlas) |
+| 01 Glass | A trust layer for AI agents: signed mandates, four rules on every action, a hash-chained log. Against a simulated agent that obeys every injected instruction, attacks that landed fell from 30 of 30 to 7 of 30; the 7 are by design (prose rewrites and in-budget charges capped by the mandate). | [Live demo](https://shmorsi.github.io/glass/) | [glass](https://github.com/shmorsi/glass) |
+| 02 Orbit | Orbit Code: a planner, coder, test runner, and reviewer. On code-eval-v2 the team passed 29 of 32 and a single agent passed 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero, so that gap is not an improvement. | [Mission page](https://shmorsi.github.io/orbit/) | [orbit-multi-agent](https://github.com/shmorsi/orbit-multi-agent) |
+| 03 TSFM | patch_s2 on the test split: CRPS 0.688× upstream AutoARIMA, 95% CI [0.624, 0.757], better. Validation CRPS was 0.605× Seasonal Naive. | [Case study](https://shmorsi.github.io/projects/tsfm.html) | [tsfm-from-scratch](https://github.com/shmorsi/tsfm-from-scratch) |
+| 04 World Shock Lab | How a central-bank surprise ripples through 53 markets, with forecasts published before each decision. | [Live site](https://shmorsi.github.io/world-shock-lab/), [case study](https://shmorsi.github.io/projects/world-shock-lab.html) | [world-shock-lab](https://github.com/shmorsi/world-shock-lab) |
+| 05 ATLAS | An economic research terminal that traces how a cost shock travels through the world's production networks. | [Case study](https://shmorsi.github.io/projects/atlas.html) | [atlas](https://github.com/shmorsi/atlas) |
 
 ## Update a measured number
 
@@ -21,6 +22,7 @@ The project repositories generate their own documents from those result files. R
 
 | Result | Where the site reads it | Note |
 |---|---|---|
+| Glass, worst-case benchmark | `data/measurements/glass/worst-case_summary.json` | Copied from the `glass` repo `bench/results/`. Simulated worst-case agent, 60 paired tasks, deterministic. Not a real-model score. |
 | Orbit Code, code-eval-v2 | `data/measurements/orbit/code_v2/claude-haiku-5-5/{single,team}.json` | 32 tasks. `comparison.json`: pass@1 interval 0.000 to 0.15625, includes zero, so 29 of 32 versus 27 of 32 is not an improvement. |
 | Orbit fine-tune, harness v3 | `data/measurements/orbit/v3_qwen1.5b/` including `comparison.json` | Schema-valid interval for the fine-tuned team minus the base team is above zero. Task success includes zero. |
 | Orbit Boardroom | none | Scripted demo. The page says it is not a measured score. |

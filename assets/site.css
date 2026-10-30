@@ -346,6 +346,7 @@ a.frame:hover img { transform: scale(1.015); }
   position: relative; background: #000; border: 1px solid var(--line); overflow: hidden;
 }
 .clip-frame img { width: 100%; height: auto; }
+.clip-frame video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #090c11; }
 .clip-toggle {
   position: absolute; left: 12px; bottom: 12px; z-index: 1;
   min-height: 48px; min-width: 48px; padding: 0 16px;

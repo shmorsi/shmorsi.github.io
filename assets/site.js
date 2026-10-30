@@ -337,7 +337,7 @@
   };
 
   /* Display order is a presentation choice. projects.json mission codes stay as stored. */
-  const PRESENT = ["orbit", "tsfm", "world-shock-lab", "atlas"];
+  const PRESENT = ["glass", "orbit", "tsfm", "world-shock-lab", "atlas"];
   const presentOrder = (id) => {
     const index = PRESENT.indexOf(id);
     return index === -1 ? PRESENT.length : index;
@@ -628,6 +628,36 @@
     motion.addEventListener?.("change", () => {
       if (!motion.matches && active && !userPaused) paint(false);
     });
+  });
+
+  /* The Glass film plays muted while it is on screen, and stays on its poster when motion is reduced. */
+  document.querySelectorAll(".clip").forEach((clip) => {
+    const video = clip.querySelector("video[data-film]");
+    const button = clip.querySelector("[data-clip-toggle]");
+    if (!video || !button) return;
+    const motion = window.matchMedia("(prefers-reduced-motion: no-preference)");
+    let userPaused = false;
+    const paint = () => {
+      const playing = !video.paused;
+      button.textContent = playing ? "Pause film" : "Play film";
+      button.setAttribute("aria-pressed", playing ? "true" : "false");
+    };
+    video.addEventListener("play", paint);
+    video.addEventListener("pause", paint);
+    button.addEventListener("click", () => {
+      if (video.paused) { userPaused = false; video.play().catch(() => {}); }
+      else { userPaused = true; video.pause(); }
+    });
+    if ("IntersectionObserver" in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.4 && motion.matches && !userPaused) video.play().catch(() => {});
+          else if (!entry.isIntersecting && !video.paused) video.pause();
+        });
+      }, { threshold: [0, 0.4] });
+      io.observe(clip);
+    }
+    motion.addEventListener?.("change", () => { if (!motion.matches) video.pause(); });
   });
 
   mountSchematic();
