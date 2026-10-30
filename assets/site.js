@@ -337,7 +337,7 @@
   };
 
   /* Display order is a presentation choice. projects.json mission codes stay as stored. */
-  const PRESENT = ["glass", "orbit", "tsfm", "world-shock-lab", "atlas"];
+  const PRESENT = ["aurvane", "orbit", "tsfm", "world-shock-lab", "atlas"];
   const presentOrder = (id) => {
     const index = PRESENT.indexOf(id);
     return index === -1 ? PRESENT.length : index;
@@ -630,7 +630,7 @@
     });
   });
 
-  /* The Glass film plays muted while it is on screen, and stays on its poster when motion is reduced. */
+  /* The Aurvane film plays muted while it is on screen, and stays on its poster when motion is reduced. */
   document.querySelectorAll(".clip").forEach((clip) => {
     const video = clip.querySelector("video[data-film]");
     const button = clip.querySelector("[data-clip-toggle]");

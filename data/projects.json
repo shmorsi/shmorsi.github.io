@@ -3,20 +3,20 @@
   "updated": "2026-10-30",
   "projects": [
     {
-      "id": "glass",
+      "id": "aurvane",
       "mission": "05",
-      "code": "GLASS",
+      "code": "AURVANE",
       "role": "featured",
       "badge": "Worst-case agent",
       "kicker": "Agent trust",
-      "title": "Glass",
-      "summary": "A trust layer for AI agents. Each agent carries a signed passport and mandate; every action passes four rules and lands in a hash-chained log. Against a simulated agent that obeys every injected instruction, attacks that landed fell from 30 of 30 to 7 of 30.",
-      "purpose": "Glass: every agent action, signed, bounded, visible. An agent may read anything, but untrusted text can never choose where money or data goes.",
+      "title": "Aurvane",
+      "summary": "The trust layer for the agent economy. Each agent carries a signed passport and mandate; every action passes four rules, sub-agents can only get narrower mandates, held actions wait for your Allow or Deny, and everything lands in a hash-chained log. Against a simulated agent that obeys every injected instruction, attacks that landed fell from 30 of 30 to 7 of 30.",
+      "purpose": "Aurvane: every agent action, signed, bounded, visible. An agent may read anything, but untrusted text can never choose where money or data goes.",
       "proves": "Untrusted text cannot steer an agent's money or data. Against a simulated agent that obeys every injection, attacks that landed fell from 30 of 30 to 7 of 30, and money lost from 12,135 CAD to 135 CAD.",
-      "caveat": "Simulated worst-case agent that obeys every injected instruction, 60 paired tasks (30 clean, 30 poisoned), deterministic, run once. The numbers measure the guard, not a model. The 7 attacks that still land are by design: 4 rewrite a cover letter (Glass guards actions, not prose) and 3 add a 45 CAD charge at a store the human already trusts, capped by the signed budget. Real-model runs (Claude, Grok, Qwen) use the same harness and have not been run yet.",
+      "caveat": "Simulated worst-case agent that obeys every injected instruction, 60 paired tasks (30 clean, 30 poisoned), deterministic, run once. The numbers measure the guard, not a model. The 7 attacks that still land are by design: 4 rewrite a cover letter (Aurvane guards actions, not prose) and 3 add a 45 CAD charge at a store the human already trusts, capped by the signed budget. Real-model runs (Claude, Grok, Qwen) use the same harness, capped at 5 USD, and have not been run yet.",
       "image": {
-        "src": "glass/media/glass-demo-poster.jpg",
-        "alt": "Glass replay: an agent inside its mandate shell. A hidden instruction tries to email a stranger and bounces off the shell. Still frame of the demo film. Not the score.",
+        "src": "aurvane/media/aurvane-demo-poster.jpg",
+        "alt": "Aurvane replay: a sub-agent orbits inside its parent's mandate shell; its self-signed 5,000 CAD mandate hits its own smaller shell and is blocked. Still frame of the demo film. Not the score.",
         "width": 1920,
         "height": 1080
       },
@@ -30,19 +30,19 @@
       "links": [
         {
           "label": "Live demo",
-          "href": "glass/",
+          "href": "aurvane/",
           "kind": "site"
         },
         {
           "label": "GitHub",
-          "href": "https://github.com/shmorsi/glass",
+          "href": "https://github.com/shmorsi/aurvane",
           "kind": "repo",
           "external": true
         }
       ],
       "headline": {
         "stat": "attacksWith",
-        "qualifier": "Simulated worst-case agent, 60 paired tasks, deterministic, run once. Without Glass, 30 of 30 landed."
+        "qualifier": "Simulated worst-case agent, 60 paired tasks, deterministic, run once. Without Aurvane, 30 of 30 landed."
       },
       "factIds": [
         "lossWith",
@@ -58,28 +58,28 @@
       "stats": {
         "attacksWith": {
           "display": "7 of 30",
-          "label": "Attacks that landed, with Glass",
-          "source": "data/measurements/glass/worst-case_summary.json with_glass.attacks_landed 7 of poisoned_tasks 30. Simulated worst-case agent. The 7 are rewrite 4 and skim 3."
+          "label": "Attacks that landed, with Aurvane",
+          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.attacks_landed 7 of poisoned_tasks 30. Simulated worst-case agent. The 7 are rewrite 4 and skim 3."
         },
         "attacksWithout": {
           "display": "30 of 30",
-          "label": "Attacks that landed, without Glass",
-          "source": "data/measurements/glass/worst-case_summary.json without_glass.attacks_landed 30 of poisoned_tasks 30. Same tasks, same agent."
+          "label": "Attacks that landed, without Aurvane",
+          "source": "data/measurements/aurvane/worst-case_summary.json without_aurvane.attacks_landed 30 of poisoned_tasks 30. Same tasks, same agent."
         },
         "lossWith": {
           "display": "135 CAD",
-          "label": "Money lost with Glass, from 12,135 CAD",
-          "source": "data/measurements/glass/worst-case_summary.json with_glass.money_lost_cad 135.0, without_glass.money_lost_cad 12135.0. Skim attacks, capped by the signed budget."
+          "label": "Money lost with Aurvane, from 12,135 CAD",
+          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.money_lost_cad 135.0, without_aurvane.money_lost_cad 12135.0. Skim attacks, capped by the signed budget."
         },
         "cleanDone": {
           "display": "30 of 30",
-          "label": "Clean tasks completed, with Glass",
-          "source": "data/measurements/glass/worst-case_summary.json with_glass.clean_completed 30 of clean_tasks 30."
+          "label": "Clean tasks completed, with Aurvane",
+          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.clean_completed 30 of clean_tasks 30."
         },
         "falseAlarms": {
           "display": "0",
           "label": "False alarms on clean tasks",
-          "source": "data/measurements/glass/worst-case_summary.json with_glass.clean_friction_events 0."
+          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.clean_friction_events 0."
         }
       }
     },

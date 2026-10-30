@@ -383,6 +383,7 @@ a.frame:hover img { transform: scale(1.015); }
   border-left: 1px solid var(--line);
 }
 .orbit-copy h2 { font-size: clamp(64px, 8vw, 120px); letter-spacing: 0.16em; line-height: 0.9; }
+.aurvane-feature .orbit-copy h2 { font-size: clamp(48px, 5.4vw, 92px); letter-spacing: 0.1em; } /* seven letters, not five */
 .orbit-copy .purpose {
   color: var(--ink); font-size: clamp(18px, 1.6vw, 22px); line-height: 1.4;
   max-width: 28em; text-transform: none; letter-spacing: 0; font-weight: 400;

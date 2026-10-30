@@ -376,31 +376,43 @@ for banned in ("0.607 → 0.780", "0.862", "0.559", "3 vs 2 of 12"):
     if banned in orbit_blob or banned in orbit_page or banned in home:
         errors.append(f"superseded Orbit figure {banned} is still on the site")
 
-# Glass: displayed figures match the copied summary, and the page says they are simulated.
-glass = projects.get("glass")
-gsum_path = ROOT / "data" / "measurements" / "glass" / "worst-case_summary.json"
-if glass is None or glass.get("role") != "featured":
-    errors.append("Glass must be a featured project")
-elif not gsum_path.exists():
-    errors.append("data/measurements/glass/worst-case_summary.json is missing")
+# Aurvane: displayed figures match the copied summary, and the page says they are simulated.
+aurvane = projects.get("aurvane")
+asum_path = ROOT / "data" / "measurements" / "aurvane" / "worst-case_summary.json"
+if aurvane is None or aurvane.get("role") != "featured":
+    errors.append("Aurvane must be a featured project")
+elif not asum_path.exists():
+    errors.append("data/measurements/aurvane/worst-case_summary.json is missing")
 else:
-    gsum = json.loads(gsum_path.read_text())
-    on, off = gsum["with_glass"], gsum["without_glass"]
+    asum = json.loads(asum_path.read_text())
+    on, off = asum["with_aurvane"], asum["without_aurvane"]
     want = {
         "attacksWith": f"{on['attacks_landed']} of {on['poisoned_tasks']}",
         "attacksWithout": f"{off['attacks_landed']} of {off['poisoned_tasks']}",
+        "lossWith": f"{on['money_lost_cad']:,.0f} CAD",
         "cleanDone": f"{on['clean_completed']} of {on['clean_tasks']}",
         "falseAlarms": str(on["clean_friction_events"]),
     }
     for key, display in want.items():
-        if glass["stats"][key]["display"] != display:
-            errors.append(f"glass.stats.{key} shows {glass['stats'][key]['display']!r} but the summary says {display!r}")
-    caveat = glass.get("caveat", "").lower()
+        if aurvane["stats"][key]["display"] != display:
+            errors.append(f"aurvane.stats.{key} shows {aurvane['stats'][key]['display']!r} but the summary says {display!r}")
+    caveat = aurvane.get("caveat", "").lower()
     for needle in ("simulated", "worst-case", "have not been run"):
         if needle not in caveat:
-            errors.append(f"glass caveat must state {needle!r}")
-    if not (ROOT / "glass" / "index.html").is_file() or not (ROOT / "glass" / "media" / "glass-demo.mp4").is_file():
-        errors.append("glass/ needs index.html and media/glass-demo.mp4")
+            errors.append(f"aurvane caveat must state {needle!r}")
+    if not (ROOT / "aurvane" / "index.html").is_file() or not (ROOT / "aurvane" / "media" / "aurvane-demo.mp4").is_file():
+        errors.append("aurvane/ needs index.html and media/aurvane-demo.mp4")
+    if present := re.search(r'const PRESENT = \["([^"]+)"', (ROOT / "assets" / "site.js").read_text()):
+        if present.group(1) != "aurvane":
+            errors.append("Aurvane must be the first project in assets/site.js PRESENT")
+    # The old URL stays alive as a tiny redirect; nothing else may carry the old name.
+    old = ROOT / "glass" / "index.html"
+    if not old.is_file() or "../aurvane/" not in old.read_text():
+        errors.append("glass/index.html must redirect to ../aurvane/")
+    for path in ROOT.rglob("*"):
+        if path.is_file() and path.suffix in {".html", ".js", ".json", ".css", ".xml", ".md"} and ".git" not in path.parts \
+                and path != old and path.name != "check_site.py" and re.search(r"\bglass\b", path.read_text(errors="ignore"), re.I):
+            errors.append(f"{path.relative_to(ROOT)} still uses the project's old name")
 
 if errors:
     print("\n".join(errors))
