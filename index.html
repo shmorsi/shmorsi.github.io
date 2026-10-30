@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>Sherif Morsi · AI engineer</title>
-  <meta name="description" content="Sherif Morsi, an AI engineer building agent systems and models from scratch. Measured work: Aurvane, Orbit, a time-series foundation model, World Shock Lab, and ATLAS.">
+  <meta name="description" content="Sherif Morsi builds LLM agent systems: agents that act, talk to each other in checked messages, and stay inside signed bounds. Measured work: Aurvane, Orbit, a time-series foundation model, World Shock Lab, and ATLAS.">
   <meta name="author" content="Sherif Morsi">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
@@ -44,7 +44,7 @@
     "jobTitle": "Computer Science student",
     "homeLocation": {"@type": "Place", "name": "Montreal, Quebec, Canada"},
     "alumniOf": {"@type": "CollegeOrUniversity", "name": "Concordia University"},
-    "knowsAbout": ["Machine learning", "Deep learning", "PyTorch", "Python", "Time-series forecasting", "AI agents", "Econometrics"],
+    "knowsAbout": ["AI agents", "Multi-agent systems", "Large language models", "Tool calling", "Model Context Protocol", "Fine-tuning", "Machine learning", "PyTorch", "Python", "Time-series forecasting"],
     "sameAs": [
       "https://github.com/shmorsi",
       "https://www.linkedin.com/in/sherif-morsi-a17628295"
@@ -60,13 +60,14 @@
     <a class="wordmark" href="./">Sherif Morsi</a>
     <div class="header-tools">
       <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="#protocol" data-section="protocol">Protocol</a>
         <a href="#aurvane" data-section="aurvane">Aurvane</a>
         <a href="#orbit" data-section="orbit">Orbit</a>
         <a href="#tsfm" data-section="tsfm">TSFM</a>
         <a href="#world-shock-lab" data-section="world-shock-lab">Shock Lab</a>
         <a href="#atlas" data-section="atlas">ATLAS</a>
-        <a href="#about" data-section="about">About</a>
         <a href="#experience" data-section="experience">Experience</a>
+        <a href="#about" data-section="about">About</a>
         <a href="#contact" data-section="contact">Contact</a>
         <a href="resume/Sherif_Morsi_Resume.pdf">Resume</a>
       </nav>
@@ -85,7 +86,7 @@
         <p class="label">Montreal · Concordia University · Winter 2027</p>
         <h1 id="hero-title">Sherif<br>Morsi</h1>
         <p class="tagline">AI engineer building agent systems and models from scratch.</p>
-        <p class="hero-meta">Third-year Computer Science student. Open to internships of 4, 8, 12, or 16 months, anywhere in Canada, from January 2027.</p>
+        <p class="hero-meta">Agents that act, hand work to each other in messages code can check, and stay inside bounds a human signed. Third-year Computer Science student, open to 4 to 16 month internships anywhere in Canada from January 2027.</p>
         <div class="actions">
           <a class="button button-solid" href="#work">Projects</a>
           <a class="button" href="resume/Sherif_Morsi_Resume.pdf" download>Resume</a>
@@ -103,11 +104,49 @@
       </ol>
     </section>
 
+    <section class="section wrap protocol" id="protocol" aria-labelledby="protocol-title">
+      <div class="section-head" data-reveal>
+        <p class="label">How my agents talk</p>
+        <h2 id="protocol-title">Protocol</h2>
+        <p>Agents hand work to each other in messages that code checks. Nothing a model writes runs until it passes.</p>
+      </div>
+      <div class="relay" data-reveal>
+        <div class="lane">
+          <p class="label">Orbit · a team that reviews itself</p>
+          <ol class="flow">
+            <li><b>Planner</b><span>Plan, as JSON</span></li>
+            <li><b>Coder</b><span>Full files, source only</span></li>
+            <li><b>Tests</b><span>pytest, no network</span></li>
+            <li><b>Critic</b><span>Accept or revise</span></li>
+            <li><b>Reviewer</b><span>Code, not a model</span></li>
+            <li><b>Trace</b><span>Every turn, JSONL</span></li>
+          </ol>
+        </div>
+        <div class="lane">
+          <p class="label">Aurvane · a chain of trust</p>
+          <ol class="flow">
+            <li><b>You</b><span>Sign a mandate</span></li>
+            <li><b>Agent</b><span>Reads anything</span></li>
+            <li><b>Sub-agent</b><span>Narrower mandate</span></li>
+            <li><b>Guard</b><span>Four rules</span></li>
+            <li><b>Tool</b><span>Allow, ask, or block</span></li>
+            <li><b>Log</b><span>Hash-chained</span></li>
+          </ol>
+        </div>
+      </div>
+      <ol class="principles" data-reveal>
+        <li><span class="label">01 · Typed messages</span><h3>One JSON object per turn</h3><p>Every role answers in its own schema, with at most two tries per turn. Prose is not a message.</p></li>
+        <li><span class="label">02 · Least privilege</span><h3>Each role holds only its tools</h3><p>A call outside the role's list fails validation and never runs. A job-application agent cannot pay anyone.</p></li>
+        <li><span class="label">03 · Delegation</span><h3>Narrower, never wider</h3><p>A sub-agent gets less money, fewer tools, or an earlier expiry than its parent. Every link verifies back to your key.</p></li>
+        <li><span class="label">04 · Verification</span><h3>Checked by code</h3><p>The reviewer, the auditor, and the guard are code, not another model. A claim the evidence does not support is refused.</p></li>
+      </ol>
+    </section>
+
     <section class="section wrap" id="work" aria-label="Work">
       <span id="missions"></span>
       <article class="orbit-feature aurvane-feature" id="aurvane" aria-labelledby="aurvane-title">
         <div class="orbit-visual">
-          <p class="label">Aurvane · live replay</p>
+          <p class="label">Aurvane · film</p>
           <figure class="clip">
             <div class="clip-frame">
               <video data-film muted loop playsinline preload="metadata" poster="aurvane/media/aurvane-demo-poster.jpg" width="1920" height="1080" aria-label="Aurvane film with little robot agents: a hidden order to email a stranger is blocked; a new address is held until you tap Deny; a helper bot that signs itself a 5,000 CAD mandate is blocked; then the same run without Aurvane loses 900 CAD. Plain-English captions, no sound.">
@@ -115,11 +154,11 @@
               </video>
               <button class="clip-toggle" type="button" data-clip-toggle aria-pressed="false">Play film</button>
             </div>
-            <figcaption>Little robot agents, one plain sentence per step: a blocked attack, an action held for your approval, a helper bot that fails to grab more power, and the same run without Aurvane. The film replays recorded runs; the score is the number beside it.</figcaption>
+            <figcaption>A blocked attack, an action held for your approval, a helper bot that fails to widen its own mandate, and the same run without Aurvane. The film replays recorded runs; the score is beside it.</figcaption>
           </figure>
         </div>
         <div class="orbit-copy">
-          <p class="label">01 / Agent trust</p>
+          <p class="label">01 / Agent security</p>
           <h2 id="aurvane-title">Aurvane</h2>
           <p class="purpose" data-bind="aurvane.purpose">Aurvane: every agent action, signed, bounded, visible. An agent may read anything, but untrusted text can never choose where money or data goes.</p>
           <p class="proves"><span class="label">What it proves</span><span data-bind="aurvane.proves">Untrusted text cannot steer an agent's money or data. Against a simulated agent that obeys every injection, attacks that landed fell from 30 of 30 to 7 of 30, and money lost from 12,135 CAD to 135 CAD.</span></p>
@@ -140,7 +179,7 @@
             <div><dt data-bind="aurvane.stats.cleanDone.label">Clean tasks completed, with Aurvane</dt><dd data-bind="aurvane.stats.cleanDone.display">30 of 30</dd></div>
             <div><dt data-bind="aurvane.stats.falseAlarms.label">False alarms on clean tasks</dt><dd data-bind="aurvane.stats.falseAlarms.display">0</dd></div>
           </dl>
-          <p class="caveat"><span class="label">Read this</span><span data-bind="aurvane.caveat">Simulated worst-case agent that obeys every injected instruction, 60 paired tasks (30 clean, 30 poisoned), deterministic, run once. The numbers measure the guard, not a model. The 7 attacks that still land are by design: 4 rewrite a cover letter (Aurvane guards actions, not prose) and 3 add a 45 CAD charge at a store the human already trusts, capped by the signed budget. Real-model runs (Claude, Grok, Qwen) use the same harness, capped at 5 USD, and have not been run yet.</span></p>
+          <details class="caveat"><summary class="label">Read this: method and limits</summary><p data-bind="aurvane.caveat">Simulated worst-case agent that obeys every injected instruction, 60 paired tasks (30 clean, 30 poisoned), deterministic, run once. The numbers measure the guard, not a model. The 7 attacks that still land are by design: 4 rewrite a cover letter (Aurvane guards actions, not prose) and 3 add a 45 CAD charge at a store the human already trusts, capped by the signed budget. Real-model runs (Claude, Grok, Qwen) use the same harness, capped at 5 USD, and have not been run yet.</p></details>
           <div class="actions">
             <a class="button button-solid" href="aurvane/">Live demo</a>
             <a class="button" href="https://github.com/shmorsi/aurvane" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -151,17 +190,17 @@
 
       <article class="orbit-feature" id="orbit" aria-labelledby="orbit-title">
         <div class="orbit-visual">
-          <p class="label">01 · Orbit Code</p>
+          <p class="label">Orbit Code · clip</p>
           <figure class="clip">
             <div class="clip-frame">
               <img src="orbit/media/orbit-code-poster.webp" data-gif="orbit/media/orbit-code.gif" data-poster="orbit/media/orbit-code-poster.webp" width="1080" height="675" alt="Orbit Code clip: a planner, a coder, a test runner, and a reviewer working a patch. The reviewer can reject it. Still frame until the clip plays. Not the score." decoding="async" loading="lazy">
               <button class="clip-toggle" type="button" data-clip-toggle aria-pressed="false">Play clip</button>
             </div>
-            <figcaption>Planner, coder, test runner, reviewer. The clip is a visual. The score is the number beside it.</figcaption>
+            <figcaption>Planner, coder, test runner, reviewer. The clip is a scripted replay; the score is beside it.</figcaption>
           </figure>
         </div>
         <div class="orbit-copy">
-          <p class="label">02 / Agent systems</p>
+          <p class="label">02 / Multi-agent systems</p>
           <h2 id="orbit-title">Orbit</h2>
           <p class="purpose" data-bind="orbit.purpose">Orbit Code: a planner, a coder, a test runner, and a reviewer. The reviewer can refuse a patch that fails the hidden tests or edits the tests.</p>
           <p class="proves"><span class="label">What it proves</span><span data-bind="orbit.proves">Fine-tuning a 1.5B model raised its schema-valid tool-call rate from 0.333 to 0.764, with a 95% interval above zero. In code repair, a reviewer can refuse a patch that fails the hidden tests.</span></p>
@@ -182,7 +221,7 @@
             <div><dt data-bind="orbit.stats.codeTeamRefusals.label">Reviewer refusals, team</dt><dd data-bind="orbit.stats.codeTeamRefusals.display">1 of 32</dd></div>
             <div><dt data-bind="orbit.stats.codeSingleRefusals.label">Reviewer refusals, single agent</dt><dd data-bind="orbit.stats.codeSingleRefusals.display">2 of 32</dd></div>
           </dl>
-          <details class="caveat"><summary class="label">Read this: method and limits</summary><p data-bind="orbit.caveat">code-eval-v2, claude-haiku-5-5, 32 frozen tasks, scored once: team with reviewer passed 29 of 32, single agent passed 27 of 32. The paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero, so that gap is not an improvement. Estimated cost is 0.0183623 USD for the team and 0.006672 USD for the single agent. Reviewer refusals were 1 of 32 on the team run and 2 of 32 on the single-agent run. On the team run, mf-span and zip-safe failed the hidden test and were not refused. On the single-agent run, mf-span, mf-csv, and zip-safe failed and were not refused. Qwen2.5-1.5B-Instruct, harness v3, frozen 12-task test, scored once: schema-valid rate 0.333 on the base team to 0.764 with the fine-tuned adapter (95% interval on the difference 0.264 to 0.607, above zero). Task success 2 of 12 to 4 of 12 (interval −0.167 to 0.500, includes zero), so task success is not an improvement. The fine-tuned team refused 1 of 2 traps. The distilled team passed 2 of 12, schema-valid 0.448; against the base team that schema-valid interval is −0.064 to 0.278 and includes zero. The result files name the model and the adapters. They do not name the GPU. Boardroom and the incident commander are scripted demos, not scores.</p></details>
+          <details class="caveat"><summary class="label">Read this: method and limits</summary><p data-bind="orbit.caveat">code-eval-v2, claude-haiku-5-5, 32 frozen tasks, scored once: the team with a reviewer passed 29 of 32 and a single agent 27 of 32. The paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero, so that gap is not an improvement. The team run cost about 0.018 USD. Fine-tuning: Qwen2.5-1.5B-Instruct, harness v3, frozen 12-task test, scored once. Schema-valid rate rose from 0.333 on the base team to 0.764 with the adapter (95% interval on the difference 0.264 to 0.607, above zero). Task success went from 2 to 4 of 12 (interval −0.167 to 0.500, includes zero), so task success is not an improvement. The fine-tuned team refused 1 of 2 traps. Boardroom and the incident commander are scripted demos, not scores.</p></details>
           <div class="actions">
             <a class="button button-solid" href="orbit/">Mission page</a>
             <a class="button" href="https://github.com/shmorsi/orbit-multi-agent" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -193,7 +232,7 @@
 
       <div class="beats" aria-label="More of Orbit">
         <article class="beat" id="orbit-boardroom">
-          <p class="label">02 · Boardroom</p>
+          <p class="label">Orbit · Boardroom</p>
           <h3>Boardroom</h3>
           <p>Executive agents. The auditor refuses a number the evidence does not support.</p>
           <figure class="clip">
@@ -206,7 +245,7 @@
           <a class="text-link" href="orbit/#boardroom">On the mission page</a>
         </article>
         <article class="beat" id="orbit-incident">
-          <p class="label">03 · Incident commander</p>
+          <p class="label">Orbit · Incident commander</p>
           <h3>Incident commander</h3>
           <p>A scripted checkout outage on a fictional corpus. The auditor refuses a fake root cause.</p>
           <figure class="clip">
@@ -255,7 +294,7 @@
 
         <article class="mission" id="world-shock-lab" aria-labelledby="world-shock-lab-title" data-reveal>
           <header class="mission-head">
-            <p class="label">04 / Macro shocks and machine learning</p>
+            <p class="label">04 / Econometrics and ML</p>
             <h2 id="world-shock-lab-title">World Shock Lab</h2>
             <p class="purpose">How a central-bank surprise ripples through 53 markets, with forecasts published before each decision.</p>
             <p class="proves"><span class="label">What it proves</span><span data-bind="world-shock-lab.proves">A 10 bp Fed surprise moves the TSX −1.10% on announcement day. The 90% band, −1.59 to −0.61, excludes zero.</span></p>
@@ -341,8 +380,7 @@
           <ul>
             <li>Trained and evaluated Python and PyTorch models on wireless network telemetry to forecast 5G energy demand.</li>
             <li>Developed data and ML pipelines for 5G energy telemetry, to support automated network management and optimization.</li>
-            <li>Presented findings on wireless networking and 5G-related energy challenges to cross-functional teams of data scientists and engineers, and led the project proposal and requirements review.</li>
-            <li class="training"><span class="label">Training</span>Trained in agentic AI for intent-based 5G network slicing (Amazon Bedrock).</li>
+            <li>Trained in agentic AI for intent-based 5G network slicing (Amazon Bedrock). Presented findings to cross-functional data science and engineering teams, and led the project proposal and requirements review.</li>
           </ul>
         </div>
       </article>
@@ -351,9 +389,7 @@
         <div>
           <h3>Credit Analyst Job Shadow</h3>
           <ul>
-            <li>Shadowed credit analysts reviewing SME financial records as part of the bank's credit-review process.</li>
-            <li>Built Python utilities and SQL queries to preprocess and validate SME financial records, improving the data quality and reliability of credit-review data.</li>
-            <li>Tested and documented these scripts and fixes with the team so they stayed maintainable and easy to debug.</li>
+            <li>Built and documented Python utilities and SQL queries that preprocess and validate SME financial records for the bank's credit-review process, improving data quality and reliability.</li>
           </ul>
         </div>
       </article>
@@ -363,7 +399,7 @@
           <h3>Bachelor of Computer Science</h3>
           <ul>
             <li>Available Winter 2027 (January to April 2027) for 4, 8, 12, or 16 months, anywhere in Canada. Willing to relocate within Canada.</li>
-            <li>Coursework includes data structures and algorithms, object-oriented programming, artificial intelligence, machine learning, financial markets, linear algebra, and multivariable calculus.</li>
+            <li>Coursework includes data structures and algorithms, object-oriented programming, artificial intelligence, machine learning, linear algebra, and multivariable calculus.</li>
           </ul>
         </div>
       </article>
@@ -378,7 +414,7 @@
       </div>
       <div class="split">
         <div data-reveal>
-          <p class="lede">I build agent systems and models from scratch: tested Python and PyTorch pipelines, leakage-checked forecasts, and tool-calling agents, with the measurement written down.</p>
+          <p class="lede">I build agents that can be trusted to act and to work together: typed messages, least-privilege tools, signed delegation, and checks written in code. I also train the models underneath, and I write the measurement down.</p>
           <dl class="facts">
             <div><dt>Based</dt><dd>Montreal, Quebec, Canada</dd></div>
             <div><dt>Status</dt><dd>Canadian permanent resident. UAE Golden Visa.</dd></div>
@@ -389,33 +425,30 @@
         </div>
         <div data-reveal>
           <dl class="skill-list">
-            <div><dt>Languages</dt><dd>Python, SQL, C++, Java, C, R, JavaScript, TypeScript, Bash, MATLAB</dd></div>
-            <div><dt>Machine learning</dt><dd>PyTorch, TensorFlow, scikit-learn, deep learning, supervised and unsupervised learning, regression, transformers, time-series forecasting</dd></div>
-            <div><dt>ML methods</dt><dd>Feature engineering, cross-validation, transfer learning, computer vision, NLP, model evaluation, mixed precision</dd></div>
-            <div><dt>AI and LLMs</dt><dd>LLMs, AI agents, tool calling, prompt engineering, QLoRA, distillation, Claude API, Hugging Face</dd></div>
-            <div><dt>Quant and risk</dt><dd>Econometrics, event studies, Monte Carlo, probabilistic forecasting, CVaR, portfolio optimization, walk-forward validation</dd></div>
-            <div><dt>Data</dt><dd>pandas, NumPy, SciPy, Matplotlib, OpenCV, FastAPI, DuckDB, SQLite, Parquet, cvxpy, statsmodels</dd></div>
-            <div><dt>Tools</dt><dd>Git, GitHub Actions, pytest, Playwright, Jupyter, Colab, Claude Code, Cursor, Codex, VS Code</dd></div>
-            <div><dt>Office and BI</dt><dd>Excel (advanced), Power BI, PowerPoint, Microsoft 365</dd></div>
+            <div><dt>Agents and LLMs</dt><dd>LLM agents, multi-agent systems, tool calling, structured outputs, MCP, prompt engineering, prompt-injection defense, QLoRA, distillation, LLM evaluation, Claude API, Hugging Face</dd></div>
+            <div><dt>Machine learning</dt><dd>PyTorch, TensorFlow, scikit-learn, transformers, time-series forecasting, feature engineering, cross-validation, bootstrap intervals, mixed precision</dd></div>
+            <div><dt>Languages</dt><dd>Python, SQL, TypeScript, JavaScript, C++, Java, C, R, Bash</dd></div>
+            <div><dt>Data and backend</dt><dd>pandas, NumPy, SciPy, FastAPI, DuckDB, SQLite, Parquet, statsmodels, econometrics</dd></div>
+            <div><dt>Tools</dt><dd>Git, GitHub Actions, pytest, Playwright, Docker, Jupyter, Colab, Claude Code, Cursor</dd></div>
           </dl>
         </div>
       </div>
       <div data-reveal>
-        <p class="label" style="margin-top:56px">Certifications</p>
+        <p class="label certs-label">Certifications</p>
         <div class="certs">
           <article><h3>Building with the Claude API</h3><p>Anthropic</p></article>
           <article><h3>Claude Code 101</h3><p>Anthropic</p></article>
           <article><h3>Claude 101</h3><p>Anthropic</p></article>
           <article><h3>Machine Learning with Python</h3><p>IBM</p></article>
         </div>
-        <p class="quarcc"><strong>Quantitative Research and Competitions Club (QUARCC)</strong>, member, Concordia University. Exploring machine learning, statistical modeling, and quantitative research.</p>
+        <p class="quarcc"><strong>Quantitative Research and Competitions Club (QUARCC)</strong>, member, Concordia University.</p>
       </div>
     </section>
 
     <section class="section wrap contact" id="contact" aria-labelledby="contact-title">
       <p class="label">Contact</p>
       <h2 id="contact-title">Contact</h2>
-      <p>Winter 2027 internships of 4, 8, 12, or 16 months, anywhere in Canada.</p>
+      <p>Winter 2027 internships in AI agents, LLMs, and machine learning: 4, 8, 12, or 16 months, anywhere in Canada.</p>
       <a class="email" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
       <p class="phone"><a href="tel:+14385966468">+1 (438) 596-6468</a></p>
       <div class="actions">
