@@ -62,6 +62,142 @@
     listeners.push(draw);
   }
 
+  /* Hero sky: a planet limb seen from orbit, and one satellite per project crossing above it.
+     Paused off screen and in background tabs; a single still frame under reduced motion. */
+  const sky = document.querySelector("[data-orbits]");
+  if (sky) {
+    const g = sky.getContext("2d");
+    const orbits = [
+      { alt: 0.035, dx: -0.04, period: 46, phase: 0.15 },
+      { alt: 0.065, dx: 0.03, period: 64, phase: 0.55 },
+      { alt: 0.10, dx: -0.02, period: 82, phase: 0.8 },
+      { alt: 0.14, dx: 0.05, period: 104, phase: 0.35 }
+    ];
+    let w = 0;
+    let h = 0;
+    let raf = 0;
+    let onScreen = true;
+    const size = () => {
+      const box = sky.getBoundingClientRect();
+      w = box.width;
+      h = box.height;
+      const dpr = Math.min(window.devicePixelRatio || 1, w < 700 ? 1.5 : 2);
+      sky.width = Math.round(w * dpr);
+      sky.height = Math.round(h * dpr);
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    const paint = (seconds) => {
+      const dark = currentTheme() === "dark";
+      const rgb = dark ? "142,197,255" : "11,92,173";
+      const mobile = w < 700;
+      const R = mobile ? w * 1.7 : w * 0.9;
+      const cx = mobile ? w * 0.7 : w * 0.93;
+      const cy = (mobile ? h * 0.6 : h * 0.46) + R;
+      g.clearRect(0, 0, w, h);
+
+      /* Atmosphere: an outer haze, the planet body, an inner glow, then the bright limb. */
+      const haze = g.createRadialGradient(cx, cy, R * 0.98, cx, cy, R * 1.12);
+      haze.addColorStop(0, `rgba(${rgb},${dark ? 0.22 : 0.12})`);
+      haze.addColorStop(1, `rgba(${rgb},0)`);
+      g.fillStyle = haze;
+      g.beginPath(); g.arc(cx, cy, R * 1.12, 0, Math.PI * 2); g.fill();
+      const body = g.createRadialGradient(cx, cy - R * 0.2, R * 0.6, cx, cy, R);
+      body.addColorStop(0, dark ? "#000" : "#fbfbfd");
+      body.addColorStop(0.92, dark ? "#03070d" : "#eef2f8");
+      body.addColorStop(1, dark ? `rgba(${rgb},0.28)` : `rgba(${rgb},0.16)`);
+      g.fillStyle = body;
+      g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.fill();
+      g.save();
+      g.shadowColor = `rgba(${rgb},0.9)`;
+      g.shadowBlur = mobile ? 14 : 24;
+      g.strokeStyle = `rgba(${rgb},${dark ? 0.85 : 0.6})`;
+      g.lineWidth = 1.2;
+      g.beginPath(); g.arc(cx, cy, R, Math.PI, Math.PI * 2); g.stroke();
+      g.restore();
+
+      /* Orbits: faint paths, a dot, and a short fading trail. Each crosses left to right. */
+      orbits.forEach((orbit) => {
+        const r = R * (1 + orbit.alt);
+        const ox = cx + w * orbit.dx;
+        const edge = (x) => -Math.acos(Math.max(-1, Math.min(1, (x - ox) / r)));
+        const from = edge(-40);
+        const to = edge(w + 40);
+        g.strokeStyle = `rgba(${dark ? "255,255,255" : "0,0,0"},${dark ? 0.1 : 0.12})`;
+        g.lineWidth = 1;
+        g.beginPath(); g.arc(ox, cy, r, from, to); g.stroke();
+        const u = (orbit.phase + seconds / orbit.period) % 1;
+        const at = from + (to - from) * u;
+        const trail = 0.05 * (to - from);
+        for (let i = 0; i < 16; i += 1) {
+          const a0 = at - (trail * (i + 1)) / 16;
+          const a1 = at - (trail * i) / 16;
+          g.strokeStyle = `rgba(${rgb},${0.55 * (1 - i / 16)})`;
+          g.beginPath(); g.arc(ox, cy, r, a0, a1); g.stroke();
+        }
+        const x = ox + r * Math.cos(at);
+        const y = cy + r * Math.sin(at);
+        g.save();
+        g.shadowColor = `rgba(${rgb},1)`;
+        g.shadowBlur = 10;
+        g.fillStyle = dark ? "#fff" : `rgb(${rgb})`;
+        g.beginPath(); g.arc(x, y, 1.8, 0, Math.PI * 2); g.fill();
+        g.restore();
+      });
+
+      /* Shade the left of the frame so the name and buttons stay on black, as over footage. */
+      if (!mobile) {
+        const shade = g.createLinearGradient(0, 0, w * 0.62, 0);
+        const bg = dark ? "0,0,0" : "251,251,253";
+        shade.addColorStop(0, `rgba(${bg},0.92)`);
+        shade.addColorStop(0.55, `rgba(${bg},0.7)`);
+        shade.addColorStop(1, `rgba(${bg},0)`);
+        g.fillStyle = shade;
+        g.fillRect(0, 0, w * 0.62, h);
+      }
+    };
+    const start = performance.now();
+    const loop = (now) => {
+      paint((now - start) / 1000);
+      raf = onScreen && !document.hidden ? requestAnimationFrame(loop) : 0;
+    };
+    const resume = () => { if (!reduce && !raf && onScreen && !document.hidden) raf = requestAnimationFrame(loop); };
+    const still = () => { size(); paint(12); };
+    still();
+    let skyTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(skyTimer);
+      skyTimer = setTimeout(() => { size(); if (reduce) paint(12); }, 120);
+    }, { passive: true });
+    listeners.push(() => { if (reduce) paint(12); });
+    if (!reduce) {
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; resume(); }).observe(sky);
+      }
+      document.addEventListener("visibilitychange", resume);
+      resume();
+    }
+  }
+
+  /* T-minus to the next forecasted decision. Hidden once the time has passed. */
+  document.querySelectorAll("[data-countdown]").forEach((node) => {
+    const clock = node.querySelector("[data-countdown-clock]");
+    const target = Date.parse(node.dataset.countdown);
+    if (!clock || Number.isNaN(target)) return;
+    const pad = (n) => String(n).padStart(2, "0");
+    const tick = () => {
+      let left = Math.floor((target - Date.now()) / 1000);
+      if (left <= 0) { node.hidden = true; return false; }
+      const d = Math.floor(left / 86400); left %= 86400;
+      const hr = Math.floor(left / 3600); left %= 3600;
+      const min = Math.floor(left / 60);
+      clock.textContent = `T− ${d}d ${pad(hr)}h ${pad(min)}m${reduce ? "" : ` ${pad(left % 60)}s`}`;
+      return true;
+    };
+    if (tick()) {
+      const id = setInterval(() => { if (!tick()) clearInterval(id); }, reduce ? 30000 : 1000);
+    }
+  });
+
   const header = document.querySelector(".site-header");
   const onScroll = () => { if (header) header.classList.toggle("is-scrolled", window.scrollY > 8); };
   onScroll();

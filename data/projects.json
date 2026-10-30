@@ -1,6 +1,6 @@
 {
   "instructions": "Edit this file to update every measured figure on the site. Do not add a number unless it is in the resume or in a committed result file in the project's repository. The home page, case studies, and tables all read from here. Each project has one headline stat (headline.stat), three short facts (factIds), and a short caveat. Search this file for the old value and update every place it appears, including caveat text.",
-  "updated": "2026-10-24",
+  "updated": "2026-10-30",
   "projects": [
     {
       "id": "orbit",
@@ -11,7 +11,7 @@
       "kicker": "Agent systems",
       "title": "Orbit",
       "purpose": "Orbit Code: a planner, a coder, a test runner, and a reviewer. The reviewer can refuse a patch that fails the hidden tests or edits the tests.",
-      "proves": "A reviewer can refuse a patch. The team passed 29 of 32 frozen tasks and a single agent passed 27. The paired 95% interval, 0.000 to 0.15625, includes zero, so that gap is not an improvement.",
+      "proves": "Fine-tuning a 1.5B model raised its schema-valid tool-call rate from 0.333 to 0.764, with a 95% interval above zero. In code repair, a reviewer can refuse a patch that fails the hidden tests.",
       "summary": "Orbit Code, code-eval-v2, claude-haiku-5-5, scored once: team with reviewer 29 of 32, single agent 27 of 32. Paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero. Qwen2.5-1.5B-Instruct, harness v3, scored once: fine-tuned schema-valid rate 0.333 to 0.764, 95% interval above zero; task success interval includes zero.",
       "caveat": "code-eval-v2, claude-haiku-5-5, 32 frozen tasks, scored once: team with reviewer passed 29 of 32, single agent passed 27 of 32. The paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero, so that gap is not an improvement. Estimated cost is 0.0183623 USD for the team and 0.006672 USD for the single agent. Reviewer refusals were 1 of 32 on the team run and 2 of 32 on the single-agent run. On the team run, mf-span and zip-safe failed the hidden test and were not refused. On the single-agent run, mf-span, mf-csv, and zip-safe failed and were not refused. Qwen2.5-1.5B-Instruct, harness v3, frozen 12-task test, scored once: schema-valid rate 0.333 on the base team to 0.764 with the fine-tuned adapter (95% interval on the difference 0.264 to 0.607, above zero). Task success 2 of 12 to 4 of 12 (interval −0.167 to 0.500, includes zero), so task success is not an improvement. The fine-tuned team refused 1 of 2 traps. The distilled team passed 2 of 12, schema-valid 0.448; against the base team that schema-valid interval is −0.064 to 0.278 and includes zero. The result files name the model and the adapters. They do not name the GPU. Boardroom and the incident commander are scripted demos, not scores.",
       "image": {
@@ -40,10 +40,10 @@
         }
       ],
       "glanceIds": [
+        "loraSchema",
         "codeTeamPass",
         "codeSinglePass",
-        "codeTeamRefusals",
-        "loraSchema"
+        "codeTeamRefusals"
       ],
       "factIds": [
         "codeSinglePass",
@@ -51,8 +51,8 @@
         "loraSchema"
       ],
       "headline": {
-        "stat": "codeTeamPass",
-        "qualifier": "claude-haiku-5-5, code-eval-v2, 32 tasks, scored once. Single agent passed 27 of 32. Paired 95% interval 0.000 to 0.15625, includes zero."
+        "stat": "loraSchema",
+        "qualifier": "Qwen2.5-1.5B-Instruct, QLoRA, harness v3, 12 frozen tasks, scored once. 95% interval on the difference 0.264 to 0.607, above zero."
       },
       "stats": {
         "codeTeamPass": {
@@ -396,11 +396,11 @@
           "source": "tsfm-from-scratch MODEL_CARD.md: patch_s2 total parameters 10,083,392, shown as 10.1M. Trained in fp16 on one Colab T4."
         },
         "series": {
-          "label": "Series audited",
+          "label": "Pretraining series kept",
           "display": "443,258",
           "count": 443258,
           "decimals": 0,
-          "source": "tsfm-from-scratch DATA_CARD.md: pretraining corpus of 77 datasets, 443,258 series, 1,087,018,264 points. Resume: 443,258 series across 77 datasets."
+          "source": "tsfm-from-scratch DATA_CARD.md: the leakage check covered 447,229 pretraining and validation series and flagged 801; all 801 were excluded. Kept: 443,258 pretraining series across 77 datasets (1,087,018,264 points) plus 3,170 held-out validation series (443,258 + 3,170 + 801 = 447,229)."
         },
         "datasets": {
           "label": "Datasets audited",
@@ -425,10 +425,10 @@
         },
         "tests": {
           "label": "Automated tests in CI",
-          "display": "150",
-          "count": 150,
+          "display": "170",
+          "count": 170,
           "decimals": 0,
-          "source": "pytest collects 150 tests at tsfm-from-scratch main 28c0687 (collected on 2026-10-23). Resume: 150 automated tests in GitHub Actions CI. The CI run for that commit passed."
+          "source": "Static count at tsfm-from-scratch main 1d5f7b4 (2026-10-30): 171 test cases (test functions times parametrize cases), 170 selected by the CI job's filter -m \"not slow and not network and not data\". pytest was not run for this count. The earlier figure, 150, was collected on 2026-10-23 before the notebook tests were added."
         },
         "coverage": {
           "label": "80% interval coverage",
@@ -885,10 +885,10 @@
         },
         "tests": {
           "label": "Automated Python tests in CI",
-          "display": "157",
-          "count": 157,
+          "display": "168",
+          "count": 168,
           "decimals": 0,
-          "source": "pytest collects 157 tests at world-shock-lab main c955cc1 with the repository's default marker filter (-m 'not data'), which is what CI runs; 9 more data checks need the local raw downloads (166 in total). Collected on 2026-10-23. The earlier site figure, 145, predates ml-study-v1."
+          "source": "Static count at world-shock-lab main cb7a00c (2026-10-30): 177 test cases (test functions times parametrize cases), 168 selected by the repository's default marker filter (-m 'not data'), which is what CI runs. pytest was not run for this count. The earlier figure, 157, was collected on 2026-10-23."
         },
         "rerunMinutes": {
           "label": "Full rerun time",
@@ -909,6 +909,16 @@
           "label": "First forecasted decision date",
           "display": "2026-10-28",
           "source": "World Shock Lab case study."
+        },
+        "forecastStatus": {
+          "label": "Oct 28 Fed and BoC forecasts",
+          "display": "Awaiting data",
+          "source": "world-shock-lab config/live.yaml scoring: score 1 is written once every outcome's h = 5 value is published; FX comes from the weekly H.10 release, typically 6 to 10 days after the decision (2026-11-03 to 2026-11-07 for 2026-10-28). live/scores/ has no score files at main cb7a00c."
+        },
+        "nextDecision": {
+          "label": "Next forecasted decisions, Fed and BoC",
+          "display": "2026-12-09",
+          "source": "world-shock-lab config/live.yaml calendar: fomc and boc 2026-12-09 (BoC 09:45 America/Toronto, FOMC 14:00 America/New_York). Forecasts publish 10 days before."
         }
       },
       "tables": {
