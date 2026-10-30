@@ -10,13 +10,13 @@
       "badge": "Worst-case agent",
       "kicker": "Agent trust",
       "title": "Aurvane",
-      "summary": "The trust layer for the agent economy. Each agent carries a signed passport and mandate; every action passes four rules, sub-agents can only get narrower mandates, held actions wait for your Allow or Deny, and everything lands in a hash-chained log. Against a simulated agent that obeys every injected instruction, attacks that landed fell from 30 of 30 to 7 of 30.",
+      "summary": "The trust layer for the agent economy. Each agent bot carries a signed mandate; every action passes four rules, helper bots only ever get narrower mandates, held actions wait for your Allow or Deny, and everything lands in a hash-chained log. Against a simulated agent that obeys every injected instruction, attacks that landed fell from 30 of 30 to 7 of 30. A red team of 12 smarter attacks: 8 contained, 2 capped by the budget, 2 get through, shown on purpose.",
       "purpose": "Aurvane: every agent action, signed, bounded, visible. An agent may read anything, but untrusted text can never choose where money or data goes.",
       "proves": "Untrusted text cannot steer an agent's money or data. Against a simulated agent that obeys every injection, attacks that landed fell from 30 of 30 to 7 of 30, and money lost from 12,135 CAD to 135 CAD.",
       "caveat": "Simulated worst-case agent that obeys every injected instruction, 60 paired tasks (30 clean, 30 poisoned), deterministic, run once. The numbers measure the guard, not a model. The 7 attacks that still land are by design: 4 rewrite a cover letter (Aurvane guards actions, not prose) and 3 add a 45 CAD charge at a store the human already trusts, capped by the signed budget. Real-model runs (Claude, Grok, Qwen) use the same harness, capped at 5 USD, and have not been run yet.",
       "image": {
         "src": "aurvane/media/aurvane-demo-poster.jpg",
-        "alt": "Aurvane replay: a sub-agent orbits inside its parent's mandate shell; its self-signed 5,000 CAD mandate hits its own smaller shell and is blocked. Still frame of the demo film. Not the score.",
+        "alt": "Aurvane replay: a little robot agent inside its glowing mandate shell, with a smaller helper bot whose self-signed 5,000 CAD mandate is blocked at its own shell. Still frame of the demo film. Not the score.",
         "width": 1920,
         "height": 1080
       },

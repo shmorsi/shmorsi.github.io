@@ -405,6 +405,12 @@ else:
     if present := re.search(r'const PRESENT = \["([^"]+)"', (ROOT / "assets" / "site.js").read_text()):
         if present.group(1) != "aurvane":
             errors.append("Aurvane must be the first project in assets/site.js PRESENT")
+    rt_path = ROOT / "data" / "measurements" / "aurvane" / "redteam_summary.json"
+    if rt_path.exists():
+        rt = json.loads(rt_path.read_text())
+        phrase = f"{rt['attacks']} smarter attacks: {rt['contained']} contained, {rt['capped']} capped by the budget, {rt['gets through']} get through"
+        if phrase not in aurvane.get("summary", ""):
+            errors.append("aurvane summary must quote the red-team counts from redteam_summary.json")
     # The old URL stays alive as a tiny redirect; nothing else may carry the old name.
     old = ROOT / "glass" / "index.html"
     if not old.is_file() or "../aurvane/" not in old.read_text():
