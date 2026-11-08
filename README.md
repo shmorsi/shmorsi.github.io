@@ -4,7 +4,7 @@ Portfolio of Sherif Morsi, a third-year Computer Science student at Concordia Un
 
 **Live:** https://shmorsi.github.io/
 
-The site is a **master page plus one page per project**. The master page features the Deep Portfolio Constructor, then one card per project, each with a small chart drawn from that project's committed results. Each card links to the project's own page, with the method, the results, the limits and links to the code.
+The site is a **master page plus one page per project**. The master page features the Deep Portfolio Constructor as an interactive lab, then one card per project, each with a chart drawn from that project's committed results (two of them interactive). Each card links to the project's own page, with the method, the results, the limits and links to the code.
 
 | No. | Project | One line | Project page | Code |
 |---|---|---|---|---|
@@ -24,6 +24,7 @@ The project repositories generate their own documents from those result files. C
 | Result | Where the site reads it | Note |
 |---|---|---|
 | Deep Portfolio Constructor, every figure | `deep-portfolio-constructor` `reports/site_figures.json` | Written by `python -m dpc.cli site` in that repository, then `python3 scripts/sync_dpc.py <path to site_figures.json>` here. Nothing is typed by hand. |
+| Deep Portfolio Constructor, growth of $1, risk split, the book | `data/dpc_lab.json`, `data/dpc_book.json` | Exported by `scripts/export_dpc_lab.py` from the project's committed `reports/results/*.parquet` (run it with that project's virtual environment). `check_site.py` fails if the risk split or drawdowns disagree with the performance table, or if any book is not dollar-neutral within its 5% position and ±5% sector limits. |
 | TSFM, test split | `tsfm-from-scratch` `results/analysis/headline.json` | patch_s2, one seed, 97 configurations. |
 | World Shock Lab decision scores | `world-shock-lab` `live/scores/` when a decision has been scored | The project page keeps the slot empty until that file exists. As of 2026-11-08 no score file is committed. |
 | Aurvane, worst-case benchmark | `data/measurements/aurvane/worst-case_summary.json` | Copied from the `aurvane` repo `bench/results/`. Simulated worst-case agent, 60 paired tasks, deterministic. Not a real-model score. |
@@ -35,6 +36,7 @@ The master page and the Deep Portfolio Constructor page are generated from `data
 
 ```sh
 python3 scripts/sync_dpc.py ../deep-portfolio-constructor/reports/site_figures.json   # project figures, when they change
+../deep-portfolio-constructor/.venv/bin/python scripts/export_dpc_lab.py              # the lab's series and the book, from committed results
 python3 scripts/make_marks.py        # one project mark per project (assets/marks/)
 python3 scripts/build_home.py        # index.html, the master page
 python3 scripts/build_dpc_page.py    # projects/deep-portfolio-constructor.html
@@ -49,10 +51,14 @@ Static HTML, one stylesheet (`assets/site.css`), one script (`assets/site.js`), 
 
 The look is a launch-control theme for a deep learning and markets portfolio: pure black by default on every page, tracked uppercase display type, thin rules, telemetry numerals, ghost buttons that fill on hover, and one ice-blue accent (`#8ec5ff`), with amber for anything live. The header toggle switches to light for that browser.
 
-- **Hero.** An original canvas illustration of end-to-end learning for a long-short book: seeded random-walk prices stream into a small network, attention picks out edges, the outputs set long and short weights, and amber pulses run backwards as the gradient. It is labelled as an illustration, not data. It pauses off screen and in background tabs, and draws one still frame under `prefers-reduced-motion`.
+- **Hero.** An original canvas illustration of end-to-end learning for a long-short book: seeded random-walk prices stream into a small network, attention picks out edges, the outputs set long and short weights, and amber pulses run backwards as the gradient. Point at a stock to trace it; click its price line to shock it and watch the book rebalance. It is labelled as an illustration, not data, has a pause button, pauses off screen and in background tabs, and draws one still frame under `prefers-reduced-motion`.
 - **Telemetry strip.** Each project's headline figure, linked to its card.
-- **Featured project.** The Deep Portfolio Constructor's ablation as a chart (net Sharpe for each step), its deep stack as a pipeline, and the gradient flowing back.
-- **Project cards.** One chart grammar for every card: a reference line (zero or the baseline) and either bars or points with their intervals, drawn from the data at build time.
+- **Featured project: the portfolio lab.** Pick a step of the ablation and see its growth of $1 since 2008 (crisis years shaded, a readout under the pointer), its Sharpe, drawdown and beta, where its risk comes from, and what changed, in plain English.
+- **Project cards.** One chart grammar for every card: a reference line (zero or the baseline) and either bars or points with their intervals, drawn from the data at build time. World Shock Lab's card takes a Fed or Bank of Canada surprise of any size and scales the committed per-10 bp estimates and their 90% bands; Aurvane's card replays its 30 poisoned tasks with and without the guard.
+- **The portfolio page.** "Try it" builds an eight-stock long-short book in the browser (labelled as made up) so a reader can switch on beta and sector neutrality and watch the unintended risk disappear; "Inside the book" scrubs through the real end-to-end book at all 225 rebalances.
+- **Plain English.** Jargon (Sharpe, beta, CRPS, basis point, prompt injection and so on) has a dotted underline and a one-tap definition.
+
+Every interactive piece is rendered as complete static HTML first by `scripts/lab.py`, so it reads correctly without JavaScript; `assets/site.js` then wires it up.
 
 Project pages share one template: a project label with its mark, the headline, a sticky section index built from the page's own headings, the sections, and previous / next project links. Motion is a short fade on scroll and charts that draw in; nothing moves under `prefers-reduced-motion`, and nothing is hidden if the script does not run.
 

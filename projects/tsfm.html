@@ -61,7 +61,7 @@
       <h1>A time-series foundation model, from scratch</h1>
       <p class="cs-purpose">A forecasting foundation model built from first principles, and the audit that caught a public benchmark corpus leaking its own test data.</p>
       <p class="proves"><span class="label">What it proves</span><span data-bind="tsfm.proves">A transformer trained from scratch is better than upstream AutoARIMA on the frozen test: CRPS 0.688×, 95% CI [0.624, 0.757].</span></p>
-      <p class="cs-summary">Test CRPS <span data-bind="tsfm.stats.patchTest.display">0.688×</span> upstream AutoARIMA. <span data-bind="tsfm.headline.qualifier">patch_s2, one seed, 97 test configurations. 95% CI [0.624, 0.757], better.</span> Validation CRPS was <span data-bind="tsfm.stats.crps.display">0.605×</span> Seasonal Naive.</p>
+      <p class="cs-summary">Test <button type="button" class="term" data-term="crps">CRPS</button> <span data-bind="tsfm.stats.patchTest.display">0.688×</span> upstream AutoARIMA. <span data-bind="tsfm.headline.qualifier">patch_s2, one seed, 97 test configurations. 95% CI [0.624, 0.757], better.</span> Validation CRPS was <span data-bind="tsfm.stats.crps.display">0.605×</span> Seasonal Naive.</p>
       <p class="cs-summary">Decoder-only transformer, tokenizers, training loop and sampling in plain PyTorch. Pretrained on a pinned corpus plus synthetic Gaussian-process series. Scored with the official GIFT-Eval scoring code on data held out of training.</p>
       <div class="actions">
         <a class="button button-solid" href="https://github.com/shmorsi/tsfm-from-scratch" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -107,7 +107,7 @@
           <ul>
             <li><strong>Model.</strong> Decoder-only transformer with pre-norm RMSNorm, rotary positions, SwiGLU and a key/value cache, written without a model library. Two tokenizers: mean-scaled quantization with cross-entropy, and patches with a non-crossing quantile head.</li>
             <li><strong>Training.</strong> Mixed precision (fp16) on one Colab T4, gradient accumulation, cosine schedule, resumable checkpoints. Profiling found GPU scan kernels on the training hot path; they were removed from it.</li>
-            <li><strong>Evaluation.</strong> GluonTS, the scorer GIFT-Eval uses, checked by reproducing Seasonal Naive on every official metric. Splits, metrics, baselines and the decision rule were tagged in git before test scoring.</li>
+            <li><strong>Evaluation.</strong> GluonTS, the scorer GIFT-Eval uses, checked by reproducing Seasonal Naive on every official metric. Splits, metrics, baselines and the decision rule were tagged in git before test scoring (<button type="button" class="term" data-term="pre-registered">pre-registered</button>).</li>
           </ul>
         </div>
       </section>
@@ -116,7 +116,7 @@
         <h2 id="s-results">Results</h2>
         <div class="prose">
           <h3>Test split: patch_s2</h3>
-          <p>Scored once from its checkpoint, one seed, 97 configurations. CRPS <span data-bind="tsfm.stats.patchTest.display">0.688×</span> upstream AutoARIMA, 95% CI [0.624, 0.757], better. Validation on 16 configurations was <span data-bind="tsfm.stats.crps.display">0.605×</span> Seasonal Naive.</p>
+          <p>Scored once from its checkpoint, one seed, 97 configurations. CRPS <span data-bind="tsfm.stats.patchTest.display">0.688×</span> upstream AutoARIMA, 95% <button type="button" class="term" data-term="ci">CI</button> [0.624, 0.757], better. Validation on 16 configurations was <span data-bind="tsfm.stats.crps.display">0.605×</span> Seasonal Naive.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="patch_s2 test scores" data-table="tsfm.tables.patchTest"></div>
           <div class="slot-empty" aria-label="Headline model test score" data-slot="tsfm-patch-test" data-source="results/analysis/headline.json">
             <span class="label">Headline model, test split</span>

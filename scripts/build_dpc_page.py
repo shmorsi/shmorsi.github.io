@@ -13,6 +13,8 @@ import html
 import json
 from pathlib import Path
 
+import lab  # scripts/lab.py: the interactive pieces, rendered as static HTML first
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "projects.json").read_text())
 PID = "deep-portfolio-constructor"
@@ -113,6 +115,15 @@ def page() -> str:
         </div>
       </section>
 
+      <section class="cs-section" aria-labelledby="s-try">
+        <h2 id="s-try">Try it</h2>
+        <div class="prose">
+          <p class="big">Why neutralise? Build a tiny long-short book and see where its risk comes from.</p>
+          <p>Eight made-up stocks and one signal. Follow the signal and the book quietly bets on the market and on Tech over Energy. Switch to the optimiser and add the constraints one at a time: each one removes a risk the signal never meant to take.</p>
+        </div>
+        <div class="wide">{lab.neutral_toy()}</div>
+      </section>
+
       <section class="cs-section" aria-labelledby="s-stack">
         <h2 id="s-stack">The deep stack</h2>
         <div class="prose">
@@ -132,9 +143,21 @@ def page() -> str:
         <div class="prose">
           <p class="big">Portfolio construction removed the unintended risk; training through the optimiser gave the best Sharpe, and the edge is not statistically significant.</p>
           <p>Neutralising sectors, beta, size and value raised the share of risk from intended stock bets from the naive portfolio to the optimised one: {s("intendedShift")}. Then the ablation, one deep component at a time, net Sharpe: classical optimiser {s("sharpeClassical")}; with the deep risk model {s("sharpeDeepRisk")}; with deep views as well {s("sharpeAlpha")}; trained end to end through the optimiser {s("sharpeE2E")}; fully deep, adding the AlphaFormer to end-to-end training, {s("sharpeDeep")}. The end-to-end model's edge over the classical optimiser is {s("diffMonthly")} per month with a Newey-West t of {s("diffT")}: not significant at 5%.</p>
-          <div class="table-wrap" tabindex="0" role="region" aria-label="Strategy comparison" data-table="{PID}.tables.performance"></div>
-          {figure("assets/img/dpc-cumulative.png", "Log-scale growth of one dollar for six market-neutral strategies since 2008. The naive signal portfolio loses money steadily; the end-to-end models finish highest.", "Net of 10 bps costs, monthly rebalancing, out of sample. Market-neutral returns are excess returns: the cash collateral earns the risk-free rate.")}
+          <p>Pick a step below to see its growth of $1, its risk split and what changed. The exact figures are in the table under it.</p>
         </div>
+        <div class="wide">{lab.portfolio_lab("lab-dpc")}</div>
+        <div class="prose">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Strategy comparison" data-table="{PID}.tables.performance"></div>
+        </div>
+      </section>
+
+      <section class="cs-section" aria-labelledby="s-book">
+        <h2 id="s-book">Inside the book</h2>
+        <div class="prose">
+          <p class="big">The actual portfolio, month by month: drag through 225 rebalances.</p>
+          <p>Each bar is one stock's weight in the end-to-end model's book. Longs and shorts sit side by side inside every sector, so each sector nets out near zero: that is the neutrality doing its job. Press play to watch the book turn over through 2008, 2020 and 2022.</p>
+        </div>
+        <div class="wide">{lab.book_view("../data/dpc_book.json")}</div>
       </section>
 
       <section class="cs-section" aria-labelledby="s-views">

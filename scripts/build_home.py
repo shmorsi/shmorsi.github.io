@@ -18,6 +18,8 @@ import math
 import re
 from pathlib import Path
 
+import lab  # scripts/lab.py: the interactive pieces, rendered as static HTML first
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "projects.json").read_text())
 P = {p["id"]: p for p in DATA["projects"]}
@@ -63,12 +65,6 @@ def interval(text: str) -> tuple[float, float, float | None]:
     if len(nums) == 2:
         return nums[0], nums[1], None
     raise ValueError(f"not an interval: {text!r}")
-
-
-def of(text: str) -> tuple[int, int]:
-    """'7 of 30' -> (7, 30)."""
-    a, b = re.findall(r"\d+", text)[:2]
-    return int(a), int(b)
 
 
 def site_link(p: dict) -> dict:
@@ -142,22 +138,6 @@ def axis(ticks: list[tuple[float, str]], lo: float, hi: float) -> str:
     return f'<p class="chart-axis" aria-hidden="true">{spans}</p>'
 
 
-def ablation_chart() -> str:
-    """Net Sharpe for each step of the ablation, from the project's committed stats."""
-    pid = FEATURED
-    steps = [("Naive signal, no risk model", "sharpeNaive"), ("Classical optimiser", "sharpeClassical"),
-             ("Deep risk model", "sharpeDeepRisk"), ("Deep views and deep risk", "sharpeAlpha"),
-             ("End-to-end through the optimiser", "sharpeE2E"), ("Fully deep: adds AlphaFormer", "sharpeDeep")]
-    values = [number(stat(pid, key)["display"]) for _, key in steps]
-    m = math.ceil(max(abs(v) for v in values) * 10) / 10
-    rows = [bar_row(name, bind(pid, f"stats.{key}.display"), v, -m, m, 0.0, "best" if key == "sharpeE2E" else "")
-            for (name, key), v in zip(steps, values)]
-    ticks = [(-m, f"−{m:.1f}"), (0.0, "0"), (m, f"{m:.1f}")]
-    note = (f'Net Sharpe, out of sample from January 2008, net of 10 bps costs. End-to-end minus classical: Newey-West t '
-            f'{bind(pid, "stats.diffT.display")}, not significant. Seeds 42 / 43 / 44: {bind(pid, "stats.seedsE2E.display")}.')
-    return chart(rows, axis(ticks, -m, m), note, "Net Sharpe ratio for each step of the ablation", "chart-ablation")
-
-
 def tsfm_chart() -> str:
     rows = P["tsfm"]["tables"]["patchTest"]["rows"]
     crps = [r for r in rows if r[2] == "CRPS"]
@@ -167,36 +147,22 @@ def tsfm_chart() -> str:
         point, ci = float(r[3]), interval(r[4])[:2]
         out.append(point_row(f"vs {r[1]}", f"{e(r[3])}× {e(r[4])}", point, ci, lo, hi, 1.0))
     note = "Test CRPS as a multiple of each baseline; 1 is the baseline, lower is better. 95% intervals, one seed, 97 configurations."
-    return chart(out, axis([(0.5, "0.5"), (0.75, "0.75"), (1.0, "1 = baseline")], lo, hi), note,
+    test = chart(out, axis([(0.5, "0.5"), (0.75, "0.75"), (1.0, "1 = baseline")], lo, hi), note,
                  "Test CRPS relative to two baselines, with 95% intervals")
+    val = P["tsfm"]["tables"]["validation"]
+    assert val["headers"] == ["Run", "Parameters", "CRPS", "MASE"], val["headers"]
+    best = min(float(r[2]) for r in val["rows"])
+    bars = [bar_row(f"{r[1]} parameters", e(r[2]), float(r[2]), lo, hi, 1.0, "best" if float(r[2]) == best else "")
+            for r in val["rows"]]
+    scale = chart(bars, axis([(0.5, "0.5"), (0.75, "0.75"), (1.0, "1 = Seasonal Naive")], lo, hi),
+                  "Validation CRPS against Seasonal Naive on 16 held-out configurations, one seed: the bar is the gain over the baseline.",
+                  "Validation CRPS by model size")
+    return f"""{test}
+            <p class="label card-sub">Bigger model, lower error</p>
+            {scale}"""
 
 
-def wsl_chart() -> str:
-    table = P["world-shock-lab"]["tables"]["announcement"]
-    tsx = table["rows"][0]
-    lo, hi = -2.0, 0.5
-    out = []
-    for col, name in ((1, "Fed surprise → TSX"), (2, "Bank of Canada surprise → TSX")):
-        a, b, point = interval(tsx[col])
-        value, band = re.match(r"(\S+)\s*(\[.*\])", tsx[col]).groups()  # "−1.10 [−1.59, −0.61]"
-        out.append(point_row(name, f"{e(value)}% {e(band)}", point, (a, b), lo, hi, 0.0))
-    note = "S&P/TSX move on announcement day per 10 bp surprise in the 2-year yield, with 90% bands. Zero is no effect."
-    return chart(out, axis([(-2.0, "−2%"), (-1.0, "−1%"), (0.0, "0")], lo, hi), note,
-                 "S&P/TSX response to Fed and Bank of Canada surprises, with 90% bands")
-
-
-def aurvane_chart() -> str:
-    pid = "aurvane"
-    without, total = of(stat(pid, "attacksWithout")["display"])
-    with_, _ = of(stat(pid, "attacksWith")["display"])
-    rows = [bar_row("Without Aurvane", bind(pid, "stats.attacksWithout.display"), without, 0, total, 0, "dim"),
-            bar_row("With Aurvane", bind(pid, "stats.attacksWith.display"), with_, 0, total, 0, "best")]
-    note = "Injected attacks that landed, out of 30 poisoned tasks. Simulated worst-case agent, deterministic, run once."
-    return chart(rows, axis([(0, "0"), (total / 2, f"{total // 2}"), (total, f"{total}")], 0, total), note,
-                 "Attacks that landed with and without Aurvane")
-
-
-CHARTS = {"tsfm": tsfm_chart, "world-shock-lab": wsl_chart, "aurvane": aurvane_chart}
+CHARTS = {"tsfm": tsfm_chart, "world-shock-lab": lab.shock_widget, "aurvane": lab.attack_board}
 
 
 # ---------------------------------------------------------------- sections
@@ -227,6 +193,7 @@ def feature() -> str:
           <h3><a href="{e(href)}">{e(p["title"])}</a></h3>
           {bind(pid, "purpose", "p", "purpose")}
         </div>
+        {lab.portfolio_lab("lab-home")}
         <div class="feature-fig">
           {bind(pid, f"stats.{key}.display", "p", "big-fig")}
           {bind(pid, f"stats.{key}.label", "p", "fig-label")}
@@ -239,14 +206,10 @@ def feature() -> str:
             {repo_html(p)}
           </div>
         </div>
-        <div class="feature-chart">
-          <p class="label">The ablation · one deep component at a time</p>
-          {ablation_chart()}
-        </div>
         <div class="feature-stack">
           <p class="label">The deep stack · PyTorch at every layer</p>
           <ol class="pipeline">{steps}</ol>
-          <p class="backprop"><span class="backprop-line" aria-hidden="true"></span>Trained end to end: the gradient of the realised return flows back through the optimiser into both networks.</p>
+          <p class="backprop"><span class="backprop-line" aria-hidden="true"></span><span>Trained {lab.term("end-to-end", "end to end")}: the gradient of the realised return flows back through the {lab.term("differentiable", "differentiable optimiser")} into both networks.</span></p>
         </div>
       </article>"""
 
@@ -385,8 +348,11 @@ def page() -> str:
         </div>
         <figure class="hero-viz">
           <!-- Drawn by assets/site.js. An illustration, not data; a still frame under reduced motion. -->
-          <canvas class="hero-canvas" data-market aria-hidden="true"></canvas>
-          <figcaption>Illustration, not data. Prices stream into a transformer that sets long and short weights; the amber pulses are the gradient of the result flowing back.</figcaption>
+          <div class="hero-stage">
+            <canvas class="hero-canvas" data-market aria-hidden="true"></canvas>
+            <button type="button" class="viz-pause" data-market-pause aria-pressed="false">Pause</button>
+          </div>
+          <figcaption>Illustration, not data. Prices stream into a transformer that sets long and short weights; the amber pulses are the gradient of the result flowing back. <span class="viz-hint">Point at a stock to trace it; click its price line to shock it and watch the book rebalance.</span></figcaption>
         </figure>
       </div>
       <div class="telemetry-band">

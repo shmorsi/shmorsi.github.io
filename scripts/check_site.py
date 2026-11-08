@@ -350,6 +350,63 @@ if "prefers-reduced-motion" not in site_js:
 if "Illustration, not data" not in home:
     errors.append("the hero illustration must say it is an illustration, not data")
 
+# The portfolio lab and the book are exports of the project's committed results; they must agree with its table.
+lab_path, book_path = ROOT / "data" / "dpc_lab.json", ROOT / "data" / "dpc_book.json"
+dpc_stats = projects["deep-portfolio-constructor"]["stats"]
+if not lab_path.exists() or not book_path.exists():
+    errors.append("data/dpc_lab.json and data/dpc_book.json are missing (run scripts/export_dpc_lab.py)")
+else:
+    lab_data = json.loads(lab_path.read_text())
+    book = json.loads(book_path.read_text())
+    if not lab_data["source"].startswith("deep-portfolio-constructor ") or not book["source"].startswith("deep-portfolio-constructor "):
+        errors.append("the lab and book exports must cite the deep-portfolio-constructor repository and commit")
+    months = int(dpc_stats["months"]["display"])
+    if len(lab_data["dates"]) != months + 1 or len(book["dates"]) != months:
+        errors.append(f"the lab should cover {months} months (+ its starting point) and the book {months} rebalances")
+    perf = projects["deep-portfolio-constructor"]["tables"]["performance"]
+    prefixes = {"ls_naive": "Naive", "ls_classical": "Classical", "ls_deep_twostage": "Deep risk", "ls_deep_alpha": "Deep views",
+                "e2e": "End-to-end", "e2e_deep": "Fully deep"}
+    for strat in lab_data["strategies"]:
+        row = next((r for r in perf["rows"] if r[0].startswith(prefixes.get(strat["id"], "?"))), None)
+        if row is None:
+            errors.append(f"lab strategy {strat['id']} has no row in the performance table")
+            continue
+        if len(strat["growth"]) != len(lab_data["dates"]):
+            errors.append(f"lab strategy {strat['id']} growth series does not match its dates")
+        if f"{100 * strat['risk']['specific']:.0f}%" != row[7]:
+            errors.append(f"lab risk split for {strat['id']} ({strat['risk']['specific']}) does not match the table's {row[7]}")
+        if f"−{abs(100 * strat['maxDrawdown']):.0f}%" != row[4]:
+            errors.append(f"lab max drawdown for {strat['id']} ({strat['maxDrawdown']}) does not match the table's {row[4]}")
+        if abs(sum(strat["risk"].values()) - 1) > 0.002:
+            errors.append(f"lab risk split for {strat['id']} does not add up to 100%")
+    for t, row in enumerate(book["weightsBp"]):
+        # Weights are whole basis points rounded so the net stays exact: each is within 1 bp of the optimiser's.
+        if len(row) != len(book["tickers"]) or sum(row) != 0 or max(abs(w) for w in row) > 501:
+            errors.append(f"book {book['dates'][t]} is not dollar-neutral within 5% positions")
+            break
+        nets, sizes = {}, {}
+        for w, sector in zip(row, book["sectors"]):
+            nets[sector] = nets.get(sector, 0) + w
+            sizes[sector] = sizes.get(sector, 0) + 1
+        if any(abs(v) > 500 + sizes[k] for k, v in nets.items()):
+            errors.append(f"book {book['dates'][t]} has a sector net beyond the ±5% limit")
+            break
+
+# Every interactive piece is on its page, every dotted word has a definition, and the toy says it is made up.
+dpc_page = (ROOT / "projects" / "deep-portfolio-constructor.html").read_text(encoding="utf-8")
+for hook, where, text in (("data-lab=", "index.html", home), ("data-shock", "index.html", home), ("data-attack", "index.html", home),
+                          ("data-market-pause", "index.html", home), ("data-lab=", "the portfolio page", dpc_page),
+                          ("data-toy", "the portfolio page", dpc_page), ("data-book=", "the portfolio page", dpc_page)):
+    if hook not in text:
+        errors.append(f"{where} is missing its interactive piece {hook}")
+glossary = set(re.findall(r'^\s+"([a-z-]+)": \[', site_js, re.M))
+for path in html_files:
+    for key in set(re.findall(r'class="term" data-term="([^"]+)"', path.read_text(encoding="utf-8"))):
+        if key not in glossary:
+            errors.append(f"{path.relative_to(ROOT)} uses the term {key!r} but assets/site.js has no definition for it")
+if "made-up stocks" not in dpc_page or "Not data." not in dpc_page:
+    errors.append("the neutralisation toy must say it uses made-up stocks and is not data")
+
 if errors:
     print("\n".join(errors))
     sys.exit(1)
