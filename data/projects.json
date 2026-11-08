@@ -1,10 +1,10 @@
 {
   "instructions": "Edit this file to update every measured figure on the site. Do not add a number unless it is in the resume or in a committed result file in the project's repository. The home page, case studies, and tables all read from here. Each project has one headline stat (headline.stat), three short facts (factIds), and a short caveat. Search this file for the old value and update every place it appears, including caveat text.",
-  "updated": "2026-10-30",
+  "updated": "2026-11-08",
   "projects": [
     {
       "id": "aurvane",
-      "mission": "05",
+      "mission": "01",
       "code": "AURVANE",
       "role": "featured",
       "badge": "Worst-case agent",
@@ -84,8 +84,336 @@
       }
     },
     {
+      "id": "deep-portfolio-constructor",
+      "mission": "02",
+      "code": "DPC",
+      "role": "featured",
+      "badge": "Walk-forward",
+      "kicker": "Deep learning and quant",
+      "title": "Deep Portfolio Constructor",
+      "summary": "A market-neutral long-short equity portfolio built as a five-step ablation, with PyTorch at every layer: a transformer return model (AlphaFormer), a transformer covariance model, and end-to-end training through a differentiable constrained optimiser (cvxpylayers). Walk-forward from January 2008, net of 10 bps costs, 99 US and Canadian large caps.",
+      "purpose": "A long-short portfolio that keeps the intended stock bets and removes unintended sector and factor risk, with PyTorch models for the views, the risk, and the decision itself.",
+      "proves": "Making the optimiser neutral to sectors, beta, size and value raised the share of risk from intended stock bets from 17% to 61%. Training through the optimiser gave the best net Sharpe, 0.58 against −0.03 for the classical optimiser; the gap is not statistically significant, and adding the deep return model on top did not help.",
+      "caveat": "Walk-forward, out of sample from January 2008, 225 months, net of 10 bps costs, monthly rebalancing. The universe is today's 99 large caps, so survivorship bias inflates long-only results. The end-to-end model's edge over the classical optimiser has a Newey-West t of 1.70, not significant. Its realised market beta was 0.19 despite an ex-ante limit of 0.05; hedging its own trailing beta takes its Sharpe from 0.64 to 0.40 on the same window. The fully deep model, which adds the AlphaFormer, scored 0.15 with an FF6 alpha t of 0.04, one seed. The deep covariance model wins on likelihood but loses to Ledoit-Wolf on minimum-variance volatility.",
+      "image": {
+        "src": "assets/img/dpc-risk.png",
+        "alt": "Bar chart: share of predicted portfolio variance from stock-specific bets, style factors and sectors for each strategy.",
+        "width": 1600,
+        "height": 900
+      },
+      "tags": [
+        "Python",
+        "PyTorch",
+        "cvxpylayers",
+        "cvxpy",
+        "pandas",
+        "pytest",
+        "Streamlit"
+      ],
+      "links": [
+        {
+          "label": "Mission page",
+          "href": "projects/deep-portfolio-constructor.html",
+          "kind": "site"
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/shmorsi/deep-portfolio-constructor",
+          "kind": "repo",
+          "external": true,
+          "public": false
+        }
+      ],
+      "glanceIds": [
+        "sharpeE2E",
+        "specificE2E",
+        "icDeep",
+        "tests"
+      ],
+      "factIds": [
+        "sharpeE2E",
+        "icDeep",
+        "diffT"
+      ],
+      "headline": {
+        "stat": "intendedShift",
+        "qualifier": "Ex-ante share of portfolio variance from stock-specific bets, independent Barra-style model, out of sample from January 2008. The end-to-end model keeps 47%."
+      },
+      "stats": {
+        "intendedShift": {
+          "label": "Share of risk from intended stock bets, naive to optimised",
+          "display": "17% → 61%",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ls_naive.exante_share_specific], from reports/stage6_risk_decomposition.csv [L/S naive signal, exante_share_specific]; deep-portfolio-constructor reports/site_figures.json [ls_classical.exante_share_specific], from reports/stage6_risk_decomposition.csv [L/S classical (LW + optimiser), exante_share_specific]"
+        },
+        "specificE2E": {
+          "label": "Share of risk from intended bets, end-to-end model",
+          "display": "47%",
+          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.exante_share_specific], from reports/stage6_risk_decomposition.csv [L/S end-to-end (classical views), exante_share_specific]"
+        },
+        "specificDeep": {
+          "label": "Share of risk from intended bets, fully deep model",
+          "display": "48%",
+          "source": "deep-portfolio-constructor reports/site_figures.json [e2e_deep.exante_share_specific], from reports/stage6_risk_decomposition.csv [L/S end-to-end, fully deep, exante_share_specific]"
+        },
+        "sharpeE2E": {
+          "label": "Net Sharpe, end-to-end model (deep risk, trained through the optimiser)",
+          "display": "0.58",
+          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.sharpe], from reports/stage6_performance.csv [L/S end-to-end (classical views), sharpe]"
+        },
+        "sharpeDeep": {
+          "label": "Net Sharpe, fully deep model (adds the AlphaFormer)",
+          "display": "0.15",
+          "source": "deep-portfolio-constructor reports/site_figures.json [e2e_deep.sharpe], from reports/stage6_performance.csv [L/S end-to-end, fully deep, sharpe]"
+        },
+        "sharpeAlpha": {
+          "label": "Net Sharpe, deep views and deep risk, two-stage",
+          "display": "0.33",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ls_deep_alpha.sharpe], from reports/stage6_performance.csv [L/S deep views + deep risk + optimiser, sharpe]"
+        },
+        "sharpeDeepRisk": {
+          "label": "Net Sharpe, deep risk model only",
+          "display": "−0.05",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ls_deep_twostage.sharpe], from reports/stage6_performance.csv [L/S deep risk + optimiser, sharpe]"
+        },
+        "sharpeClassical": {
+          "label": "Net Sharpe, classical optimiser",
+          "display": "−0.03",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ls_classical.sharpe], from reports/stage6_performance.csv [L/S classical (LW + optimiser), sharpe]"
+        },
+        "sharpeNaive": {
+          "label": "Net Sharpe, naive signal portfolio",
+          "display": "−0.40",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ls_naive.sharpe], from reports/stage6_performance.csv [L/S naive signal, sharpe]"
+        },
+        "diffT": {
+          "label": "End-to-end minus classical, Newey-West t",
+          "display": "1.70",
+          "source": "deep-portfolio-constructor reports/site_figures.json [diff.e2e - ls_classical.t_stat], from reports/stage6_difference_tests.csv [e2e - ls_classical, t_stat]"
+        },
+        "diffMonthly": {
+          "label": "End-to-end minus classical, monthly return",
+          "display": "+0.43%",
+          "source": "deep-portfolio-constructor reports/site_figures.json [diff.e2e - ls_classical.mean_monthly_diff], from reports/stage6_difference_tests.csv [e2e - ls_classical, mean_monthly_diff]"
+        },
+        "diffDeepT": {
+          "label": "Fully deep minus classical, Newey-West t",
+          "display": "0.59",
+          "source": "deep-portfolio-constructor reports/site_figures.json [diff.e2e_deep - ls_classical.t_stat], from reports/stage6_difference_tests.csv [e2e_deep - ls_classical, t_stat]"
+        },
+        "betaE2E": {
+          "label": "Realised market beta, end-to-end model",
+          "display": "0.19",
+          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.beta_mkt], from reports/stage6_performance.csv [L/S end-to-end (classical views), beta_mkt]"
+        },
+        "betaDeep": {
+          "label": "Realised market beta, fully deep model",
+          "display": "0.17",
+          "source": "deep-portfolio-constructor reports/site_figures.json [e2e_deep.beta_mkt], from reports/stage6_performance.csv [L/S end-to-end, fully deep, beta_mkt]"
+        },
+        "hedgedE2E": {
+          "label": "Net Sharpe after hedging its own trailing beta, end-to-end model",
+          "display": "0.40",
+          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.sharpe_beta_hedged], from reports/stage6_beta_hedged.csv [L/S end-to-end (classical views), sharpe_beta_hedged]"
+        },
+        "unhedgedE2E": {
+          "label": "Same window, before the hedge",
+          "display": "0.64",
+          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.sharpe_unhedged], from reports/stage6_beta_hedged.csv [L/S end-to-end (classical views), sharpe_unhedged]"
+        },
+        "alphaTE2E": {
+          "label": "FF6 alpha t-stat, end-to-end model",
+          "display": "1.48",
+          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.alpha_t_ff6], from reports/stage6_performance.csv [L/S end-to-end (classical views), alpha_t_ff6]"
+        },
+        "alphaTDeep": {
+          "label": "FF6 alpha t-stat, fully deep model",
+          "display": "0.04",
+          "source": "deep-portfolio-constructor reports/site_figures.json [e2e_deep.alpha_t_ff6], from reports/stage6_performance.csv [L/S end-to-end, fully deep, alpha_t_ff6]"
+        },
+        "icDeep": {
+          "label": "Out-of-sample rank IC, AlphaFormer",
+          "display": "0.0165",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ic.deep_alpha.mean_IC], from reports/stage4b_alpha_ic.csv [deep_alpha, mean_IC]"
+        },
+        "icDeepT": {
+          "label": "AlphaFormer IC, Newey-West t",
+          "display": "1.25",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ic.deep_alpha.IC_t_stat_NW], from reports/stage4b_alpha_ic.csv [deep_alpha, IC_t_stat_NW]"
+        },
+        "icMomentum": {
+          "label": "Out-of-sample rank IC, momentum alone",
+          "display": "0.0161",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ic.momentum.mean_IC], from reports/stage4b_alpha_ic.csv [momentum, mean_IC]"
+        },
+        "spreadMomentum": {
+          "label": "Top minus bottom quintile, momentum alone, per month",
+          "display": "+0.24%",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ic.momentum.Q5_minus_Q1_monthly], from reports/stage4b_alpha_ic.csv [momentum, Q5_minus_Q1_monthly]"
+        },
+        "icComposite": {
+          "label": "Out-of-sample rank IC, classical composite",
+          "display": "−0.0039",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ic.combined.mean_IC], from reports/stage4b_alpha_ic.csv [combined, mean_IC]"
+        },
+        "spreadDeep": {
+          "label": "Top minus bottom quintile, AlphaFormer, per month",
+          "display": "+0.47%",
+          "source": "deep-portfolio-constructor reports/site_figures.json [ic.deep_alpha.Q5_minus_Q1_monthly], from reports/stage4b_alpha_ic.csv [deep_alpha, Q5_minus_Q1_monthly]"
+        },
+        "nllDeep": {
+          "label": "Out-of-sample covariance NLL, deep model (lower is better)",
+          "display": "−2.941",
+          "source": "deep-portfolio-constructor reports/site_figures.json [risk.deep.mean_oos_nll], from reports/stage4_risk_model.csv [deep, mean_oos_nll]"
+        },
+        "nllLW": {
+          "label": "Out-of-sample covariance NLL, Ledoit-Wolf",
+          "display": "−2.899",
+          "source": "deep-portfolio-constructor reports/site_figures.json [risk.ledoit_wolf.mean_oos_nll], from reports/stage4_risk_model.csv [ledoit_wolf, mean_oos_nll]"
+        },
+        "gmvDeep": {
+          "label": "Minimum-variance realised vol, deep covariance",
+          "display": "14.0%",
+          "source": "deep-portfolio-constructor reports/site_figures.json [risk.deep.gmv_realised_vol_ann], from reports/stage4_risk_model.csv [deep, gmv_realised_vol_ann]"
+        },
+        "gmvLW": {
+          "label": "Minimum-variance realised vol, Ledoit-Wolf",
+          "display": "13.3%",
+          "source": "deep-portfolio-constructor reports/site_figures.json [risk.ledoit_wolf.gmv_realised_vol_ann], from reports/stage4_risk_model.csv [ledoit_wolf, gmv_realised_vol_ann]"
+        },
+        "seedsE2E": {
+          "label": "Net Sharpe of the end-to-end model across seeds 42 / 43 / 44",
+          "display": "0.58 / 0.46 / 0.49",
+          "source": "deep-portfolio-constructor reports/site_figures.json [seeds.seed=42.sharpe], from reports/stage6_seeds.csv [seed=42, sharpe]; deep-portfolio-constructor reports/site_figures.json [seeds.seed=43.sharpe], from reports/stage6_seeds.csv [seed=43, sharpe]; deep-portfolio-constructor reports/site_figures.json [seeds.seed=44.sharpe], from reports/stage6_seeds.csv [seed=44, sharpe]"
+        },
+        "tests": {
+          "label": "Automated tests",
+          "display": "89",
+          "source": "deep-portfolio-constructor reports/site_figures.json [tests], from pytest --collect-only, deep-portfolio-constructor main"
+        },
+        "oracleSharpe": {
+          "label": "Sharpe of a deliberately cheating oracle (look-ahead calibration)",
+          "display": "10.6",
+          "source": "deep-portfolio-constructor reports/site_figures.json [oracle_sharpe], from reports/stage6_lookahead_checks.json [oracle_sharpe]"
+        },
+        "costE2E20": {
+          "label": "End-to-end model Sharpe at 20 bps costs",
+          "display": "0.45",
+          "source": "deep-portfolio-constructor reports/site_figures.json [cost.e2e.sharpe@20bps], from reports/stage6_cost_sensitivity.csv [L/S end-to-end (classical views), sharpe@20bps]"
+        },
+        "costE2E40": {
+          "label": "End-to-end model Sharpe at 40 bps costs",
+          "display": "0.19",
+          "source": "deep-portfolio-constructor reports/site_figures.json [cost.e2e.sharpe@40bps], from reports/stage6_cost_sensitivity.csv [L/S end-to-end (classical views), sharpe@40bps]"
+        },
+        "constraintRange": {
+          "label": "End-to-end model Sharpe across position caps 3-10% and sector limits 2.5-10%",
+          "display": "0.54 to 0.67",
+          "source": "deep-portfolio-constructor reports/site_figures.json [constraints.e2e.sharpe_min], from reports/stage6_constraint_sensitivity.csv [e2e rows, min sharpe]; deep-portfolio-constructor reports/site_figures.json [constraints.e2e.sharpe_max], from reports/stage6_constraint_sensitivity.csv [e2e rows, max sharpe]"
+        },
+        "paramsAlpha": {
+          "label": "AlphaFormer parameters, per ensemble member",
+          "display": "28,033",
+          "source": "deep-portfolio-constructor reports/site_figures.json [params.alpha_former], from src/dpc/deep/alpha_model.py with config.yaml alpha_model, 3-seed ensemble has 3x"
+        },
+        "paramsRisk": {
+          "label": "Deep risk model parameters",
+          "display": "29,033",
+          "source": "deep-portfolio-constructor reports/site_figures.json [params.risk_model], from src/dpc/deep/risk_model.py with config.yaml risk_model"
+        },
+        "stocks": {
+          "label": "Stocks, US and Canadian large caps",
+          "display": "99",
+          "source": "deep-portfolio-constructor reports/site_figures.json [universe.n_stocks], from reports/data_quality_summary.csv [passed]"
+        },
+        "months": {
+          "label": "Out-of-sample months, walk-forward",
+          "display": "225",
+          "source": "deep-portfolio-constructor reports/site_figures.json [diff.e2e - ls_classical.n_months], from reports/stage6_difference_tests.csv [e2e - ls_classical, n_months]"
+        }
+      },
+      "tables": {
+        "performance": {
+          "caption": "Market-neutral strategies, out of sample January 2008 to September 2026, monthly rebalancing, net of 10 bps costs.",
+          "headers": [
+            "Strategy",
+            "Net Sharpe",
+            "Return",
+            "Volatility",
+            "Max drawdown",
+            "FF6 alpha t",
+            "Market beta",
+            "Risk from intended bets"
+          ],
+          "rows": [
+            [
+              "Naive signal, no risk model",
+              "−0.40",
+              "−8.7%",
+              "18.4%",
+              "−88%",
+              "−3.47",
+              "−0.16",
+              "17%"
+            ],
+            [
+              "Classical: Ledoit-Wolf + optimiser",
+              "−0.03",
+              "−0.6%",
+              "8.0%",
+              "−32%",
+              "−0.69",
+              "0.02",
+              "61%"
+            ],
+            [
+              "Deep risk model + optimiser",
+              "−0.05",
+              "−0.9%",
+              "9.5%",
+              "−36%",
+              "−1.24",
+              "0.05",
+              "41%"
+            ],
+            [
+              "Deep views + deep risk + optimiser",
+              "0.33",
+              "2.5%",
+              "8.5%",
+              "−26%",
+              "0.80",
+              "0.15",
+              "50%"
+            ],
+            [
+              "End-to-end through the optimiser (primary)",
+              "0.58",
+              "4.7%",
+              "8.6%",
+              "−28%",
+              "1.48",
+              "0.19",
+              "47%"
+            ],
+            [
+              "Fully deep: adds AlphaFormer to end-to-end",
+              "0.15",
+              "1.0%",
+              "9.3%",
+              "−31%",
+              "0.04",
+              "0.17",
+              "48%"
+            ]
+          ],
+          "highlightRow": 4,
+          "source": "deep-portfolio-constructor reports/stage6_performance.csv and reports/stage6_risk_decomposition.csv via reports/site_figures.json"
+        }
+      }
+    },
+    {
       "id": "orbit",
-      "mission": "01",
+      "mission": "03",
       "code": "ORBIT",
       "role": "featured",
       "badge": "code-eval-v2",
@@ -117,7 +445,8 @@
           "label": "GitHub",
           "href": "https://github.com/shmorsi/orbit-multi-agent",
           "kind": "repo",
-          "external": true
+          "external": true,
+          "public": false
         }
       ],
       "glanceIds": [
@@ -402,7 +731,7 @@
     },
     {
       "id": "tsfm",
-      "mission": "02",
+      "mission": "04",
       "code": "TSFM",
       "role": "featured",
       "badge": "Test split",
@@ -612,9 +941,9 @@
           "source": "tsfm-from-scratch README, validation study that selected patch_s2. Parameter totals from results/runs/*/summary.json (895,296; 2,879,296; 10,083,392). Validation scores, not the test split."
         },
         "overlaps": {
-          "caption": "Pretraining series that matched GIFT-Eval series and were removed.",
+          "caption": "Corpus series (pretraining or validation) that matched GIFT-Eval series and were removed.",
           "headers": [
-            "Pretraining data",
+            "Corpus dataset",
             "Benchmark series",
             "Flagged series"
           ],
@@ -765,13 +1094,13 @@
     },
     {
       "id": "world-shock-lab",
-      "mission": "03",
+      "mission": "05",
       "code": "World Shock Lab",
       "role": "featured",
       "badge": "Live site",
       "kicker": "Macro shocks and machine learning",
       "title": "World Shock Lab",
-      "summary": "Event studies of Federal Reserve, Bank of Canada, and OPEC surprises across global assets, with a pre-registered test of whether machine learning adds anything, and a scenario tool published before each decision.",
+      "summary": "Event studies of Federal Reserve, Bank of Canada, and OPEC surprises across global assets, with a pre-registered test of whether machine learning adds anything, and forecasts published before each decision.",
       "caveat": "Machine learning did not beat the linear model on the average move in either pre-registered study. Quantile boosting won only on 5% tail pinball loss. None of 80 regime tests survived false-discovery control.",
       "image": {
         "src": "assets/img/world-shock-lab-scenario.webp",
@@ -875,42 +1204,42 @@
         "pinballQgbm": {
           "label": "5% pinball, quantile gradient boosting",
           "display": "1.446",
-          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20; file git_sha d0dc395c530d37d225381b3bd7391ee54f83c223, protocol ml-study-v1, generated 20261020T183639Z). Quantile gradient boosting (max depth 2) pooled scaled pinball 1.4455223913308346 at tau 0.05, shown as 1.446. Merged in https://github.com/shmorsi/world-shock-lab/pull/1."
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20; file git_sha d0dc395c530d37d225381b3bd7391ee54f83c223, protocol ml-study-v1, generated 20261020T183639Z). Quantile gradient boosting (max depth 2) pooled scaled pinball 1.4455223913308346 at tau 0.05, shown as 1.446. Merged in https://github.com/shmorsi/world-shock-lab/pull/1."
         },
         "pinballGauss": {
           "label": "5% pinball, Gaussian linear baseline",
           "display": "1.558",
-          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). Gaussian linear baseline pooled scaled pinball 1.5580062579531035, shown as 1.558."
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). Gaussian linear baseline pooled scaled pinball 1.5580062579531035, shown as 1.558."
         },
         "pinballGap": {
           "label": "Pinball, boosting minus Gaussian linear",
           "display": "−0.112",
-          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). difference_ml_minus_gauss point −0.11248386662226895, shown as −0.112. Verdict in the file: ML adds value on the 5% tail. This is pinball loss, not a calibration claim."
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_gauss point −0.11248386662226895, shown as −0.112. Verdict in the file: ML adds value on the 5% tail. This is pinball loss, not a calibration claim."
         },
         "pinballCi": {
           "label": "90% interval on the pinball gap",
           "display": "−0.228 to −0.010",
-          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). difference_ml_minus_gauss ci90 [−0.2280172224402263, −0.010335754412836245], shown as −0.228 to −0.010."
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_gauss ci90 [−0.2280172224402263, −0.010335754412836245], shown as −0.228 to −0.010."
         },
         "tcnMae": {
           "label": "Mean scaled error, temporal CNN",
           "display": "1.157",
-          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). Temporal CNN (16 channels, weight decay 0.001) pooled scaled MAE 1.1571277532978215, shown as 1.157."
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). Temporal CNN (16 channels, weight decay 0.001) pooled scaled MAE 1.1571277532978215, shown as 1.157."
         },
         "lpMae": {
           "label": "Mean scaled error, linear projection",
           "display": "1.142",
-          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). Pooled scaled MAE for the linear projection baseline 1.1420847324581223, shown as 1.142."
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). Pooled scaled MAE for the linear projection baseline 1.1420847324581223, shown as 1.142."
         },
         "tcnGap": {
           "label": "Mean error, temporal CNN minus linear",
           "display": "+0.015",
-          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). difference_ml_minus_lp point 0.015043020839699217, shown as +0.015. Verdict in the file: no evidence ML adds value."
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_lp point 0.015043020839699217, shown as +0.015. Verdict in the file: no evidence ML adds value."
         },
         "tcnCi": {
           "label": "90% interval on the mean gap",
           "display": "−0.006 to +0.037",
-          "source": "results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). difference_ml_minus_lp ci90 [−0.006025486483002209, 0.03684541655024226], shown as −0.006 to +0.037. The interval includes zero."
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_lp ci90 [−0.006025486483002209, 0.03684541655024226], shown as −0.006 to +0.037. The interval includes zero."
         },
         "bocDecisions": {
           "label": "BoC decisions dated from press releases",
@@ -969,7 +1298,7 @@
           "display": "168",
           "count": 168,
           "decimals": 0,
-          "source": "Static count at world-shock-lab main cb7a00c (2026-10-30): 177 test cases (test functions times parametrize cases), 168 selected by the repository's default marker filter (-m 'not data'), which is what CI runs. pytest was not run for this count. The earlier figure, 157, was collected on 2026-10-23."
+          "source": "Static count at world-shock-lab main cb7a00c (2026-10-23): 177 test cases (test functions times parametrize cases), 168 selected by the repository's default marker filter (-m 'not data'), which is what CI runs. pytest was not run for this count. The earlier figure, 157, was collected on 2026-10-23."
         },
         "rerunMinutes": {
           "label": "Full rerun time",
@@ -994,7 +1323,7 @@
         "forecastStatus": {
           "label": "Oct 28 Fed and BoC forecasts",
           "display": "Awaiting data",
-          "source": "world-shock-lab config/live.yaml scoring: score 1 is written once every outcome's h = 5 value is published; FX comes from the weekly H.10 release, typically 6 to 10 days after the decision (2026-11-03 to 2026-11-07 for 2026-10-28). live/scores/ has no score files at main cb7a00c."
+          "source": "world-shock-lab config/live.yaml scoring: score 1 is written once every outcome's h = 5 value is published; FX comes from the weekly H.10 release, typically 6 to 10 days after the decision live/scores/ has no score files at main 22d0bab (checked 2026-11-08), so no decision has been scored yet."
         },
         "nextDecision": {
           "label": "Next forecasted decisions, Fed and BoC",
@@ -1074,7 +1403,7 @@
           "source": "World Shock Lab case study. Neural-network error minus linear error is −0.003, and the 90% interval includes zero."
         },
         "mlStudy": {
-          "caption": "ml-study-v1 on 168 held-out announcements, 2019–2026. Pooled scaled scores, lower is better. Read from results/mlstudy/final.json on main at merge commit c955cc1 (2026-10-20). The earlier benchmark above is unchanged.",
+          "caption": "ml-study-v1 on 168 held-out announcements, 2019–2026. Pooled scaled scores, lower is better. Read from results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). The earlier benchmark above is unchanged.",
           "headers": [
             "Target",
             "Model",
@@ -1098,7 +1427,7 @@
               "−0.228 to −0.010"
             ]
           ],
-          "source": "results/mlstudy/final.json (protocol ml-study-v1, git d0dc395c530d37d225381b3bd7391ee54f83c223, generated 20261020T183639Z) on main at merge commit c955cc1 (https://github.com/shmorsi/world-shock-lab/commit/c955cc1527f915c9227f65e1ccbca058ce32d9a6), merged from https://github.com/shmorsi/world-shock-lab/pull/1 on 2026-10-20. File verdicts: no evidence the temporal CNN adds value on the mean; quantile gradient boosting adds value on the 5% tail by pinball loss. Not a calibration claim, and not a comparison to a published model."
+          "source": "results/mlstudy/final.json (protocol ml-study-v1, git d0dc395c530d37d225381b3bd7391ee54f83c223, generated 20261020T183639Z) on main at merge commit 638bdb6 (https://github.com/shmorsi/world-shock-lab/commit/638bdb6357bc2c9f627ac4a6569a04995982b961), merged from https://github.com/shmorsi/world-shock-lab/pull/1 on 2026-10-20. File verdicts: no evidence the temporal CNN adds value on the mean; quantile gradient boosting adds value on the 5% tail by pinball loss. Not a calibration claim, and not a comparison to a published model."
         }
       },
       "purpose": "How a central-bank surprise ripples through 53 markets, with forecasts published before each decision.",
@@ -1115,7 +1444,7 @@
     },
     {
       "id": "atlas",
-      "mission": "04",
+      "mission": "06",
       "code": "ATLAS",
       "role": "featured",
       "badge": "Local app",
@@ -1148,13 +1477,15 @@
           "label": "GitHub",
           "href": "https://github.com/shmorsi/atlas",
           "kind": "repo",
-          "external": true
+          "external": true,
+          "public": false
         },
         {
           "label": "Release v0.1.2",
           "href": "https://github.com/shmorsi/atlas/releases/tag/v0.1.2",
           "kind": "more",
-          "external": true
+          "external": true,
+          "public": false
         }
       ],
       "headline": {
@@ -1423,5 +1754,5 @@
       "proves": "One local solve traces a cost shock through 405 country-sector nodes. On the one held-out year, ridge beat every neural and graph model."
     }
   ],
-  "tagline": "AI engineer building agent systems and models from scratch."
+  "tagline": "AI agents, deep learning and quant research, built from scratch and measured honestly."
 }

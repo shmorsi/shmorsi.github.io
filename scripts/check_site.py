@@ -250,7 +250,7 @@ for path in html_files:
         if shown and cursor is not None and shown != str(cursor):
             errors.append(f"{path.relative_to(ROOT)} bind {raw} shows {shown!r} but data says {cursor!r}")
 sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
-for loc in ("projects/tsfm.html", "projects/world-shock-lab.html", "projects/atlas.html", "orbit/"):
+for loc in ("projects/tsfm.html", "projects/world-shock-lab.html", "projects/atlas.html", "projects/deep-portfolio-constructor.html", "orbit/"):
     if f"https://shmorsi.github.io/{loc}</loc>" not in sitemap:
         errors.append(f"sitemap.xml is missing {loc}")
 
@@ -339,8 +339,8 @@ for project in DATA["projects"]:
         errors.append(f"index.html is missing the proves line for {project['id']}")
 
 for gif in ("orbit/media/orbit-code.gif", "orbit/media/orbit-boardroom.gif"):
-    if gif not in home or not (ROOT / gif).is_file():
-        errors.append(f"home page must use the measured clip {gif}")
+    if gif.removeprefix("orbit/") not in orbit_page or not (ROOT / gif).is_file():
+        errors.append(f"the Orbit mission page must use the measured clip {gif}")
 if "prefers-reduced-motion" not in (ROOT / "assets" / "site.css").read_text(encoding="utf-8"):
     errors.append("stylesheet must respect prefers-reduced-motion")
 if "data-gif" not in (ROOT / "assets" / "site.js").read_text(encoding="utf-8"):
@@ -419,6 +419,32 @@ else:
         if path.is_file() and path.suffix in {".html", ".js", ".json", ".css", ".xml", ".md"} and ".git" not in path.parts \
                 and path != old and path.name != "check_site.py" and re.search(r"\bglass\b", path.read_text(errors="ignore"), re.I):
             errors.append(f"{path.relative_to(ROOT)} still uses the project's old name")
+
+# Deep Portfolio Constructor: every figure comes from the project's committed export, and the limits stay stated.
+dpc = projects.get("deep-portfolio-constructor")
+if dpc is None or not (ROOT / "projects" / "deep-portfolio-constructor.html").exists():
+    errors.append("Deep Portfolio Constructor needs its project entry and projects/deep-portfolio-constructor.html")
+else:
+    for key, stat in dpc["stats"].items():
+        if not stat["source"].startswith("deep-portfolio-constructor reports/"):
+            errors.append(f"deep-portfolio-constructor.stats.{key} must cite the project's committed reports/ file")
+    caveat = dpc.get("caveat", "").lower()
+    for needle in ("survivorship", "not significant", "beta", "one seed"):
+        if needle not in caveat:
+            errors.append(f"deep-portfolio-constructor caveat must state {needle!r}")
+    if re.search(r"significant(?! at)|significantly", dpc.get("proves", "").replace("not statistically significant", "")):
+        errors.append("deep-portfolio-constructor proves line must not claim significance")
+
+# Mission patches exist for every project, and no page links to a repository visitors cannot open.
+for project in DATA["projects"]:
+    if not (ROOT / "assets" / "patches" / f"{project['id']}.svg").is_file():
+        errors.append(f"missing mission patch assets/patches/{project['id']}.svg (run scripts/make_patches.py)")
+    for link in project.get("links") or []:
+        if link.get("public") is False:
+            repo = link["href"].rstrip("/")
+            for path in html_files:
+                if re.search(r'href="' + re.escape(repo) + r'(?:/[^"]*)?"', path.read_text(encoding="utf-8")):
+                    errors.append(f"{path.relative_to(ROOT)} links {repo}, which is marked private (run scripts/sync_chrome.py)")
 
 if errors:
     print("\n".join(errors))

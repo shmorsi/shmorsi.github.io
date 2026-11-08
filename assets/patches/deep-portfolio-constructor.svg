@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Mission patch: Deep Portfolio Constructor">
+  <defs>
+    <path id="ring-top-deep-portfolio-constructor" d="M 28 100 A 72 72 0 0 1 172 100"/>
+    <path id="ring-bot-deep-portfolio-constructor" d="M 34 100 A 66 66 0 0 0 166 100"/>
+  </defs>
+  <circle cx="100" cy="100" r="96" fill="#000"/>
+  <circle cx="100" cy="100" r="96" fill="none" stroke="#f5f5f7" stroke-width="2"/>
+  <circle cx="100" cy="100" r="84" fill="none" stroke="#8ec5ff" stroke-width="1.5"/>
+  <circle cx="100" cy="100" r="58" fill="none" stroke="#f5f5f7" stroke-opacity="0.25" stroke-width="1"/>
+  <text font-family="Inter Tight, Helvetica Neue, Arial, sans-serif" font-size="11.5" font-weight="600" letter-spacing="3.2" fill="#f5f5f7" text-anchor="middle">
+    <textPath href="#ring-top-deep-portfolio-constructor" startOffset="50%">MISSION 02 · DPC</textPath>
+  </text>
+  <text font-family="Inter Tight, Helvetica Neue, Arial, sans-serif" font-size="9" font-weight="500" letter-spacing="2.6" fill="#f5f5f7" fill-opacity="0.7" text-anchor="middle">
+    <textPath href="#ring-bot-deep-portfolio-constructor" startOffset="50%">SHERIF MORSI</textPath>
+  </text>
+  <line x1="64" y1="72" x2="100" y2="80" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="72" x2="100" y2="100" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="72" x2="100" y2="120" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="92" x2="100" y2="80" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="92" x2="100" y2="100" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="92" x2="100" y2="120" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="112" x2="100" y2="80" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="112" x2="100" y2="100" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="112" x2="100" y2="120" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="132" x2="100" y2="80" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="132" x2="100" y2="100" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="64" y1="132" x2="100" y2="120" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="100" y1="80" x2="136" y2="100" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="100" y1="100" x2="136" y2="100" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><line x1="100" y1="120" x2="136" y2="100" stroke="#f5f5f7" stroke-opacity="0.35" stroke-width="1.2"/><circle cx="64" cy="72" r="6" fill="#000" stroke="#f5f5f7" stroke-width="2"/><circle cx="64" cy="92" r="6" fill="#000" stroke="#f5f5f7" stroke-width="2"/><circle cx="64" cy="112" r="6" fill="#000" stroke="#f5f5f7" stroke-width="2"/><circle cx="64" cy="132" r="6" fill="#000" stroke="#f5f5f7" stroke-width="2"/><circle cx="100" cy="80" r="6" fill="#000" stroke="#f5f5f7" stroke-width="2"/><circle cx="100" cy="100" r="6" fill="#000" stroke="#f5f5f7" stroke-width="2"/><circle cx="100" cy="120" r="6" fill="#000" stroke="#f5f5f7" stroke-width="2"/><circle cx="136" cy="100" r="9" fill="#8ec5ff" stroke="#f5f5f7" stroke-width="2"/>
+</svg>

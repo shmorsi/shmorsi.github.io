@@ -123,7 +123,7 @@
 % EDIT: summary text only (keep it to 2 lines, max 3-4 bold terms)
 \section{Summary}
 \small{
-Computer Science student building \textbf{LLM agent systems}: multi-agent teams that talk in schema-checked JSON, signed mandates that bound what agents may do, \textbf{QLoRA} fine-tunes, and a \textbf{transformer} trained from scratch, each scored on a frozen eval.
+Computer Science student building AI systems end to end: \textbf{LLM agents} that act inside signed bounds, \textbf{PyTorch} models trained from scratch, and \textbf{quant research} with walk-forward backtests, each scored on a held-out test fixed in advance.
 }
 
 %-----------EDUCATION-----------
@@ -138,6 +138,7 @@ Computer Science student building \textbf{LLM agent systems}: multi-agent teams 
     \resumeItemListStart
       \resumeItem{\textbf{Availability:} Winter 2027 (Jan to Apr 2027) for 4, 8, 12, or 16 months, anywhere in Canada}
       \resumeItem{\textbf{Coursework:} Data Structures and Algorithms, Object-Oriented Programming, Artificial Intelligence, Machine Learning, Linear Algebra, Multivariable Calculus}
+      \resumeItem{\textbf{Activities:} Member, QUARCC (Quantitative Research and Competitions Club)}
     \resumeItemListEnd
 \resumeSubHeadingListEnd
 \vspace{-3pt}
@@ -171,6 +172,7 @@ Computer Science student building \textbf{LLM agent systems}: multi-agent teams 
 \resumeSubHeadingListEnd
 
 %-----------PROJECTS-----------
+% Private repositories (Deep Portfolio Constructor, Orbit, ATLAS) link their mission page until they are public.
 \vspace{-5pt}
 \section{Projects}
 \resumeSubHeadingListStart
@@ -178,33 +180,40 @@ Computer Science student building \textbf{LLM agent systems}: multi-agent teams 
 
 % EDIT: {\textbf{Name} $|$ \emph{Tools} $|$ \githubLink{repo url}}{Year}
 \resumeProjectHeading
-{\textbf{Aurvane (Agent Security, Delegation)} $|$ \emph{Python, Ed25519, MCP, JavaScript} $|$ \githubLink{https://github.com/shmorsi/aurvane} $|$ \href{https://shmorsi.github.io/aurvane/}{\textbf{\underline{Live Demo}}}}{2026}
+{\textbf{Deep Portfolio Constructor (Deep Learning, Quant)} $|$ \emph{Python, PyTorch, cvxpylayers} $|$ \href{https://shmorsi.github.io/projects/deep-portfolio-constructor.html}{\textbf{\underline{Mission Page}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Built a trust layer between LLM agents and their tools: \textbf{Ed25519-signed mandates}, four checks on every action (identity, scope, bounds, provenance), a human Allow/Deny step when untrusted text picks a destination, and a hash-chained audit log}\vspace{-1pt}
-\resumeItem{\textbf{Agent-to-agent delegation:} sub-agents only receive strictly narrower mandates that verify back to the human's key. Ships as a Python SDK decorator and an \textbf{MCP server} for Claude Code or any MCP client; 46 tests in CI}\vspace{-1pt}
-\resumeItem{Against a simulated agent that obeys every \textbf{prompt injection} (60 paired tasks), attacks that landed fell from \textbf{30/30 to 7/30} and money lost from 12,135 to \textbf{135 CAD}, with 0 false alarms; a 12-attack red team: 8 contained, 2 capped, 2 through}
+\resumeItem{Market-neutral long-short portfolio of 99 large caps with \textbf{PyTorch at every layer}: a cross-sectional \textbf{transformer} return model, a transformer covariance model, and \textbf{end-to-end training through a differentiable optimizer}}\vspace{-1pt}
+\resumeItem{Neutrality constraints raised the share of risk from intended stock bets from \textbf{17\% to 61\%}; end-to-end training gave the best net Sharpe (\textbf{0.58 vs $-$0.03}, 2008--2026 walk-forward, t = 1.70, not significant)}
 \resumeItemListEnd
 \vspace{1pt}
 
 \resumeProjectHeading
-{\textbf{Orbit (Multi-Agent Systems, Fine-Tuning)} $|$ \emph{Python, PyTorch, QLoRA, Claude API} $|$ \githubLink{https://github.com/shmorsi/orbit-multi-agent} $|$ \href{https://shmorsi.github.io/orbit/}{\textbf{\underline{Live Replay}}}}{2026}
+{\textbf{Aurvane (Agent Security, Delegation)} $|$ \emph{Python, Ed25519, MCP, JavaScript} $|$ \githubLink{https://github.com/shmorsi/aurvane} $|$ \href{https://shmorsi.github.io/aurvane/}{\textbf{\underline{Live Demo}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Built a planner, coder, test runner, critic, and reviewer that talk in \textbf{schema-validated JSON} with per-role tool permissions; a code-level reviewer rejects patches that fail hidden tests or edit them, and every turn is a replayable JSONL trace}\vspace{-1pt}
-\resumeItem{\textbf{QLoRA}-tuned \textbf{Qwen2.5-1.5B} on agent dialogues: schema-valid tool-call rate \textbf{0.333 to 0.764} (95\% CI 0.264 to 0.607). Task success 4/12 vs 2/12 (CI includes zero)}\vspace{-1pt}
-\resumeItem{On 32 frozen bug-fix tasks with Claude Haiku, the team passed \textbf{29/32} and a single agent 27/32, for \textbf{\$0.018}; the paired 95\% CI (0.000 to 0.156) includes zero. One model interface over five backends}
+\resumeItem{Trust layer between LLM agents and their tools: \textbf{Ed25519-signed mandates}, four checks per action, Allow/Deny approvals, narrower-only sub-agent mandates, hash-chained log; Python SDK and \textbf{MCP server}; 46 tests}\vspace{-1pt}
+\resumeItem{Against a simulated agent that obeys every \textbf{prompt injection} (60 paired tasks), attacks that landed fell from \textbf{30/30 to 7/30} and money lost from 12,135 to \textbf{135 CAD}, with 0 false alarms}
 \resumeItemListEnd
-\vspace{-1pt}
+\vspace{1pt}
+
+\resumeProjectHeading
+{\textbf{Orbit (Multi-Agent Systems, Fine-Tuning)} $|$ \emph{Python, PyTorch, QLoRA, Claude API} $|$ \href{https://shmorsi.github.io/orbit/}{\textbf{\underline{Live Replay}}}}{2026}
+\vspace{-2pt}
+\resumeItemListStart
+\resumeItem{Planner, coder, test-runner, critic and reviewer agents exchange \textbf{schema-validated JSON} with per-role tool permissions; a code reviewer rejects patches that fail hidden tests}\vspace{-1pt}
+\resumeItem{\textbf{QLoRA}-tuned \textbf{Qwen2.5-1.5B}: schema-valid tool-call rate \textbf{0.333 to 0.764} (95\% CI on the gain 0.264 to 0.607); on 32 frozen bug-fix tasks the team passed 29/32 vs 27/32 for one agent (CI includes zero)}
+\resumeItemListEnd
+\vspace{1pt}
 
 \resumeProjectHeading
 {\textbf{Time-Series Foundation Model (Transformers)} $|$ \emph{Python, PyTorch, pytest, GitHub Actions} $|$ \githubLink{https://github.com/shmorsi/tsfm-from-scratch}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Pretrained a \textbf{10.1M-parameter} decoder-only transformer from scratch on \textbf{443,258} series across 77 datasets. On the frozen test (97 configurations), CRPS was \textbf{0.688$\times$} AutoARIMA, 95\% CI [0.624, 0.757]}\vspace{-1pt}
-\resumeItem{A leakage audit caught a public benchmark corpus containing its own test data and removed \textbf{801 of 447,229} series before training; 170 automated tests in CI}
+\resumeItem{Pretrained a \textbf{10.1M-parameter} decoder-only transformer from scratch on \textbf{443,258} series across 77 datasets; on the frozen test (97 configurations, one seed), CRPS was \textbf{0.688$\times$} AutoARIMA, 95\% CI [0.624, 0.757]}\vspace{-1pt}
+\resumeItem{A leakage audit found benchmark test data in a public corpus: removed \textbf{801 of 447,229} series (642 exact or rescaled copies); 170 tests in CI}
 \resumeItemListEnd
-\vspace{-1pt}
+\vspace{1pt}
 
 \resumeProjectHeading
 {\textbf{World Shock Lab (Econometrics, ML)} $|$ \emph{Python, PyTorch, DuckDB, TypeScript} $|$ \githubLink{https://github.com/shmorsi/world-shock-lab} $|$ \href{https://shmorsi.github.io/world-shock-lab/}{\textbf{\underline{Live Site}}}}{2026}
@@ -212,10 +221,10 @@ Computer Science student building \textbf{LLM agent systems}: multi-agent teams 
 \resumeItemListStart
 \resumeItem{Estimated how Fed, Bank of Canada, and OPEC surprises move \textbf{53} assets (a 10 bp Fed surprise moves the TSX \textbf{$-$1.10\%}, 90\% band $-$1.59 to $-$0.61), replicated \textbf{11 of 13} published findings, and publishes forecasts before each decision}
 \resumeItemListEnd
-\vspace{-1pt}
+\vspace{1pt}
 
 \resumeProjectHeading
-{\textbf{ATLAS (Production Networks)} $|$ \emph{Python, PyTorch, FastAPI} $|$ \githubLink{https://github.com/shmorsi/atlas}}{2026}
+{\textbf{ATLAS (Production Networks)} $|$ \emph{Python, PyTorch, FastAPI} $|$ \href{https://shmorsi.github.io/projects/atlas.html}{\textbf{\underline{Mission Page}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
 \resumeItem{Traced cost shocks through \textbf{405} country-sector nodes in \textbf{11.0 ms}; trained 12 PyTorch graph and no-graph checkpoints, and ridge still won on the held-out year (test RMSE 14.00)}
@@ -231,20 +240,20 @@ Computer Science student building \textbf{LLM agent systems}: multi-agent teams 
 \vspace{-4pt}
 \begin{itemize}[leftmargin=0.15in, label={}]
 \small{\item{
-\skillLine{AI Agents / LLMs}{\textbf{LLM Agents}, \textbf{Multi-Agent Systems}, \textbf{Tool Calling}, Structured Outputs, \textbf{MCP}, Prompt Engineering, Prompt-Injection Defense, \textbf{QLoRA}, Distillation, LLM Evaluation, Claude API, Hugging Face}
-\skillLine{Machine Learning}{\textbf{PyTorch}, TensorFlow, \textbf{scikit-learn}, \textbf{Transformers}, Time-Series Forecasting, Feature Engineering, Cross-Validation, Bootstrap CIs, Mixed Precision}
+\skillLine{AI Agents}{\textbf{LLM Agents}, \textbf{Multi-Agent Systems}, \textbf{Tool Calling}, \textbf{MCP}, Prompt-Injection Defense, \textbf{QLoRA}, LLM Evals}
+\skillLine{Machine Learning}{\textbf{PyTorch}, \textbf{Transformers}, Differentiable Optimization, Time-Series Forecasting, \textbf{scikit-learn}, TensorFlow}
+\skillLine{Quant / Finance}{\textbf{Portfolio Optimization} (cvxpy), Factor and Risk Models, \textbf{Walk-Forward Backtesting}, Econometrics}
 \skillLine{Languages}{\textbf{Python}, \textbf{SQL}, TypeScript, JavaScript, C++, Java, C, R, Bash}
-\skillLine{Data / Backend}{\textbf{Pandas}, \textbf{NumPy}, SciPy, \textbf{FastAPI}, DuckDB, SQLite, Parquet, statsmodels, Econometrics}
-\skillLine{Developer Tools}{\textbf{Git}, \textbf{GitHub Actions (CI/CD)}, \textbf{pytest}, Playwright, Docker, Jupyter, Colab, Claude Code, Cursor}
+\skillLine{Data / Tools}{\textbf{Pandas}, \textbf{NumPy}, \textbf{FastAPI}, DuckDB, \textbf{Git}, \textbf{GitHub Actions (CI/CD)}, \textbf{pytest}, Playwright, Docker, Streamlit}
 }}
 \end{itemize}
 
 %-----------CERTIFICATIONS & AFFILIATIONS-----------
 \vspace{-12pt}
-\section{Certifications \& Affiliations} \vspace{-2pt}
+\section{Certifications} \vspace{-2pt}
 \resumeSubHeadingListStart
 % EDIT: one line each
-\resumeSimpleProjectHeading{\textbf{Anthropic:} Building with the Claude API, Claude Code 101, Claude 101 \textbar{} \textbf{IBM:} Machine Learning with Python \textbar{} \textbf{QUARCC} (Quantitative Research and Competitions Club), Member}
+\resumeSimpleProjectHeading{\textbf{Anthropic:} Building with the Claude API, Claude Code 101, Claude 101 \textbar{} \textbf{IBM:} Machine Learning with Python}
 \resumeSubHeadingListEnd
 
 \end{document}

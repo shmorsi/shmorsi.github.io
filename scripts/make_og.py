@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Draw the share images (1200x630) for the home page and Aurvane in the site's own system.
+"""Draw the share images (1200x630) for the home page, Aurvane and the Deep Portfolio Constructor in the site's own system.
 
 Run:  python3 scripts/make_og.py      (needs Playwright's Chromium)
-Out:  assets/og.png, aurvane/media/og-aurvane.png
+Out:  assets/og.png, aurvane/media/og-aurvane.png, assets/og-dpc.png
 
 Figures come from data/projects.json, so a share card never says something the page does not.
 """
@@ -40,13 +40,21 @@ h1 {{ font-size: 92px; font-weight: 500; letter-spacing: 0.06em; text-transform:
 """
 
 aurvane = DATA["aurvane"]["stats"]
+dpc = DATA["deep-portfolio-constructor"]["stats"]
+TAGLINE = json.loads((ROOT / "data" / "projects.json").read_text())["tagline"]
 CARDS = {
     ROOT / "assets" / "og.png": f"""
-      <div class="rule"></div><p class="label">Sherif Morsi</p>
-      <h1>AI engineer</h1>
-      <p class="lede">Agent systems and models, built from scratch.</p>
-      <p class="dim">Agents that hand work to each other in messages code can check.</p>
-      <p class="foot"><span>Aurvane</span><span>Orbit</span><span>Time-series foundation model</span><span>World Shock Lab</span><span>ATLAS</span></p>""",
+      <div class="rule"></div><p class="label">Mission manifest</p>
+      <h1>Sherif Morsi</h1>
+      <p class="lede">{TAGLINE}</p>
+      <p class="dim">Six missions, each with its own page, every figure traced to a result file.</p>
+      <p class="foot"><span>Aurvane</span><span>Deep Portfolio Constructor</span><span>Orbit</span><span>TSFM</span><span>World Shock Lab</span><span>ATLAS</span></p>""",
+    ROOT / "assets" / "og-dpc.png": f"""
+      <div class="rule"></div><p class="label accent">Deep Portfolio Constructor · deep learning and quant</p>
+      <p class="fig">{dpc["intendedShift"]["display"]}</p>
+      <p class="lede">Share of risk from intended stock bets, naive to optimised.</p>
+      <p class="dim">PyTorch at every layer, trained through a differentiable optimiser. Best net Sharpe {dpc["sharpeE2E"]["display"]}, not significant.</p>
+      <p class="foot"><span>Walk-forward from 2008</span><span>99 large caps</span><span>Every figure traced</span></p>""",
     ROOT / "aurvane" / "media" / "og-aurvane.png": f"""
       <div class="rule"></div><p class="label accent">Aurvane · agent security</p>
       <p class="fig">{aurvane["attacksWith"]["display"]}</p>

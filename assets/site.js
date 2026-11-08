@@ -5,13 +5,13 @@
   const root = document.body.dataset.root || "";
   const html = document.documentElement;
 
-  /* Theme: OS preference by default, the toggle overrides it for this browser. */
+  /* Theme: dark by default on every page (the launch-control look); the toggle switches to light for this browser. */
   const store = {
     get() { try { return localStorage.getItem("theme"); } catch { return null; } },
     set(value) { try { localStorage.setItem("theme", value); } catch { /* private mode */ } }
   };
   const osLight = window.matchMedia("(prefers-color-scheme: light)");
-  const currentTheme = () => html.dataset.theme || (osLight.matches ? "light" : "dark");
+  const currentTheme = () => html.dataset.theme || "dark";
   const toggle = document.querySelector("[data-theme-toggle]");
   const paintToggle = () => {
     if (!toggle) return;
@@ -337,7 +337,7 @@
   };
 
   /* Display order is a presentation choice. projects.json mission codes stay as stored. */
-  const PRESENT = ["aurvane", "orbit", "tsfm", "world-shock-lab", "atlas"];
+  const PRESENT = ["aurvane", "deep-portfolio-constructor", "orbit", "tsfm", "world-shock-lab", "atlas"];
   const presentOrder = (id) => {
     const index = PRESENT.indexOf(id);
     return index === -1 ? PRESENT.length : index;
@@ -409,6 +409,52 @@
     });
     reveal(document);
   };
+
+  /* Mission manifest: filter cards by track (AI agents, deep learning, quant). No JS: every card shows. */
+  const trackButtons = [...document.querySelectorAll("[data-track-filter]")];
+  if (trackButtons.length) {
+    const cards = [...document.querySelectorAll("[data-tracks]")];
+    const apply = (track) => {
+      trackButtons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.trackFilter === track)));
+      cards.forEach((card) => { card.hidden = track !== "all" && !card.dataset.tracks.split(" ").includes(track); });
+      const count = cards.filter((card) => !card.hidden).length;
+      const live = document.querySelector("[data-track-count]");
+      if (live) live.textContent = `${count} mission${count === 1 ? "" : "s"} shown`;
+    };
+    trackButtons.forEach((b) => b.addEventListener("click", () => apply(b.dataset.trackFilter)));
+  }
+
+  /* Mission pages: build the sticky section index from the page's own section headings. */
+  const subnav = document.querySelector("[data-subnav]");
+  if (subnav) {
+    const heads = [...document.querySelectorAll(".cs-section > h2[id]")];
+    const list = document.createElement("ol");
+    heads.forEach((h) => {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = `#${h.id}`;
+      a.textContent = h.textContent;
+      li.append(a);
+      list.append(li);
+    });
+    subnav.replaceChildren(list);
+    if ("IntersectionObserver" in window) {
+      const byId = new Map([...list.querySelectorAll("a")].map((a) => [a.hash.slice(1), a]));
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          byId.forEach((a) => a.removeAttribute("aria-current"));
+          const a = byId.get(entry.target.id);
+          if (!a) return;
+          a.setAttribute("aria-current", "true");
+          const li = a.parentElement;  /* scroll the index only when the active link is out of view */
+          const left = li.offsetLeft - list.offsetLeft;
+          if (left < list.scrollLeft || left + li.offsetWidth > list.scrollLeft + list.clientWidth) list.scrollLeft = Math.max(0, left - 16);
+        });
+      }, { rootMargin: "-30% 0px -60% 0px" });
+      heads.forEach((h) => io.observe(h));
+    }
+  }
 
   const metricsUrl = document.body.dataset.metrics;
   if (metricsUrl) {

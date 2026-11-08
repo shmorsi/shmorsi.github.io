@@ -41,14 +41,13 @@
     <a class="wordmark" href="../">Sherif Morsi</a>
     <div class="header-tools">
       <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="../#missions">Missions</a>
         <a href="../aurvane/">Aurvane</a>
+        <a href="../projects/deep-portfolio-constructor.html">Portfolio</a>
         <a href="../orbit/">Orbit</a>
         <a href="../projects/tsfm.html">TSFM</a>
         <a href="../projects/world-shock-lab.html">Shock Lab</a>
         <a href="../projects/atlas.html" aria-current="page">ATLAS</a>
-        <a href="../#experience">Experience</a>
-        <a href="../#about">About</a>
-        <a href="../#contact">Contact</a>
         <a href="../resume/Sherif_Morsi_Resume.pdf">Resume</a>
       </nav>
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.75a7.25 7.25 0 0 1 0 14.5Z" fill="currentColor"/></svg></button>
@@ -57,19 +56,22 @@
   </header>
   <main id="main">
     <header class="cs-hero wrap">
-      <a class="text-link back" href="../#atlas">All work</a>
-      <p class="label">05 / Economic research terminal</p>
+      <a class="text-link back manifest-link" href="../#missions">Mission manifest</a>
+      <div class="mission-meta">
+        <img class="patch" src="../assets/patches/atlas.svg" alt="" width="88" height="88">
+        <p class="label">Mission 06 · Economic research terminal · <span class="status">Local app</span></p>
+      </div>
       <h1>ATLAS</h1>
       <p class="cs-purpose">An economic research terminal that traces how a cost shock travels through the world's production networks.</p>
       <p class="proves"><span class="label">What it proves</span><span data-bind="atlas.proves">One local solve traces a cost shock through 405 country-sector nodes. On the one held-out year, ridge beat every neural and graph model.</span></p>
       <p class="cs-summary">Real country data, seven OECD production tables, a PyTorch scenario solver and twelve saved neural checkpoints, served by one FastAPI process on your own machine. Every result is labelled as observed history, a hypothetical scenario, or a learned prediction.</p>
       <div class="actions">
-        <a class="button button-solid" href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a class="button" href="https://github.com/shmorsi/atlas/releases/tag/v0.1.2" target="_blank" rel="noopener noreferrer">Download v0.1.2</a>
-        <a class="text-link" href="https://github.com/shmorsi/atlas/blob/main/docs/RESEARCH_REPORT.md" target="_blank" rel="noopener noreferrer">Research report</a>
+        <span class="code-note">Code: private repository</span>
       </div>
       <p class="stack"><span class="label">Stack</span> Python, PyTorch, FastAPI, DuckDB, React, TypeScript</p>
     </header>
+
+    <nav class="subnav" data-subnav aria-label="On this page"></nav>
 
     <div class="wrap">
       <section class="cs-figure" aria-label="At a glance">
@@ -161,13 +163,13 @@ direct: s    first round: α Aᵀ s    later rounds: the rest</code></pre>
 npm run setup
 npm run atlas    # opens on http://127.0.0.1:8000</code></pre>
           <p class="stack">Python, PyTorch, FastAPI, DuckDB, Parquet, SQLite, NumPy, SciPy, CVXPY, React, TypeScript, Vite, MapLibre, ECharts, Playwright</p>
-          <p class="file-note">Figures and screenshots on this page come from the <a href="https://github.com/shmorsi/atlas" target="_blank" rel="noopener noreferrer">atlas repository</a> and are read from <a href="../data/projects.json"><code>data/projects.json</code></a>.</p>
+          <p class="file-note">Figures and screenshots on this page come from the atlas repository (private) and are read from <a href="../data/projects.json"><code>data/projects.json</code></a>.</p>
         </div>
       </section>
 
-      <nav class="next-project" aria-label="Next project">
-        <a class="next" href="../aurvane/"><span class="label">Next, 01</span><strong>Aurvane</strong></a>
-        <a class="text-link" href="../#work">All work</a>
+      <nav class="mission-switch" aria-label="Other missions">
+        <a href="../projects/world-shock-lab.html"><span class="label">Previous · Mission 05</span><strong>World Shock Lab</strong></a>
+        <a href="../aurvane/"><span class="label">Next · Mission 01</span><strong>Aurvane</strong></a>
       </nav>
     </div>
   </main>
@@ -178,6 +180,7 @@ npm run atlas    # opens on http://127.0.0.1:8000</code></pre>
       <a href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
       <a href="https://www.linkedin.com/in/sherif-morsi-a17628295/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       <a href="../resume/Sherif_Morsi_Resume.pdf">Resume</a>
+      <a href="../#missions">Missions</a>
     </span>
   </footer>
 </body>
