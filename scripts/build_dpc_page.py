@@ -35,6 +35,12 @@ def s(key: str) -> str:  # a stat's display value, bound
     return b(f"stats.{key}.display")
 
 
+def repo_button() -> str:
+    """GitHub button from data/projects.json; sync_chrome.py turns it into a note if the repository is private."""
+    repo = next(link for link in D["links"] if link["kind"] == "repo")
+    return f'<a class="button button-solid" href="{e(repo["href"])}" target="_blank" rel="noopener noreferrer">GitHub</a>'
+
+
 def figure(src: str, alt: str, caption: str, w: int = 1600, h: int = 900) -> str:
     return f"""<figure class="figure">
             <a class="screen" href="../{src}" target="_blank" rel="noopener" title="Open full size"><img src="../{src}" width="{w}" height="{h}" alt="{e(alt)}" decoding="async" loading="lazy"></a>
@@ -90,7 +96,7 @@ def page() -> str:
       <p class="proves"><span class="label">What it proves</span>{b("proves")}</p>
       {b("summary", "p", "cs-summary")}
       <div class="actions">
-        <span class="code-note">Code: private repository</span>
+        {repo_button()}
         <a class="text-link" href="#s-checks">How the numbers are checked</a>
       </div>
       <p class="stack"><span class="label">Stack</span> Python, PyTorch, cvxpylayers, cvxpy, pandas, statsmodels, scikit-learn, pytest, Streamlit</p>
@@ -223,7 +229,7 @@ def page() -> str:
         <div class="prose">
           <p>{s("tests")} automated tests, including: gradients through the optimiser layer checked against finite differences; the deep models' permutation equivariance across stocks; walk-forward label dates asserted; and truncation invariance, where scrambling every return after a date must leave every earlier decision unchanged. As calibration, a deliberately cheating strategy that trades on next month's returns scores a Sharpe of {s("oracleSharpe")}.</p>
           <p>A first-principles notebook rebuilds the ideas in a few lines of PyTorch: the neutrality projection, an optimiser differentiated with autograd, and a model learning the right signal from portfolio returns alone. A Streamlit dashboard shows current weights, the risk split and exposures against their limits.</p>
-          <p class="file-note">Figures on this page are read from <a href="../data/projects.json"><code>data/projects.json</code></a>, copied from the project's committed <code>reports/site_figures.json</code>.</p>
+          <p class="file-note">Figures on this page are read from <a href="../data/projects.json"><code>data/projects.json</code></a>, copied from the project's committed <a href="https://github.com/shmorsi/deep-portfolio-constructor/blob/main/reports/site_figures.json" target="_blank" rel="noopener noreferrer"><code>reports/site_figures.json</code></a>.</p>
         </div>
       </section>
 

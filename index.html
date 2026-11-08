@@ -51,7 +51,20 @@
 <body data-root="" data-metrics="data/projects.json">
   <a class="skip" href="#main">Skip to content</a>
 
-  <header class="site-header"></header>
+  <header class="site-header">
+    <a class="wordmark" href="./">Sherif Morsi</a>
+    <div class="header-tools">
+      <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="#work" data-section="work">Work</a>
+        <a href="#approach" data-section="approach">Approach</a>
+        <a href="#experience" data-section="experience">Experience</a>
+        <a href="#contact" data-section="contact">Contact</a>
+        <a class="nav-resume" href="resume/Sherif_Morsi_Resume.pdf">Resume</a>
+      </nav>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.75a7.25 7.25 0 0 1 0 14.5Z" fill="currentColor"/></svg></button>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
+    </div>
+  </header>
 
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
@@ -130,7 +143,7 @@
               <p class="riskbar-key"><span class="k-spec">Intended stock bets <b data-k="spec">47%</b></span><span class="k-style">Style factors <b data-k="style">48%</b></span><span class="k-sector">Sectors <b data-k="sector">5%</b></span></p>
             </div>
             <div class="lab-notes" aria-live="polite"><p class="lab-take" data-take="ls_naive"><b>Naive signal.</b> Buy the top and short the bottom of three textbook signals, with no risk model. Only 17% of the risk came from the stock bets it meant to make; the rest was <button type="button" class="term" data-term="factor">style and sector bets</button> nobody chose, and at its worst it lost −88%.</p><p class="lab-take" data-take="ls_classical"><b>Classical optimiser.</b> Same signals, but a convex optimiser keeps the book <button type="button" class="term" data-term="market-neutral">neutral</button> to sectors, beta, size and value. <button type="button" class="term" data-term="intended-risk">Risk from intended bets</button> rose to 61% and the worst loss shrank to −32%. Return stayed near zero: the signals had no edge (<button type="button" class="term" data-term="rank-ic">rank IC</button> <span data-bind="deep-portfolio-constructor.stats.icComposite.display">−0.0039</span>).</p><p class="lab-take" data-take="ls_deep_twostage"><b>Deep risk model.</b> A transformer forecasts the covariance instead of Ledoit-Wolf shrinkage. It predicts risk better (<button type="button" class="term" data-term="likelihood">likelihood</button> <span data-bind="deep-portfolio-constructor.stats.nllDeep.display">−2.941</span> vs <span data-bind="deep-portfolio-constructor.stats.nllLW.display">−2.899</span>) but hedges worse: the intended share fell to 41%.</p><p class="lab-take" data-take="ls_deep_alpha"><b>Deep views.</b> AlphaFormer, a <button type="button" class="term" data-term="transformer">transformer</button> that compares stocks with each other, replaces the classical signals: rank IC <span data-bind="deep-portfolio-constructor.stats.icDeep.display">0.0165</span> instead of <span data-bind="deep-portfolio-constructor.stats.icComposite.display">−0.0039</span>, and net Sharpe rose to <span data-bind="deep-portfolio-constructor.stats.sharpeAlpha.display">0.33</span>.</p><p class="lab-take is-active" data-take="e2e"><b>End-to-end, the primary model.</b> The risk model and a correction to the views are <button type="button" class="term" data-term="end-to-end">trained through the optimiser</button> on the portfolio's own net return. Best net <button type="button" class="term" data-term="sharpe">Sharpe</button>, <span data-bind="deep-portfolio-constructor.stats.sharpeE2E.display">0.58</span>, but the edge over classical has <button type="button" class="term" data-term="t-stat">t</button> = <span data-bind="deep-portfolio-constructor.stats.diffT.display">1.70</span>, not significant, and its realised <button type="button" class="term" data-term="beta">beta</button> was <span data-bind="deep-portfolio-constructor.stats.betaE2E.display">0.19</span>: part of the gain is market exposure.</p><p class="lab-take" data-take="e2e_deep"><b>Fully deep.</b> Training AlphaFormer end to end as well made it worse: Sharpe <span data-bind="deep-portfolio-constructor.stats.sharpeDeep.display">0.15</span>, FF6 alpha t <span data-bind="deep-portfolio-constructor.stats.alphaTDeep.display">0.04</span>. Each yearly refit has at most about 250 monthly decisions to learn from, too few for the extra parameters.</p></div>
-            <p class="chart-note">Shaded: the crisis years the project tests on their own, the 2008 financial crisis, the 2020 pandemic crash, the 2022 rate shock. Out of sample from January 2008, <button type="button" class="term" data-term="walk-forward">walk-forward</button>, monthly rebalancing, net of 10 bps costs, 99 large caps. Ex-ante risk split from an independent Barra-style model, averaged over rebalances. Read from the project's committed results (f420f44).</p>
+            <p class="chart-note">Shaded: the crisis years the project tests on their own, the 2008 financial crisis, the 2020 pandemic crash, the 2022 rate shock. Out of sample from January 2008, <button type="button" class="term" data-term="walk-forward">walk-forward</button>, monthly rebalancing, net of 10 bps costs, 99 large caps. Ex-ante risk split from an independent Barra-style model, averaged over rebalances. Read from the project's <a href="https://github.com/shmorsi/deep-portfolio-constructor/tree/f420f44/reports/results" target="_blank" rel="noopener noreferrer">committed results</a> (f420f44).</p>
           </div>
         </div>
         <div class="feature-fig">
@@ -142,7 +155,7 @@
           <p class="proves"><span class="label">What it proves</span><span data-bind="deep-portfolio-constructor.proves">Making the optimiser neutral to sectors, beta, size and value raised the share of risk from intended stock bets from 17% to 61%. Training through the optimiser gave the best net Sharpe, 0.58 against −0.03 for the classical optimiser; the gap is not statistically significant, and adding the deep return model on top did not help.</span></p>
           <div class="actions">
             <a class="button button-solid" href="projects/deep-portfolio-constructor.html">Open the project</a>
-            <span class="code-note">Code: private repository</span>
+            <a class="button" href="https://github.com/shmorsi/deep-portfolio-constructor" target="_blank" rel="noopener noreferrer">GitHub</a>
           </div>
         </div>
         <div class="feature-stack">
@@ -329,7 +342,16 @@
     </section>
   </main>
 
-  <footer class="site-footer"></footer>
+  <footer class="site-footer">
+    <span>© 2026 Sherif Morsi, Montreal</span>
+    <span>
+      <a href="mailto:shmorsi@outlook.com">Email</a>
+      <a href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.linkedin.com/in/sherif-morsi-a17628295/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a href="resume/Sherif_Morsi_Resume.pdf">Resume</a>
+      <a href="#work">All projects</a>
+    </span>
+  </footer>
   <div class="copy-status" role="status" aria-live="polite" data-copy-status></div>
 </body>
 </html>

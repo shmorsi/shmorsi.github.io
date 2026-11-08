@@ -36,6 +36,14 @@ def stat(key: str) -> str:
     return bind(DPC, f"stats.{key}.display")
 
 
+def source_link(commit: str, path: str, text: str) -> str:
+    """A link to a committed file in the project's repository, or plain text while the repository is private."""
+    repo = next(link for link in P[DPC]["links"] if link["kind"] == "repo")
+    if repo.get("public") is False:
+        return e(text)
+    return f'<a href="{e(repo["href"])}/tree/{e(commit)}/{e(path)}" target="_blank" rel="noopener noreferrer">{e(text)}</a>'
+
+
 def term(key: str, text: str) -> str:
     """A word with a plain-English definition one tap away (definitions live in assets/site.js)."""
     return f'<button type="button" class="term" data-term="{key}">{e(text)}</button>'
@@ -211,7 +219,7 @@ def portfolio_lab(uid: str) -> str:
               <p class="riskbar-key"><span class="k-spec">Intended stock bets <b data-k="spec">{pct(risk["specific"])}</b></span><span class="k-style">Style factors <b data-k="style">{pct(risk["style"])}</b></span><span class="k-sector">Sectors <b data-k="sector">{pct(risk["sector"])}</b></span></p>
             </div>
             <div class="lab-notes" aria-live="polite">{notes}</div>
-            <p class="chart-note">Shaded: the crisis years the project tests on their own, {", ".join(CRISIS_NAMES.get(y, str(y)) for y in LAB["crisisYears"])}. Out of sample from January 2008, {term('walk-forward', 'walk-forward')}, monthly rebalancing, net of 10 bps costs, 99 large caps. Ex-ante risk split from an independent Barra-style model, averaged over rebalances. Read from the project's committed results ({e(LAB["commit"])}).</p>
+            <p class="chart-note">Shaded: the crisis years the project tests on their own, {", ".join(CRISIS_NAMES.get(y, str(y)) for y in LAB["crisisYears"])}. Out of sample from January 2008, {term('walk-forward', 'walk-forward')}, monthly rebalancing, net of 10 bps costs, 99 large caps. Ex-ante risk split from an independent Barra-style model, averaged over rebalances. Read from the project's {source_link(LAB["commit"], "reports/results", "committed results")} ({e(LAB["commit"])}).</p>
           </div>
         </div>"""
 
@@ -410,6 +418,6 @@ def book_view(src: str) -> str:
               <input type="range" min="0" max="{n - 1}" step="1" value="{start}" data-book-range aria-label="Rebalance date">
             </div>
             <p class="book-read" aria-live="polite" data-book-read>Point at a bar to see the stock and its weight.</p>
-            <figcaption class="chart-note">The end-to-end model's actual book at each of its {n} monthly rebalances: {len(book["tickers"])} stocks grouped by sector, longs up and shorts down, as a share of capital. The amber line is each sector's net position, which the optimiser keeps within ±5%. "Next month" is what the book earned before the next rebalance, net of costs. From the project's committed results ({e(book["commit"])}).</figcaption>
+            <figcaption class="chart-note">The end-to-end model's actual book at each of its {n} monthly rebalances: {len(book["tickers"])} stocks grouped by sector, longs up and shorts down, as a share of capital. The amber line is each sector's net position, which the optimiser keeps within ±5%. "Next month" is what the book earned before the next rebalance, net of costs. From the project's {source_link(book["commit"], "reports/results", "committed results")} ({e(book["commit"])}).</figcaption>
             <noscript><p class="caveat">The book view needs JavaScript. The numbers behind it are in <a href="{e(src)}">{e(src.split("/")[-1])}</a>.</p></noscript>
           </figure>"""

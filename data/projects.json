@@ -39,8 +39,7 @@
           "label": "GitHub",
           "href": "https://github.com/shmorsi/deep-portfolio-constructor",
           "kind": "repo",
-          "external": true,
-          "public": false
+          "external": true
         }
       ],
       "glanceIds": [

@@ -131,7 +131,7 @@ def main(fig_path: str) -> None:
         "tags": ["Python", "PyTorch", "cvxpylayers", "cvxpy", "pandas", "pytest", "Streamlit"],
         "links": [
             {"label": "Project page", "href": "projects/deep-portfolio-constructor.html", "kind": "site"},
-            {"label": "GitHub", "href": "https://github.com/shmorsi/deep-portfolio-constructor", "kind": "repo", "external": True, "public": False},
+            {"label": "GitHub", "href": "https://github.com/shmorsi/deep-portfolio-constructor", "kind": "repo", "external": True},
         ],
         "glanceIds": ["sharpeE2E", "specificE2E", "icDeep", "tests"],
         "factIds": ["sharpeE2E", "icDeep", "diffT"],
