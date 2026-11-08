@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Project mark: Aurvane">
+  <rect width="200" height="200" fill="#000"/>
+  <g stroke="#f4f5f7" stroke-opacity="0.07" stroke-width="1"><line x1="33" y1="8" x2="33" y2="192"/><line x1="8" y1="33" x2="192" y2="33"/><line x1="58" y1="8" x2="58" y2="192"/><line x1="8" y1="58" x2="192" y2="58"/><line x1="83" y1="8" x2="83" y2="192"/><line x1="8" y1="83" x2="192" y2="83"/><line x1="108" y1="8" x2="108" y2="192"/><line x1="8" y1="108" x2="192" y2="108"/><line x1="133" y1="8" x2="133" y2="192"/><line x1="8" y1="133" x2="192" y2="133"/><line x1="158" y1="8" x2="158" y2="192"/><line x1="8" y1="158" x2="192" y2="158"/><line x1="183" y1="8" x2="183" y2="192"/><line x1="8" y1="183" x2="192" y2="183"/></g>
+  <rect x="8" y="8" width="184" height="184" fill="none" stroke="#f4f5f7" stroke-opacity="0.22" stroke-width="1.5"/>
+  <path d="M8 26 V8 H26 M174 8 H192 V26 M192 174 V192 H174 M26 192 H8 V174" fill="none" stroke="#8ec5ff" stroke-width="2"/>
+  <path d="M100 54 L136 68 V98 C136 122 120 140 100 148 C80 140 64 122 64 98 V68 Z" fill="none" stroke="#f4f5f7" stroke-width="3"/><path d="M84 100 L97 113 L119 89" fill="none" stroke="#8ec5ff" stroke-width="4" stroke-linecap="square"/>
+</svg>

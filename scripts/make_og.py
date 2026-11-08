@@ -42,13 +42,15 @@ h1 {{ font-size: 92px; font-weight: 500; letter-spacing: 0.06em; text-transform:
 aurvane = DATA["aurvane"]["stats"]
 dpc = DATA["deep-portfolio-constructor"]["stats"]
 TAGLINE = json.loads((ROOT / "data" / "projects.json").read_text())["tagline"]
+TITLES = [("TSFM" if p["id"] == "tsfm" else p["title"]) for p in json.loads((ROOT / "data" / "projects.json").read_text())["projects"]]
+COUNT = {3: "Three", 4: "Four", 5: "Five", 6: "Six"}.get(len(TITLES), str(len(TITLES)))
 CARDS = {
     ROOT / "assets" / "og.png": f"""
-      <div class="rule"></div><p class="label">Mission manifest</p>
+      <div class="rule"></div><p class="label">Deep learning · quant research · AI agents</p>
       <h1>Sherif Morsi</h1>
       <p class="lede">{TAGLINE}</p>
-      <p class="dim">Six missions, each with its own page, every figure traced to a result file.</p>
-      <p class="foot"><span>Aurvane</span><span>Deep Portfolio Constructor</span><span>Orbit</span><span>TSFM</span><span>World Shock Lab</span><span>ATLAS</span></p>""",
+      <p class="dim">{COUNT} projects, each with its own page, every figure traced to a result file.</p>
+      <p class="foot">{"".join(f"<span>{t}</span>" for t in TITLES)}</p>""",
     ROOT / "assets" / "og-dpc.png": f"""
       <div class="rule"></div><p class="label accent">Deep Portfolio Constructor · deep learning and quant</p>
       <p class="fig">{dpc["intendedShift"]["display"]}</p>

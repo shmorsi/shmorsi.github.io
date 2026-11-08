@@ -3,89 +3,8 @@
   "updated": "2026-11-08",
   "projects": [
     {
-      "id": "aurvane",
-      "mission": "01",
-      "code": "AURVANE",
-      "role": "featured",
-      "badge": "Worst-case agent",
-      "kicker": "Agent trust",
-      "title": "Aurvane",
-      "summary": "The trust layer for the agent economy. Each agent bot carries a signed mandate; every action passes four rules, helper bots only ever get narrower mandates, held actions wait for your Allow or Deny, and everything lands in a hash-chained log. Against a simulated agent that obeys every injected instruction, attacks that landed fell from 30 of 30 to 7 of 30. A red team of 12 smarter attacks: 8 contained, 2 capped by the budget, 2 get through, shown on purpose.",
-      "purpose": "Aurvane: every agent action, signed, bounded, visible. An agent may read anything, but untrusted text can never choose where money or data goes.",
-      "proves": "Untrusted text cannot steer an agent's money or data. Against a simulated agent that obeys every injection, attacks that landed fell from 30 of 30 to 7 of 30, and money lost from 12,135 CAD to 135 CAD.",
-      "caveat": "Simulated worst-case agent that obeys every injected instruction, 60 paired tasks (30 clean, 30 poisoned), deterministic, run once. The numbers measure the guard, not a model. The 7 attacks that still land are by design: 4 rewrite a cover letter (Aurvane guards actions, not prose) and 3 add a 45 CAD charge at a store the human already trusts, capped by the signed budget. Real-model runs (Claude, Grok, Qwen) use the same harness, capped at 5 USD, and have not been run yet.",
-      "image": {
-        "src": "aurvane/media/aurvane-demo-poster.jpg",
-        "alt": "Aurvane replay: a little robot agent inside its glowing mandate shell, with a smaller helper bot whose self-signed 5,000 CAD mandate is blocked at its own shell. Still frame of the demo film. Not the score.",
-        "width": 1920,
-        "height": 1080
-      },
-      "tags": [
-        "Python",
-        "Ed25519",
-        "MCP",
-        "pytest",
-        "GitHub Actions"
-      ],
-      "links": [
-        {
-          "label": "Live demo",
-          "href": "aurvane/",
-          "kind": "site"
-        },
-        {
-          "label": "GitHub",
-          "href": "https://github.com/shmorsi/aurvane",
-          "kind": "repo",
-          "external": true
-        }
-      ],
-      "headline": {
-        "stat": "attacksWith",
-        "qualifier": "Simulated worst-case agent, 60 paired tasks, deterministic, run once. Without Aurvane, 30 of 30 landed."
-      },
-      "factIds": [
-        "lossWith",
-        "cleanDone",
-        "falseAlarms"
-      ],
-      "glanceIds": [
-        "attacksWith",
-        "attacksWithout",
-        "lossWith",
-        "cleanDone"
-      ],
-      "stats": {
-        "attacksWith": {
-          "display": "7 of 30",
-          "label": "Attacks that landed, with Aurvane",
-          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.attacks_landed 7 of poisoned_tasks 30. Simulated worst-case agent. The 7 are rewrite 4 and skim 3."
-        },
-        "attacksWithout": {
-          "display": "30 of 30",
-          "label": "Attacks that landed, without Aurvane",
-          "source": "data/measurements/aurvane/worst-case_summary.json without_aurvane.attacks_landed 30 of poisoned_tasks 30. Same tasks, same agent."
-        },
-        "lossWith": {
-          "display": "135 CAD",
-          "label": "Money lost with Aurvane, from 12,135 CAD",
-          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.money_lost_cad 135.0, without_aurvane.money_lost_cad 12135.0. Skim attacks, capped by the signed budget."
-        },
-        "cleanDone": {
-          "display": "30 of 30",
-          "label": "Clean tasks completed, with Aurvane",
-          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.clean_completed 30 of clean_tasks 30."
-        },
-        "falseAlarms": {
-          "display": "0",
-          "label": "False alarms on clean tasks",
-          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.clean_friction_events 0."
-        }
-      }
-    },
-    {
       "id": "deep-portfolio-constructor",
-      "mission": "02",
+      "number": "01",
       "code": "DPC",
       "role": "featured",
       "badge": "Walk-forward",
@@ -112,7 +31,7 @@
       ],
       "links": [
         {
-          "label": "Mission page",
+          "label": "Project page",
           "href": "projects/deep-portfolio-constructor.html",
           "kind": "site"
         },
@@ -412,326 +331,8 @@
       }
     },
     {
-      "id": "orbit",
-      "mission": "03",
-      "code": "ORBIT",
-      "role": "featured",
-      "badge": "code-eval-v2",
-      "kicker": "Agent systems",
-      "title": "Orbit",
-      "purpose": "Orbit Code: a planner, a coder, a test runner, and a reviewer. The reviewer can refuse a patch that fails the hidden tests or edits the tests.",
-      "proves": "Fine-tuning a 1.5B model raised its schema-valid tool-call rate from 0.333 to 0.764, with a 95% interval above zero. In code repair, a reviewer can refuse a patch that fails the hidden tests.",
-      "summary": "Orbit Code, code-eval-v2, claude-haiku-5-5, scored once: team with reviewer 29 of 32, single agent 27 of 32. Paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero. Qwen2.5-1.5B-Instruct, harness v3, scored once: fine-tuned schema-valid rate 0.333 to 0.764, 95% interval above zero; task success interval includes zero.",
-      "caveat": "code-eval-v2, claude-haiku-5-5, 32 frozen tasks, scored once: the team with a reviewer passed 29 of 32 and a single agent 27 of 32. The paired 95% interval on pass@1 is 0.000 to 0.15625 and includes zero, so that gap is not an improvement. The team run cost about 0.018 USD. Fine-tuning: Qwen2.5-1.5B-Instruct, harness v3, frozen 12-task test, scored once. Schema-valid rate rose from 0.333 on the base team to 0.764 with the adapter (95% interval on the difference 0.264 to 0.607, above zero). Task success went from 2 to 4 of 12 (interval −0.167 to 0.500, includes zero), so task success is not an improvement. The fine-tuned team refused 1 of 2 traps. Boardroom and the incident commander are scripted demos, not scores.",
-      "image": {
-        "src": "orbit/media/orbit-code-poster.webp",
-        "alt": "Orbit Code still frame: planner, coder, test runner, and reviewer around a patch. The clip is a visual, not the score.",
-        "width": 1080,
-        "height": 675
-      },
-      "tags": [
-        "Python",
-        "PyTorch",
-        "Transformers",
-        "Claude API"
-      ],
-      "links": [
-        {
-          "label": "Mission page",
-          "href": "orbit/",
-          "kind": "site"
-        },
-        {
-          "label": "GitHub",
-          "href": "https://github.com/shmorsi/orbit-multi-agent",
-          "kind": "repo",
-          "external": true,
-          "public": false
-        }
-      ],
-      "glanceIds": [
-        "loraSchema",
-        "codeTeamPass",
-        "codeSinglePass",
-        "codeTeamRefusals"
-      ],
-      "factIds": [
-        "codeSinglePass",
-        "codeTeamRefusals",
-        "loraSchema"
-      ],
-      "headline": {
-        "stat": "loraSchema",
-        "qualifier": "Qwen2.5-1.5B-Instruct, QLoRA, harness v3, 12 frozen tasks, scored once. 95% interval on the difference 0.264 to 0.607, above zero."
-      },
-      "stats": {
-        "codeTeamPass": {
-          "label": "Tasks passed, team with reviewer",
-          "display": "29 of 32",
-          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/team.json n_pass 29, n_tasks 32, pass_at_1 0.90625, tests_passed_rate 0.90625, config_label Team with reviewer, model claude-haiku-5-5, protocol code-eval-v2, status measured. Scored once. comparison.json pairs.team_minus_single.pass_at_1 point 0.0625, low 0.0, high 0.15625, n 32, n_resamples 10000, seed 0. The interval includes zero."
-        },
-        "codeSinglePass": {
-          "label": "Tasks passed, single agent",
-          "display": "27 of 32",
-          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/single.json n_pass 27, n_tasks 32, pass_at_1 0.84375, tests_passed_rate 0.84375, config_label Single agent, model claude-haiku-5-5, protocol code-eval-v2, status measured. Scored once."
-        },
-        "codeTeamRefusals": {
-          "label": "Reviewer refusals, team",
-          "display": "1 of 32",
-          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/team.json n_reviewer_rejections 1, reviewer_rejection_rate 0.03125, n_tasks 32. The refused task is email-local (status refuse, hidden_passed_rate 0)."
-        },
-        "codeSingleRefusals": {
-          "label": "Reviewer refusals, single agent",
-          "display": "2 of 32",
-          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/single.json n_reviewer_rejections 2, reviewer_rejection_rate 0.0625, n_tasks 32. The refused tasks are mf-backoff and email-local (status refuse, hidden_passed_rate 0)."
-        },
-        "codeTeamPassRate": {
-          "label": "pass_at_1, team with reviewer",
-          "display": "0.90625",
-          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/team.json pass_at_1 0.90625, exactly 29/32. Shown in full, not rounded to three decimals."
-        },
-        "codeSinglePassRate": {
-          "label": "pass_at_1, single agent",
-          "display": "0.84375",
-          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/single.json pass_at_1 0.84375, exactly 27/32. Shown in full, not rounded to three decimals."
-        },
-        "loraSchema": {
-          "label": "Schema-valid rate, fine-tuned vs base team",
-          "display": "0.333 → 0.764",
-          "source": "data/measurements/orbit/v3_qwen1.5b/team_base.json schema_valid_rate 0.3333333333333333 shown as 0.333; data/measurements/orbit/v3_qwen1.5b/team_lora.json schema_valid_rate 0.763888888888889 shown as 0.764. Model Qwen/Qwen2.5-1.5B-Instruct. Adapter finetune/outputs/adapter."
-        },
-        "loraTasks": {
-          "label": "Task success, fine-tuned vs base team",
-          "display": "4 vs 2 of 12",
-          "source": "data/measurements/orbit/v3_qwen1.5b/team_lora.json n_success 4 of n_tasks 12; data/measurements/orbit/v3_qwen1.5b/team_base.json n_success 2 of 12."
-        },
-        "loraSchemaCi": {
-          "label": "95% interval, schema-valid, fine-tuned minus base",
-          "display": "0.264 to 0.607",
-          "source": "data/measurements/orbit/v3_qwen1.5b/comparison.json pairs.team_lora_minus_team_base.schema_valid_rate point 0.4305555555555556, low 0.2638888888888889, high 0.6069444444444444, n_resamples 10000, seed 0, method paired_percentile_bootstrap. Reading: Above zero."
-        },
-        "loraTaskCi": {
-          "label": "95% interval, task success, fine-tuned minus base",
-          "display": "−0.167 to 0.500",
-          "source": "data/measurements/orbit/v3_qwen1.5b/comparison.json pairs.team_lora_minus_team_base.task_success_rate point 0.16666666666666666, low -0.16666666666666666, high 0.5. Reading: Includes zero. The interval includes zero, so task success is not an improvement."
-        },
-        "distillTasks": {
-          "label": "Task success, distilled team",
-          "display": "2 of 12",
-          "source": "data/measurements/orbit/v3_qwen1.5b/team_distill.json n_success 2, n_tasks 12, adapter finetune/outputs-distill/adapter, model Qwen/Qwen2.5-1.5B-Instruct, status measured."
-        },
-        "distillSchema": {
-          "label": "Schema-valid rate, distilled team",
-          "display": "0.448",
-          "source": "data/measurements/orbit/v3_qwen1.5b/team_distill.json schema_valid_rate 0.4483134920634921 shown as 0.448."
-        },
-        "distillSchemaCi": {
-          "label": "95% interval, schema-valid, distill minus base",
-          "display": "−0.064 to 0.278",
-          "source": "data/measurements/orbit/v3_qwen1.5b/comparison.json pairs.team_distill_minus_team_base.schema_valid_rate point 0.11498015873015872, low -0.06448412698412702, high 0.27777777777777773. Reading: Includes zero."
-        },
-        "baseTeamSchema": {
-          "label": "Schema-valid rate, base team",
-          "display": "0.333",
-          "source": "data/measurements/orbit/v3_qwen1.5b/team_base.json schema_valid_rate 0.3333333333333333 shown as 0.333."
-        },
-        "baseTeamTasks": {
-          "label": "Task success, base team",
-          "display": "2 of 12",
-          "source": "data/measurements/orbit/v3_qwen1.5b/team_base.json n_success 2 of n_tasks 12."
-        },
-        "singleQwenTasks": {
-          "label": "Task success, single agent, Qwen base",
-          "display": "2 of 12",
-          "source": "data/measurements/orbit/v3_qwen1.5b/single_base.json n_success 2 of n_tasks 12. Both successes are the two traps (correct_refusal true). The other ten tasks were refusals and did not pass."
-        },
-        "singleQwenSchema": {
-          "label": "Schema-valid rate, single agent, Qwen base",
-          "display": "1.000",
-          "source": "data/measurements/orbit/v3_qwen1.5b/single_base.json schema_valid_rate 1.0 shown as 1.000. Every turn was schema-valid, including refusals that failed the task."
-        },
-        "loraTraps": {
-          "label": "Trap refusals, fine-tuned team",
-          "display": "1 of 2",
-          "source": "data/measurements/orbit/v3_qwen1.5b/team_lora.json n_correct_refusals 1 of n_traps 2."
-        },
-        "qwenTasks": {
-          "label": "Frozen tasks, harness v3",
-          "display": "12",
-          "source": "data/measurements/orbit/v3_qwen1.5b/team_lora.json n_tasks 12, split test, note: One score on the frozen test. comparison.json pairs use n 12."
-        }
-      },
-      "tables": {
-        "code": {
-          "caption": "code-eval-v2, claude-haiku-5-5, frozen test, 32 tasks, scored once. The policy saw the issue and the source files, not the hidden tests. pass_at_1 is the exact ratio. Paired 95% interval on pass@1, team minus single, is 0.000 to 0.15625 (point 0.0625) and includes zero, so the gap is not an improvement.",
-          "headers": [
-            "Run",
-            "Tasks passed",
-            "pass_at_1",
-            "Reviewer refusals",
-            "Failed tasks not refused"
-          ],
-          "rows": [
-            [
-              "Single agent",
-              "27 of 32",
-              "0.84375",
-              "2 of 32",
-              "3"
-            ],
-            [
-              "Team with reviewer",
-              "29 of 32",
-              "0.90625",
-              "1 of 32",
-              "2"
-            ]
-          ],
-          "source": "data/measurements/orbit/code_v2/claude-haiku-5-5/single.json and team.json. Failed tasks not refused are counted from per_task where pass is false and reviewer_rejected is false: single mf-span, mf-csv, zip-safe; team mf-span, zip-safe."
-        },
-        "qwen": {
-          "caption": "Harness v3 rescore. Qwen2.5-1.5B-Instruct, frozen 12-task test, scored once. Rates and mean steps to three decimal places. The single agent's schema-valid rate is 1.000 because its refusals were schema-valid, not because it solved the tasks.",
-          "headers": [
-            "Run",
-            "Successes",
-            "Schema-valid rate",
-            "Mean steps",
-            "Trap refusals"
-          ],
-          "rows": [
-            [
-              "Single agent, base",
-              "2 of 12",
-              "1.000",
-              "1.000",
-              "2 of 2"
-            ],
-            [
-              "Team, base",
-              "2 of 12",
-              "0.333",
-              "6.667",
-              "2 of 2"
-            ],
-            [
-              "Team, fine-tuned adapter",
-              "4 of 12",
-              "0.764",
-              "5.333",
-              "1 of 2"
-            ],
-            [
-              "Team, distilled adapter",
-              "2 of 12",
-              "0.448",
-              "6.167",
-              "2 of 2"
-            ]
-          ],
-          "source": "data/measurements/orbit/v3_qwen1.5b/single_base.json, team_base.json, team_lora.json (adapter finetune/outputs/adapter), team_distill.json (adapter finetune/outputs-distill/adapter). status measured on each file."
-        },
-        "qwenPairs": {
-          "caption": "Paired percentile bootstrap, 10,000 resamples, seed 0, 95% interval, from comparison.json. An interval that includes zero is not an improvement. An interval entirely below zero is worse on that metric. No difference means the point and both ends are zero.",
-          "headers": [
-            "Comparison",
-            "Metric",
-            "Point",
-            "95% interval",
-            "Reading"
-          ],
-          "rows": [
-            [
-              "Team base minus single base",
-              "Task success",
-              "0.000",
-              "0.000 to 0.000",
-              "No difference."
-            ],
-            [
-              "Team base minus single base",
-              "Schema-valid rate",
-              "−0.667",
-              "−0.844 to −0.490",
-              "Below zero."
-            ],
-            [
-              "Fine-tuned minus base team",
-              "Task success",
-              "+0.167",
-              "−0.167 to 0.500",
-              "Includes zero."
-            ],
-            [
-              "Fine-tuned minus base team",
-              "Schema-valid rate",
-              "+0.431",
-              "0.264 to 0.607",
-              "Above zero."
-            ],
-            [
-              "Fine-tuned team minus single base",
-              "Task success",
-              "+0.167",
-              "−0.167 to 0.500",
-              "Includes zero."
-            ],
-            [
-              "Fine-tuned team minus single base",
-              "Schema-valid rate",
-              "−0.236",
-              "−0.311 to −0.186",
-              "Below zero."
-            ],
-            [
-              "Distill minus base team",
-              "Task success",
-              "0.000",
-              "0.000 to 0.000",
-              "No difference."
-            ],
-            [
-              "Distill minus base team",
-              "Schema-valid rate",
-              "+0.115",
-              "−0.064 to 0.278",
-              "Includes zero."
-            ],
-            [
-              "Distill minus fine-tuned",
-              "Task success",
-              "−0.167",
-              "−0.500 to 0.167",
-              "Includes zero."
-            ],
-            [
-              "Distill minus fine-tuned",
-              "Schema-valid rate",
-              "−0.316",
-              "−0.401 to −0.209",
-              "Below zero."
-            ],
-            [
-              "Distill minus single base",
-              "Task success",
-              "0.000",
-              "0.000 to 0.000",
-              "No difference."
-            ],
-            [
-              "Distill minus single base",
-              "Schema-valid rate",
-              "−0.552",
-              "−0.642 to −0.437",
-              "Below zero."
-            ]
-          ],
-          "source": "data/measurements/orbit/v3_qwen1.5b/comparison.json status measured, kind comparison, n_resamples 10000, seed 0, method paired_percentile_bootstrap. Points and intervals shown to three decimals."
-        }
-      }
-    },
-    {
       "id": "tsfm",
-      "mission": "04",
+      "number": "02",
       "code": "TSFM",
       "role": "featured",
       "badge": "Test split",
@@ -1094,7 +695,7 @@
     },
     {
       "id": "world-shock-lab",
-      "mission": "05",
+      "number": "03",
       "code": "World Shock Lab",
       "role": "featured",
       "badge": "Live site",
@@ -1443,316 +1044,86 @@
       "proves": "A 10 bp Fed surprise moves the TSX −1.10% on announcement day. The 90% band, −1.59 to −0.61, excludes zero."
     },
     {
-      "id": "atlas",
-      "mission": "06",
-      "code": "ATLAS",
+      "id": "aurvane",
+      "number": "04",
+      "code": "AURVANE",
       "role": "featured",
-      "badge": "Local app",
-      "kicker": "Economic research terminal",
-      "title": "ATLAS",
-      "purpose": "An economic research terminal that traces how a cost shock travels through the world's production networks.",
-      "summary": "Real country data, seven OECD production tables, a PyTorch scenario solver and saved neural checkpoints, served by one local FastAPI process with a React interface. Every result is labelled as observed, hypothetical or learned.",
-      "caveat": "A local research terminal, not a hosted service. In the graph experiment, ridge regression beat every neural and graph model on the one held-out year. Latencies are warm requests on one machine.",
+      "badge": "Worst-case agent",
+      "kicker": "Agent trust",
+      "title": "Aurvane",
+      "summary": "The trust layer for the agent economy. Each agent bot carries a signed mandate; every action passes four rules, helper bots only ever get narrower mandates, held actions wait for your Allow or Deny, and everything lands in a hash-chained log. Against a simulated agent that obeys every injected instruction, attacks that landed fell from 30 of 30 to 7 of 30. A red team of 12 smarter attacks: 8 contained, 2 capped by the budget, 2 get through, shown on purpose.",
+      "purpose": "Every agent action, signed, bounded, visible. An agent may read anything, but untrusted text can never choose where money or data goes.",
+      "proves": "Untrusted text cannot steer an agent's money or data. Against a simulated agent that obeys every injection, attacks that landed fell from 30 of 30 to 7 of 30, and money lost from 12,135 CAD to 135 CAD.",
+      "caveat": "Simulated worst-case agent that obeys every injected instruction, 60 paired tasks (30 clean, 30 poisoned), deterministic, run once. The numbers measure the guard, not a model. The 7 attacks that still land are by design: 4 rewrite a cover letter (Aurvane guards actions, not prose) and 3 add a 45 CAD charge at a store the human already trusts, capped by the signed budget. Real-model runs (Claude, Grok, Qwen) use the same harness, capped at 5 USD, and have not been run yet.",
       "image": {
-        "src": "assets/img/atlas-overview.webp",
-        "alt": "ATLAS World Atlas view: a map of real GDP growth by country, with Japan selected and its 2025 figures beside the map.",
-        "width": 1440,
-        "height": 900
+        "src": "aurvane/media/aurvane-demo-poster.jpg",
+        "alt": "Aurvane replay: a little robot agent inside its glowing mandate shell, with a smaller helper bot whose self-signed 5,000 CAD mandate is blocked at its own shell. Still frame of the demo film. Not the score.",
+        "width": 1920,
+        "height": 1080
       },
       "tags": [
         "Python",
-        "PyTorch",
-        "FastAPI",
-        "DuckDB",
-        "React",
-        "TypeScript"
+        "Ed25519",
+        "MCP",
+        "pytest",
+        "GitHub Actions"
       ],
       "links": [
         {
-          "label": "Case study",
-          "href": "projects/atlas.html",
+          "label": "Live demo",
+          "href": "aurvane/",
           "kind": "site"
         },
         {
           "label": "GitHub",
-          "href": "https://github.com/shmorsi/atlas",
+          "href": "https://github.com/shmorsi/aurvane",
           "kind": "repo",
-          "external": true,
-          "public": false
-        },
-        {
-          "label": "Release v0.1.2",
-          "href": "https://github.com/shmorsi/atlas/releases/tag/v0.1.2",
-          "kind": "more",
-          "external": true,
-          "public": false
+          "external": true
         }
       ],
       "headline": {
-        "stat": "nodes",
-        "qualifier": "Seven OECD tables, 2016–2022. Historical structure, hypothetical cost scenarios."
+        "stat": "attacksWith",
+        "qualifier": "Simulated worst-case agent, 60 paired tasks, deterministic, run once. Without Aurvane, 30 of 30 landed."
       },
       "factIds": [
-        "checkpoints",
-        "bestGraph",
-        "scenarioMs"
+        "lossWith",
+        "cleanDone",
+        "falseAlarms"
       ],
       "glanceIds": [
-        "nodes",
-        "checkpoints",
-        "bestGraph",
-        "scenarioMs"
+        "attacksWith",
+        "attacksWithout",
+        "lossWith",
+        "cleanDone"
       ],
       "stats": {
-        "nodes": {
-          "label": "Country-sector nodes in one scenario solve",
-          "display": "405",
-          "source": "atlas README and docs/SCENARIO_STUDIO.md: seven OECD production tables aggregated to 405 nodes across 81 areas; the studio solves p = solve(I − αAᵀ, s) with torch.linalg.solve in float64."
+        "attacksWith": {
+          "display": "7 of 30",
+          "label": "Attacks that landed, with Aurvane",
+          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.attacks_landed 7 of poisoned_tasks 30. Simulated worst-case agent. The 7 are rewrite 4 and skim 3."
         },
-        "areas": {
-          "label": "Areas",
-          "display": "81",
-          "source": "atlas docs/BUILD_STATUS.md: 81 areas × five groups."
+        "attacksWithout": {
+          "display": "30 of 30",
+          "label": "Attacks that landed, without Aurvane",
+          "source": "data/measurements/aurvane/worst-case_summary.json without_aurvane.attacks_landed 30 of poisoned_tasks 30. Same tasks, same agent."
         },
-        "tables": {
-          "label": "OECD production tables",
-          "display": "7",
-          "source": "atlas docs/BUILD_STATUS.md: seven OECD annual tables, 2016–2022."
+        "lossWith": {
+          "display": "135 CAD",
+          "label": "Money lost with Aurvane, from 12,135 CAD",
+          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.money_lost_cad 135.0, without_aurvane.money_lost_cad 12135.0. Skim attacks, capped by the signed budget."
         },
-        "entities": {
-          "label": "Geographic entities",
-          "display": "177",
-          "source": "atlas README: 177 Natural Earth country and territory geometries."
+        "cleanDone": {
+          "display": "30 of 30",
+          "label": "Clean tasks completed, with Aurvane",
+          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.clean_completed 30 of clean_tasks 30."
         },
-        "records": {
-          "label": "World Bank records",
-          "display": "42,900",
-          "source": "atlas README: 42,900 WDI records for 1960–2024, missing values kept as missing."
-        },
-        "checkpoints": {
-          "label": "Trained PyTorch checkpoints",
-          "display": "12",
-          "source": "atlas README and docs/BUILD_STATUS.md: six GRU checkpoints and six graph/no-graph checkpoints, replayed in the release gate."
-        },
-        "bestGraph": {
-          "label": "Best model, graph experiment",
-          "display": "Ridge",
-          "source": "atlas docs/RESEARCH_REPORT.md: on the 2022 test year, ridge RMSE 14.0001 and MAE 9.3973 log pp, below every graph and no-graph seed (best graph RMSE 14.2782). One held-out year."
-        },
-        "ridgeRmse": {
-          "label": "Ridge RMSE, graph experiment",
-          "display": "14.00",
-          "source": "atlas docs/RESEARCH_REPORT.md: ridge RMSE 14.0001 log pp, 2022 test year."
-        },
-        "graphRmse": {
-          "label": "Best graph RMSE",
-          "display": "14.28",
-          "source": "atlas docs/RESEARCH_REPORT.md: graph_seed17 RMSE 14.2782 log pp, 2022 test year."
-        },
-        "scenarioMs": {
-          "label": "405-node scenario, local median",
-          "display": "11.0 ms",
-          "source": "atlas docs/LOCAL_LATENCY.json: /api/network/scenario median 11.0 ms over 10 warm sequential loopback requests on macOS ARM64. Not a load, cold-start or other-hardware result."
-        },
-        "graphParams": {
-          "label": "Graph model parameters",
-          "display": "81",
-          "source": "atlas docs/SCENARIO_STUDIO.md and RESEARCH_REPORT.md: the graph model has 81 trainable parameters."
-        },
-        "gruParams": {
-          "label": "GRU parameters",
-          "display": "354",
-          "source": "atlas docs/RESEARCH_REPORT.md: 354 parameters with all features, 282 in the domestic-only ablation."
-        },
-        "backendTests": {
-          "label": "Backend tests",
-          "display": "44",
-          "source": "atlas docs/VALIDATION.md: the v0.1.2 update passed 44 backend tests; pytest collects 44 at main a3f0bb6."
-        },
-        "browserTests": {
-          "label": "Chromium browser tests",
-          "display": "27",
-          "source": "atlas docs/VALIDATION.md: the complete 27-test Chromium suite passed against a production build, on local macOS."
-        },
-        "treasury": {
-          "label": "Observed Treasury curves",
-          "display": "694",
-          "source": "atlas README: 694 observed daily Treasury par curves, 2024–2026, latest 2026-10-09."
-        },
-        "events": {
-          "label": "Dated official releases",
-          "display": "30",
-          "source": "atlas README: 30 dated official Fed/ECB releases."
+        "falseAlarms": {
+          "display": "0",
+          "label": "False alarms on clean tasks",
+          "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.clean_friction_events 0."
         }
-      },
-      "tables": {
-        "graph": {
-          "caption": "Graph experiment, held-out year 2022, 405 dependent node observations. Error in log percentage points, sorted by RMSE. Lower is better.",
-          "headers": [
-            "Model",
-            "MAE",
-            "RMSE"
-          ],
-          "rows": [
-            [
-              "Ridge",
-              "9.397",
-              "14.000"
-            ],
-            [
-              "Graph, seed 17",
-              "9.485",
-              "14.278"
-            ],
-            [
-              "No graph, seed 17",
-              "9.626",
-              "14.538"
-            ],
-            [
-              "No graph, seed 43",
-              "10.200",
-              "15.088"
-            ],
-            [
-              "Graph, seed 43",
-              "10.239",
-              "15.130"
-            ],
-            [
-              "No graph, seed 29",
-              "10.687",
-              "15.642"
-            ],
-            [
-              "Training mean",
-              "10.735",
-              "15.822"
-            ],
-            [
-              "Graph, seed 29",
-              "10.901",
-              "15.883"
-            ],
-            [
-              "Persistence",
-              "11.830",
-              "16.512"
-            ]
-          ],
-          "source": "atlas docs/RESEARCH_REPORT.md, exploratory graph experiment table (values to three decimals). Training 2018–2020, validation 2021, test 2022.",
-          "highlightRow": 0
-        },
-        "gru": {
-          "caption": "US annual real GDP growth, 10 held-out years (2015–2024). Error in percentage points. All seeds shown; seed 17 was the display default chosen before the test was inspected.",
-          "headers": [
-            "Model",
-            "Seed",
-            "MAE",
-            "RMSE",
-            "80% coverage"
-          ],
-          "rows": [
-            [
-              "GRU, all features",
-              "17",
-              "1.180",
-              "1.945",
-              "0.8"
-            ],
-            [
-              "GRU, all features",
-              "29",
-              "1.396",
-              "2.058",
-              "0.8"
-            ],
-            [
-              "GRU, all features",
-              "43",
-              "1.498",
-              "2.105",
-              "0.7"
-            ],
-            [
-              "GRU, domestic only",
-              "17",
-              "1.202",
-              "1.977",
-              "0.8"
-            ],
-            [
-              "GRU, domestic only",
-              "29",
-              "1.617",
-              "2.173",
-              "0.8"
-            ],
-            [
-              "GRU, domestic only",
-              "43",
-              "1.369",
-              "2.034",
-              "0.8"
-            ],
-            [
-              "Ridge",
-              "",
-              "1.309",
-              "1.978",
-              ""
-            ],
-            [
-              "Training mean",
-              "",
-              "1.363",
-              "2.044",
-              ""
-            ],
-            [
-              "Persistence, lag 2",
-              "",
-              "2.000",
-              "2.695",
-              ""
-            ]
-          ],
-          "source": "atlas docs/RESEARCH_REPORT.md forecasting table (values to three decimals). The report: the neural model does not consistently beat ridge or the training mean."
-        },
-        "latency": {
-          "caption": "Ten warm sequential requests per endpoint on one macOS ARM64 machine, loopback only. Not a load or cold-start benchmark.",
-          "headers": [
-            "Request",
-            "Median",
-            "Max"
-          ],
-          "rows": [
-            [
-              "Country table, 2025",
-              "6.47 ms",
-              "12.42 ms"
-            ],
-            [
-              "Japan network profile, 2022",
-              "5.31 ms",
-              "6.09 ms"
-            ],
-            [
-              "405-node scenario",
-              "11.00 ms",
-              "11.77 ms"
-            ],
-            [
-              "GRU checkpoint replay",
-              "40.51 ms",
-              "59.40 ms"
-            ]
-          ],
-          "source": "atlas docs/LOCAL_LATENCY.json."
-        }
-      },
-      "proves": "One local solve traces a cost shock through 405 country-sector nodes. On the one held-out year, ridge beat every neural and graph model."
+      }
     }
   ],
-  "tagline": "AI agents, deep learning and quant research, built from scratch and measured honestly."
+  "tagline": "Deep learning for finance: portfolios, forecasts and AI agents, built from first principles and measured honestly."
 }

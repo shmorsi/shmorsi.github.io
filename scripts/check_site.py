@@ -14,9 +14,7 @@ TEXT_PATHS = [
     *ROOT.glob("*.html"),
     *ROOT.glob("*.md"),
     *ROOT.glob("projects/*.html"),
-    *ROOT.glob("orbit/**/*.html"),
     ROOT / "assets" / "site.js",
-    ROOT / "orbit" / "scene.js",
     ROOT / "data" / "projects.json",
 ]
 
@@ -81,7 +79,7 @@ for project in DATA["projects"]:
             errors.append(f"{project['id']}.tables.{name} needs rows and a source")
 
 bind_re = re.compile(r'data-(?:bind|table)="([^"]+)"')
-html_files = list(ROOT.glob("*.html")) + list((ROOT / "projects").glob("*.html")) + list(ROOT.glob("orbit/**/*.html"))
+html_files = list(ROOT.glob("*.html")) + list((ROOT / "projects").glob("*.html"))
 for path in html_files:
     text = path.read_text()
     for raw in bind_re.findall(text):
@@ -117,83 +115,6 @@ if b"PLACEHOLDER" in resume_bytes:
 if "The resume PDF is a placeholder." in (ROOT / "index.html").read_text(encoding="utf-8"):
     errors.append("hero still says the resume PDF is a placeholder")
 
-orbit_page = (ROOT / "orbit" / "index.html").read_text(encoding="utf-8")
-for needle in (
-    "results/code_v2/claude-haiku-5-5/team.json",
-    "results/v3_qwen1.5b/comparison.json",
-    "results/v3_qwen1.5b/team_distill.json",
-    "results/v3_qwen1.5b/team_lora.json",
-    "not an improvement",
-    "includes zero",
-    "above zero",
-    "29 of 32",
-    "27 of 32",
-):
-    if needle not in orbit_page:
-        errors.append(f"orbit page must state {needle!r}")
-if re.search(r"team (beats|is better|outperforms)|(?<!not )an improvement", orbit_page, re.I):
-    errors.append("orbit page must not call the code-eval gap or a zero-spanning interval an improvement")
-replay_html = (ROOT / "orbit" / "replay" / "index.html").read_text(encoding="utf-8")
-if "Scripted harness" not in replay_html:
-    errors.append("mission replay must keep the Scripted harness label")
-for name in ("quotient.jsonl", "abort.jsonl", "revise.jsonl", "index.json"):
-    trace = ROOT / "orbit" / "replay" / "traces" / name
-    if not trace.exists():
-        errors.append(f"missing bundled trace {name}")
-for name in ("accept.jsonl", "revise.jsonl", "refuse.jsonl", "index.json"):
-    if not (ROOT / "orbit" / "replay" / "traces" / "v2" / name).exists():
-        errors.append(f"missing bundled v2 trace {name}")
-v2_index = ROOT / "orbit" / "replay" / "traces" / "v2" / "index.json"
-if v2_index.exists():
-    for item in json.loads(v2_index.read_text()):
-        trace = ROOT / "orbit" / "replay" / "traces" / "v2" / item["file"]
-        header = json.loads(trace.read_text().splitlines()[0]) if trace.exists() else {}
-        if header.get("team") != "v2" or header.get("harness") != "scripted_harness":
-            errors.append(f"v2 trace {item['file']} must be a team v2 scripted-harness trace")
-if 'value="incident/report.jsonl" selected' not in orbit_page:
-    errors.append("orbit scene must open on the incident report trace")
-incident_index = ROOT / "orbit" / "replay" / "traces" / "incident" / "index.json"
-if not incident_index.exists():
-    errors.append("missing bundled incident index")
-else:
-    for item in json.loads(incident_index.read_text()):
-        trace = ROOT / "orbit" / "replay" / "traces" / "incident" / item["file"]
-        if not trace.exists():
-            errors.append(f"missing bundled incident trace {item['file']}")
-            continue
-        header = json.loads(trace.read_text().splitlines()[0])
-        if header.get("harness") != "scripted_harness" or header.get("scenario") != "incident":
-            errors.append(f"incident trace {item['file']} must be a scripted incident trace")
-if "not shipped" in orbit_page.lower() or "not shipped" in replay_html.lower():
-    errors.append("incident traces are shipped; the site must not say they are not shipped")
-for label in ("Replay of a saved engine trace", "Scripted harness", "Not live", "Not a model score"):
-    if label not in orbit_page or label not in (ROOT / "orbit" / "scene.js").read_text(encoding="utf-8"):
-        errors.append(f"orbit scene must keep the label {label!r} in the page and in scene.js")
-
-# Measured slots cite the archive path. Boardroom stays a demo with no figure.
-def slot_text(name: str) -> str:
-    match = re.search(rf'<div class="slot-empty"[^>]*data-slot="{name}"[^>]*>(.*?)</div>', orbit_page, re.S)
-    if not match:
-        errors.append(f"orbit page needs data-slot={name!r}")
-        return ""
-    return re.sub(r"<[^>]+>", " ", match.group(1))
-
-code_slot = slot_text("orbit-code")
-if code_slot and ("29 of 32" not in code_slot or "not an improvement" not in code_slot):
-    errors.append("orbit code slot must show 29 of 32 and say the gap is not an improvement")
-board_slot = slot_text("orbit-boardroom")
-if board_slot and ("Not a measured score" not in board_slot or re.search(r"\d", board_slot)):
-    errors.append("boardroom slot must say 'Not a measured score' and must not show a number")
-v3_slot_text = slot_text("orbit-harness-v3")
-if v3_slot_text and ("0.764" not in v3_slot_text or "includes zero" not in v3_slot_text or "above zero" not in v3_slot_text):
-    errors.append("orbit harness v3 slot must show the measured schema-valid rate and both interval readings")
-distill_slot = slot_text("orbit-distill")
-if distill_slot and ("2 of 12" not in distill_slot or "includes zero" not in distill_slot):
-    errors.append("orbit distill slot must show 2 of 12 and the interval that includes zero")
-
-orbit_project = projects.get("orbit")
-if orbit_project is None or orbit_project.get("role") != "featured":
-    errors.append("Orbit must be a featured project")
 for path in [*html_files, ROOT / "README.md", ROOT / "sitemap.xml", ROOT / "data" / "projects.json"]:
     if not path.exists():
         continue
@@ -214,14 +135,6 @@ for needle in ("0.688", "0.624", "0.757", "patch_s2", "better"):
         errors.append(f"tsfm caveat must state the patch_s2 test headline {needle!r}")
 if "no test score" in tsfm_caveat.lower() or "test pending" in tsfm_caveat.lower():
     errors.append("tsfm caveat must not say the patch_s2 test is pending or unscored")
-atlas = projects.get("atlas")
-if atlas is None or not (ROOT / "projects" / "atlas.html").exists():
-    errors.append("ATLAS needs its project entry and projects/atlas.html")
-else:
-    caveat = atlas.get("caveat", "").lower()
-    for needle in ("local research terminal", "ridge", "one machine"):
-        if needle not in caveat:
-            errors.append(f"ATLAS caveat must state {needle!r}")
 for path in html_files:
     page = path.read_text(encoding="utf-8")
     if "devpost" in page.lower():
@@ -229,16 +142,16 @@ for path in html_files:
 home = (ROOT / "index.html").read_text(encoding="utf-8")
 if "Trained in agentic AI for intent-based 5G network slicing (Amazon Bedrock)." not in home:
     errors.append("Nokia role must keep the agentic AI training line")
-# The home mission index repeats each headline figure for no-JS readers; it must match the data.
+# The home telemetry strip repeats each headline figure for no-JS readers; it must match the data.
 for pid, project in projects.items():
     if project.get("role") != "featured":
         continue
     stat = project["stats"][project["headline"]["stat"]]
     block = re.search(rf'data-headline="{re.escape(pid)}".*?</li>', home, re.S)
     if not block:
-        errors.append(f"index.html mission index is missing {pid}")
+        errors.append(f"index.html telemetry strip is missing {pid}")
     elif stat["display"] not in block.group(0) or stat["label"] not in block.group(0):
-        errors.append(f"index.html mission index for {pid} does not match data/projects.json")
+        errors.append(f"index.html telemetry strip for {pid} does not match data/projects.json")
 # data-bind fallback text must match the data it binds.
 for path in html_files:
     page = path.read_text(encoding="utf-8")
@@ -250,7 +163,7 @@ for path in html_files:
         if shown and cursor is not None and shown != str(cursor):
             errors.append(f"{path.relative_to(ROOT)} bind {raw} shows {shown!r} but data says {cursor!r}")
 sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
-for loc in ("projects/tsfm.html", "projects/world-shock-lab.html", "projects/atlas.html", "projects/deep-portfolio-constructor.html", "orbit/"):
+for loc in ("projects/deep-portfolio-constructor.html", "projects/tsfm.html", "projects/world-shock-lab.html", "aurvane/"):
     if f"https://shmorsi.github.io/{loc}</loc>" not in sitemap:
         errors.append(f"sitemap.xml is missing {loc}")
 
@@ -269,12 +182,6 @@ if not tsfm_slot or "0.688" not in tsfm_slot_text or "Not scored" in tsfm_slot_t
 tsfm_distill = re.search(r'data-slot="tsfm-distill"[^>]*>(.*?)</div>', tsfm_page, re.S)
 if not tsfm_distill or "Not scored" not in tsfm_distill.group(1) or re.search(r"\d", re.sub(r"<[^>]+>", " ", tsfm_distill.group(1))):
     errors.append("tsfm distillation slot must say 'Not scored' and must not show a number")
-if 'data-slot="orbit-distill"' not in orbit_page or 'data-slot="orbit-harness-v3"' not in orbit_page:
-    errors.append("orbit page needs the measured distill and harness v3 slots")
-for needle in ("team_distill.json", "comparison.json", "team.json"):
-    if needle not in orbit_page:
-        errors.append(f"orbit page must name the measured file {needle!r}")
-
 # Internal links, image alts, and the tags a shared link needs.
 meta_needles = (
     "<title>",
@@ -338,44 +245,8 @@ for project in DATA["projects"]:
     if proves and proves not in home:
         errors.append(f"index.html is missing the proves line for {project['id']}")
 
-for gif in ("orbit/media/orbit-code.gif", "orbit/media/orbit-boardroom.gif"):
-    if gif.removeprefix("orbit/") not in orbit_page or not (ROOT / gif).is_file():
-        errors.append(f"the Orbit mission page must use the measured clip {gif}")
 if "prefers-reduced-motion" not in (ROOT / "assets" / "site.css").read_text(encoding="utf-8"):
     errors.append("stylesheet must respect prefers-reduced-motion")
-if "data-gif" not in (ROOT / "assets" / "site.js").read_text(encoding="utf-8"):
-    errors.append("clips must stay still until script decides to play them")
-
-# Displayed Orbit figures have to match the copied measurement files.
-meas = ROOT / "data" / "measurements" / "orbit"
-code_team = json.loads((meas / "code_v2/claude-haiku-5-5/team.json").read_text())
-code_single = json.loads((meas / "code_v2/claude-haiku-5-5/single.json").read_text())
-if code_team.get("n_pass") != 29 or code_team.get("n_tasks") != 32 or code_single.get("n_pass") != 27:
-    errors.append("code-eval measurement files no longer match the published 29 of 32 and 27 of 32")
-code_cmp_path = meas / "code_v2/claude-haiku-5-5/comparison.json"
-if not code_cmp_path.exists():
-    errors.append("code-eval comparison.json is missing")
-else:
-    code_cmp = json.loads(code_cmp_path.read_text())
-    pass_ci = code_cmp["pairs"]["team_minus_single"]["pass_at_1"]
-    if pass_ci.get("point") != 0.0625 or pass_ci.get("low") != 0.0 or pass_ci.get("high") != 0.15625:
-        errors.append("code-eval pass@1 interval no longer matches 0.0625 [0.0, 0.15625]")
-    if not (pass_ci["low"] <= 0 <= pass_ci["high"]):
-        errors.append("code-eval interval no longer includes zero; update the wording from the file")
-    if "0.15625" not in orbit_page or "0.15625" not in home:
-        errors.append("pages must show the code-eval interval 0.000 to 0.15625")
-qwen_cmp = json.loads((meas / "v3_qwen1.5b/comparison.json").read_text())
-task_ci = qwen_cmp["pairs"]["team_lora_minus_team_base"]["task_success_rate"]
-schema_ci = qwen_cmp["pairs"]["team_lora_minus_team_base"]["schema_valid_rate"]
-if not (task_ci["low"] < 0 < task_ci["high"]):
-    errors.append("fine-tune task-success interval no longer spans zero; update the wording from the file")
-if not (schema_ci["low"] > 0):
-    errors.append("fine-tune schema-valid interval is no longer above zero; update the wording from the file")
-orbit_blob = json.dumps(projects.get("orbit", {}))
-for banned in ("0.607 → 0.780", "0.862", "0.559", "3 vs 2 of 12"):
-    if banned in orbit_blob or banned in orbit_page or banned in home:
-        errors.append(f"superseded Orbit figure {banned} is still on the site")
-
 # Aurvane: displayed figures match the copied summary, and the page says they are simulated.
 aurvane = projects.get("aurvane")
 asum_path = ROOT / "data" / "measurements" / "aurvane" / "worst-case_summary.json"
@@ -402,9 +273,6 @@ else:
             errors.append(f"aurvane caveat must state {needle!r}")
     if not (ROOT / "aurvane" / "index.html").is_file() or not (ROOT / "aurvane" / "media" / "aurvane-demo.mp4").is_file():
         errors.append("aurvane/ needs index.html and media/aurvane-demo.mp4")
-    if present := re.search(r'const PRESENT = \["([^"]+)"', (ROOT / "assets" / "site.js").read_text()):
-        if present.group(1) != "aurvane":
-            errors.append("Aurvane must be the first project in assets/site.js PRESENT")
     rt_path = ROOT / "data" / "measurements" / "aurvane" / "redteam_summary.json"
     if rt_path.exists():
         rt = json.loads(rt_path.read_text())
@@ -435,16 +303,52 @@ else:
     if re.search(r"significant(?! at)|significantly", dpc.get("proves", "").replace("not statistically significant", "")):
         errors.append("deep-portfolio-constructor proves line must not claim significance")
 
-# Mission patches exist for every project, and no page links to a repository visitors cannot open.
+# Project marks exist for every project, and no page links to a repository visitors cannot open.
 for project in DATA["projects"]:
-    if not (ROOT / "assets" / "patches" / f"{project['id']}.svg").is_file():
-        errors.append(f"missing mission patch assets/patches/{project['id']}.svg (run scripts/make_patches.py)")
+    if not (ROOT / "assets" / "marks" / f"{project['id']}.svg").is_file():
+        errors.append(f"missing project mark assets/marks/{project['id']}.svg (run scripts/make_marks.py)")
     for link in project.get("links") or []:
         if link.get("public") is False:
             repo = link["href"].rstrip("/")
             for path in html_files:
                 if re.search(r'href="' + re.escape(repo) + r'(?:/[^"]*)?"', path.read_text(encoding="utf-8")):
                     errors.append(f"{path.relative_to(ROOT)} links {repo}, which is marked private (run scripts/sync_chrome.py)")
+
+# Retired projects (Orbit, ATLAS): their repositories were deleted, so nothing on the site may name or link them.
+# aurvane/index.html is built elsewhere and only mentions an unrelated fictional company.
+for path in ROOT.rglob("*"):
+    if not path.is_file() or ".git" in path.parts or path.suffix not in {".html", ".js", ".json", ".css", ".xml", ".md"}:
+        continue
+    if path.name == "check_site.py" or path.is_relative_to(ROOT / "aurvane"):
+        continue
+    if re.search(r"\borbit\b|\batlas\b", path.read_text(errors="ignore"), re.I):
+        errors.append(f"{path.relative_to(ROOT)} still names a retired project (Orbit or ATLAS)")
+for gone in ("orbit", "projects/atlas.html", "data/measurements/orbit"):
+    if (ROOT / gone).exists():
+        errors.append(f"{gone} belongs to a retired project and must not be served")
+
+# Projects are numbered 01, 02, ... in the order of data/projects.json, and each has its own page.
+for i, project in enumerate(DATA["projects"], 1):
+    if project.get("number") != f"{i:02d}":
+        errors.append(f"{project['id']} must be number {i:02d} (data order), not {project.get('number')!r}")
+
+# The master page is generated: its <main> must match a fresh build from data/projects.json, charts included.
+import importlib.util  # noqa: E402
+
+sys.dont_write_bytecode = True  # no __pycache__ in the site repository
+spec = importlib.util.spec_from_file_location("build_home", ROOT / "scripts" / "build_home.py")
+build_home = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(build_home)
+main_of = lambda text: re.search(r"<main id=\"main\">.*?</main>", text, re.S).group(0)  # noqa: E731
+if main_of(build_home.page()) != main_of(home):
+    errors.append("index.html is out of date with data/projects.json (run scripts/build_home.py, then scripts/sync_chrome.py)")
+
+# The hero illustration and every reveal must respect reduced motion.
+site_js = (ROOT / "assets" / "site.js").read_text(encoding="utf-8")
+if "prefers-reduced-motion" not in site_js:
+    errors.append("assets/site.js must check prefers-reduced-motion before animating")
+if "Illustration, not data" not in home:
+    errors.append("the hero illustration must say it is an illustration, not data")
 
 if errors:
     print("\n".join(errors))

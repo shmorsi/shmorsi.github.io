@@ -101,7 +101,7 @@ def main(fig_path: str) -> None:
     }
     entry = {
         "id": REPO,
-        "mission": "02",
+        "number": "01",
         "code": "DPC",
         "role": "featured",
         "badge": "Walk-forward",
@@ -130,7 +130,7 @@ def main(fig_path: str) -> None:
                   "width": 1600, "height": 900},
         "tags": ["Python", "PyTorch", "cvxpylayers", "cvxpy", "pandas", "pytest", "Streamlit"],
         "links": [
-            {"label": "Mission page", "href": "projects/deep-portfolio-constructor.html", "kind": "site"},
+            {"label": "Project page", "href": "projects/deep-portfolio-constructor.html", "kind": "site"},
             {"label": "GitHub", "href": "https://github.com/shmorsi/deep-portfolio-constructor", "kind": "repo", "external": True, "public": False},
         ],
         "glanceIds": ["sharpeE2E", "specificE2E", "icDeep", "tests"],
@@ -146,7 +146,7 @@ def main(fig_path: str) -> None:
     path = ROOT / "data" / "projects.json"
     data = json.loads(path.read_text())
     data["projects"] = [p for p in data["projects"] if p["id"] != REPO]
-    data["projects"].insert(1, entry)
+    data["projects"].insert(0, entry)  # the featured project leads the page
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
     print(f"synced {REPO}: {len(stats)} stats")
 

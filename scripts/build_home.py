@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Build index.html, the master page, from data/projects.json.
 
-The master page is a mission manifest: one card per project, each linking to
-that project's own mission page. Every figure on it is a data-bind whose
-fallback text is copied from data/projects.json here, so the page reads
-correctly without JavaScript and scripts/check_site.py can verify it.
+One featured project (the Deep Portfolio Constructor) and three project cards,
+each linking to that project's own page. Every figure is a data-bind whose
+fallback text is copied from data/projects.json here, and every chart is drawn
+from the same file, so the page reads correctly without JavaScript and
+scripts/check_site.py can verify it.
 
 Run after any change to data/projects.json:  python3 scripts/build_home.py
 """
@@ -13,25 +14,26 @@ from __future__ import annotations
 
 import html
 import json
+import math
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "projects.json").read_text())
 P = {p["id"]: p for p in DATA["projects"]}
-ORDER = ["aurvane", "deep-portfolio-constructor", "orbit", "tsfm", "world-shock-lab", "atlas"]
-TRACKS = {  # which recruiter track each mission is evidence for
-    "aurvane": "agents eng",
-    "deep-portfolio-constructor": "ml quant eng",
-    "orbit": "agents ml eng",
-    "tsfm": "ml eng",
-    "world-shock-lab": "quant ml eng",
-    "atlas": "quant ml",
-}
-STATUS = {"aurvane": "Simulated", "deep-portfolio-constructor": "Walk-forward", "orbit": "Scored once",
-          "tsfm": "Test scored", "world-shock-lab": "Live", "atlas": "Local app"}
+FEATURED = "deep-portfolio-constructor"
+ORDER = [p["id"] for p in DATA["projects"]]  # display order is the order in the data file
+CARDS = [pid for pid in ORDER if pid != FEATURED]
+STATUS = {"deep-portfolio-constructor": "Walk-forward", "tsfm": "Test scored", "world-shock-lab": "Live", "aurvane": "Simulated"}
+SHORT = {"deep-portfolio-constructor": "Portfolio", "tsfm": "TSFM", "world-shock-lab": "Shock Lab", "aurvane": "Aurvane"}
 LIVE = {"world-shock-lab"}
+GITHUB = "https://github.com/shmorsi"
+LINKEDIN = "https://www.linkedin.com/in/sherif-morsi-a17628295/"
+RESUME = "resume/Sherif_Morsi_Resume.pdf"
 e = html.escape
 
+
+# ---------------------------------------------------------------- data access
 
 def bind(pid: str, path: str, tag: str = "span", cls: str = "") -> str:
     cur = P[pid]
@@ -41,12 +43,40 @@ def bind(pid: str, path: str, tag: str = "span", cls: str = "") -> str:
     return f'<{tag}{c} data-bind="{pid}.{path}">{e(str(cur), quote=False)}</{tag}>'
 
 
+def stat(pid: str, key: str) -> dict:
+    return P[pid]["stats"][key]
+
+
+def number(text: str) -> float:
+    """'−0.40' -> -0.4, '0.688×' -> 0.688. Display strings use the Unicode minus."""
+    match = re.search(r"[−-]?\d+(?:\.\d+)?", text.replace(",", ""))
+    if not match:
+        raise ValueError(f"no number in {text!r}")
+    return float(match.group(0).replace("−", "-"))
+
+
+def interval(text: str) -> tuple[float, float, float | None]:
+    """'−1.10 [−1.59, −0.61]' -> (lo, hi, point); '[0.624, 0.757]' -> (lo, hi, None)."""
+    nums = [float(x.replace("−", "-")) for x in re.findall(r"[−+-]?\d+(?:\.\d+)?", text)]
+    if len(nums) == 3:
+        return nums[1], nums[2], nums[0]
+    if len(nums) == 2:
+        return nums[0], nums[1], None
+    raise ValueError(f"not an interval: {text!r}")
+
+
+def of(text: str) -> tuple[int, int]:
+    """'7 of 30' -> (7, 30)."""
+    a, b = re.findall(r"\d+", text)[:2]
+    return int(a), int(b)
+
+
 def site_link(p: dict) -> dict:
     return next(link for link in p["links"] if link["kind"] == "site")
 
 
-def mission_href(p: dict) -> str:
-    """The project's own mission page on this site (preferred over an external live site)."""
+def page_href(p: dict) -> str:
+    """The project's own page on this site (preferred over an external live site)."""
     for link in p["links"]:
         if not link.get("external") and link["kind"] in ("site", "more"):
             return link["href"]
@@ -60,95 +90,235 @@ def repo_html(p: dict) -> str:
     return f'<a class="button" href="{e(repo["href"])}" target="_blank" rel="noopener noreferrer">GitHub</a>'
 
 
+def status(pid: str) -> str:
+    live = " is-live" if pid in LIVE else ""
+    return f'<span class="status{live}">{STATUS[pid]}</span>'
+
+
+# ---------------------------------------------------------------- charts
+# One grammar for every chart on the page: a row has a name and a value above a
+# track; a track has a reference line (zero or the baseline) and either a bar
+# from the reference or a point with its interval. Positions are percentages of
+# the domain, computed here from data/projects.json.
+
+def pos(x: float, lo: float, hi: float) -> str:
+    """Distance from the left edge of the track, as a percentage of the domain."""
+    return f"{100 * (x - lo) / (hi - lo):.2f}%"
+
+
+def rpos(x: float, lo: float, hi: float) -> str:
+    """Distance from the right edge of the track."""
+    return f"{100 * (hi - x) / (hi - lo):.2f}%"
+
+
+def chart(rows: list[str], axis: str, note: str, label: str, cls: str = "") -> str:
+    c = f" {cls}" if cls else ""
+    return (f'<figure class="chart{c}" aria-label="{e(label)}">\n'
+            + "\n".join(rows)
+            + f'\n            {axis}\n            <figcaption class="chart-note">{note}</figcaption>\n          </figure>')
+
+
+def bar_row(name: str, value_html: str, value: float, lo: float, hi: float, ref: float, tone: str = "") -> str:
+    """tone: "best" (accent), "dim", or "" (ink). Bars below the reference are dim unless marked best."""
+    left, right = sorted((value, ref))
+    tone = tone or ("dim" if value < ref else "")
+    cls = (f" is-{tone}" if tone else "") + (" neg" if value < ref else "")  # neg: the bar grows leftward from the reference
+    return (f'            <div class="chart-row{cls}">'
+            f'<p class="chart-head"><span class="chart-name">{e(name)}</span><span class="chart-val">{value_html}</span></p>'
+            f'<span class="chart-track" style="--ref:{pos(ref, lo, hi)}"><i class="ref"></i>'
+            f'<i class="fill" style="left:{pos(left, lo, hi)};right:{rpos(right, lo, hi)}"></i></span></div>')
+
+
+def point_row(name: str, value_html: str, point: float, ci: tuple[float, float], lo: float, hi: float, ref: float) -> str:
+    return (f'            <div class="chart-row">'
+            f'<p class="chart-head"><span class="chart-name">{e(name)}</span><span class="chart-val">{value_html}</span></p>'
+            f'<span class="chart-track" style="--ref:{pos(ref, lo, hi)}"><i class="ref"></i>'
+            f'<i class="ci" style="left:{pos(ci[0], lo, hi)};right:{rpos(ci[1], lo, hi)}"></i>'
+            f'<i class="pt" style="left:{pos(point, lo, hi)}"></i></span></div>')
+
+
+def axis(ticks: list[tuple[float, str]], lo: float, hi: float) -> str:
+    spans = "".join(f'<span style="left:{pos(x, lo, hi)}">{e(t)}</span>' for x, t in ticks)
+    return f'<p class="chart-axis" aria-hidden="true">{spans}</p>'
+
+
+def ablation_chart() -> str:
+    """Net Sharpe for each step of the ablation, from the project's committed stats."""
+    pid = FEATURED
+    steps = [("Naive signal, no risk model", "sharpeNaive"), ("Classical optimiser", "sharpeClassical"),
+             ("Deep risk model", "sharpeDeepRisk"), ("Deep views and deep risk", "sharpeAlpha"),
+             ("End-to-end through the optimiser", "sharpeE2E"), ("Fully deep: adds AlphaFormer", "sharpeDeep")]
+    values = [number(stat(pid, key)["display"]) for _, key in steps]
+    m = math.ceil(max(abs(v) for v in values) * 10) / 10
+    rows = [bar_row(name, bind(pid, f"stats.{key}.display"), v, -m, m, 0.0, "best" if key == "sharpeE2E" else "")
+            for (name, key), v in zip(steps, values)]
+    ticks = [(-m, f"−{m:.1f}"), (0.0, "0"), (m, f"{m:.1f}")]
+    note = (f'Net Sharpe, out of sample from January 2008, net of 10 bps costs. End-to-end minus classical: Newey-West t '
+            f'{bind(pid, "stats.diffT.display")}, not significant. Seeds 42 / 43 / 44: {bind(pid, "stats.seedsE2E.display")}.')
+    return chart(rows, axis(ticks, -m, m), note, "Net Sharpe ratio for each step of the ablation", "chart-ablation")
+
+
+def tsfm_chart() -> str:
+    rows = P["tsfm"]["tables"]["patchTest"]["rows"]
+    crps = [r for r in rows if r[2] == "CRPS"]
+    lo, hi = 0.5, 1.1
+    out = []
+    for r in crps:
+        point, ci = float(r[3]), interval(r[4])[:2]
+        out.append(point_row(f"vs {r[1]}", f"{e(r[3])}× {e(r[4])}", point, ci, lo, hi, 1.0))
+    note = "Test CRPS as a multiple of each baseline; 1 is the baseline, lower is better. 95% intervals, one seed, 97 configurations."
+    return chart(out, axis([(0.5, "0.5"), (0.75, "0.75"), (1.0, "1 = baseline")], lo, hi), note,
+                 "Test CRPS relative to two baselines, with 95% intervals")
+
+
+def wsl_chart() -> str:
+    table = P["world-shock-lab"]["tables"]["announcement"]
+    tsx = table["rows"][0]
+    lo, hi = -2.0, 0.5
+    out = []
+    for col, name in ((1, "Fed surprise → TSX"), (2, "Bank of Canada surprise → TSX")):
+        a, b, point = interval(tsx[col])
+        value, band = re.match(r"(\S+)\s*(\[.*\])", tsx[col]).groups()  # "−1.10 [−1.59, −0.61]"
+        out.append(point_row(name, f"{e(value)}% {e(band)}", point, (a, b), lo, hi, 0.0))
+    note = "S&P/TSX move on announcement day per 10 bp surprise in the 2-year yield, with 90% bands. Zero is no effect."
+    return chart(out, axis([(-2.0, "−2%"), (-1.0, "−1%"), (0.0, "0")], lo, hi), note,
+                 "S&P/TSX response to Fed and Bank of Canada surprises, with 90% bands")
+
+
+def aurvane_chart() -> str:
+    pid = "aurvane"
+    without, total = of(stat(pid, "attacksWithout")["display"])
+    with_, _ = of(stat(pid, "attacksWith")["display"])
+    rows = [bar_row("Without Aurvane", bind(pid, "stats.attacksWithout.display"), without, 0, total, 0, "dim"),
+            bar_row("With Aurvane", bind(pid, "stats.attacksWith.display"), with_, 0, total, 0, "best")]
+    note = "Injected attacks that landed, out of 30 poisoned tasks. Simulated worst-case agent, deterministic, run once."
+    return chart(rows, axis([(0, "0"), (total / 2, f"{total // 2}"), (total, f"{total}")], 0, total), note,
+                 "Attacks that landed with and without Aurvane")
+
+
+CHARTS = {"tsfm": tsfm_chart, "world-shock-lab": wsl_chart, "aurvane": aurvane_chart}
+
+
+# ---------------------------------------------------------------- sections
+
 def telemetry(pid: str) -> str:
     p = P[pid]
     st = p["stats"][p["headline"]["stat"]]
-    live = " is-live" if pid in LIVE else ""
-    return (f'<li data-headline="{pid}"><a href="#m-{pid}"><span class="mission-top"><span class="label mission-num">{p["mission"]}</span>'
-            f'<span class="status{live}">{STATUS[pid]}</span></span><strong>{e(p["title"])}</strong>'
-            f'<span class="fig">{e(st["display"])}</span><span class="fig-label">{e(st["label"])}</span></a></li>')
+    return (f'<li data-headline="{pid}"><a href="#p-{pid}"><span class="t-top"><span class="t-num">{p["number"]}</span>{status(pid)}</span>'
+            f'<strong>{e(p["title"])}</strong><span class="fig">{e(st["display"])}</span>'
+            f'<span class="fig-label">{e(st["label"])}</span></a></li>')
+
+
+def feature() -> str:
+    pid = FEATURED
+    p = P[pid]
+    href = page_href(p)
+    key = p["headline"]["stat"]
+    stack = [("AlphaFormer", "Transformer return views", f'{bind(pid, "stats.paramsAlpha.display")} parameters per member'),
+             ("Deep risk model", "Transformer covariance", f'{bind(pid, "stats.paramsRisk.display")} parameters'),
+             ("Differentiable optimiser", "Neutral to sectors, beta, size, value", "cvxpylayers"),
+             ("Long-short portfolio", "Scored on next month's return", f'{bind(pid, "stats.stocks.display")} large caps')]
+    steps = "".join(f'<li><span class="step-num">{i:02d}</span><b>{e(a)}</b><span>{e(b)}</span><small>{c}</small></li>'
+                    for i, (a, b, c) in enumerate(stack, 1))
+    return f"""
+      <article class="feature" id="p-{pid}" data-reveal>
+        <div class="feature-head">
+          <p class="label"><span class="num">{p["number"]}</span> Featured · {e(p["kicker"])} · {status(pid)}</p>
+          <h3><a href="{e(href)}">{e(p["title"])}</a></h3>
+          {bind(pid, "purpose", "p", "purpose")}
+        </div>
+        <div class="feature-fig">
+          {bind(pid, f"stats.{key}.display", "p", "big-fig")}
+          {bind(pid, f"stats.{key}.label", "p", "fig-label")}
+          {bind(pid, "headline.qualifier", "p", "qualifier")}
+        </div>
+        <div class="feature-proof">
+          <p class="proves"><span class="label">What it proves</span>{bind(pid, "proves")}</p>
+          <div class="actions">
+            <a class="button button-solid" href="{e(href)}">Open the project</a>
+            {repo_html(p)}
+          </div>
+        </div>
+        <div class="feature-chart">
+          <p class="label">The ablation · one deep component at a time</p>
+          {ablation_chart()}
+        </div>
+        <div class="feature-stack">
+          <p class="label">The deep stack · PyTorch at every layer</p>
+          <ol class="pipeline">{steps}</ol>
+          <p class="backprop"><span class="backprop-line" aria-hidden="true"></span>Trained end to end: the gradient of the realised return flows back through the optimiser into both networks.</p>
+        </div>
+      </article>"""
 
 
 def card(pid: str) -> str:
     p = P[pid]
-    stat = p["headline"]["stat"]
-    href = mission_href(p)
-    live = " is-live" if pid in LIVE else ""
-    extra = ""
+    href = page_href(p)
     site = site_link(p)
+    extra = ""
     if site.get("external"):
         extra = f'<a class="text-link" href="{e(site["href"])}" target="_blank" rel="noopener noreferrer">{e(site["label"])}</a>'
     tags = "".join(f"<li>{e(t)}</li>" for t in p.get("tags", []))
     return f"""
-        <li class="m-card" id="m-{pid}" data-tracks="{TRACKS[pid]}" data-reveal>
-          <div class="m-card-top">
-            <img class="patch" src="assets/patches/{pid}.svg" alt="" width="64" height="64" decoding="async">
-            <div class="m-card-id"><span class="label">Mission {p["mission"]} · {e(p["kicker"])}</span><span class="status{live}">{STATUS[pid]}</span></div>
+        <li class="card" id="p-{pid}" data-reveal>
+          <div class="card-chart">
+            {CHARTS[pid]()}
           </div>
+          <p class="label"><span class="num">{p["number"]}</span> {e(p["kicker"])} · {status(pid)}</p>
           <h3><a class="card-link" href="{e(href)}">{e(p["title"])}</a></h3>
           {bind(pid, "purpose", "p", "purpose")}
-          <div>
-            {bind(pid, f"stats.{stat}.display", "p", "m-fig")}
-            {bind(pid, f"stats.{stat}.label", "p", "fig-label")}
-            {bind(pid, "headline.qualifier", "p", "qualifier")}
-          </div>
-          <p class="proves"><span class="label">What it proves</span>{bind(pid, "proves")}</p>{NOTES.get(pid, lambda: "")()}
+          <p class="proves"><span class="label">What it proves</span>{bind(pid, "proves")}</p>
           <ul class="tags" aria-label="Stack">{tags}</ul>
           <div class="actions">
-            <a class="button button-solid" href="{e(href)}">Enter mission</a>
+            <a class="button button-solid" href="{e(href)}">Open the project</a>
             {repo_html(p)}
             {extra}
           </div>
         </li>"""
 
 
-NOTES = {  # a second, honest reading shown under a card's proves line
-    "orbit": lambda: (f'\n          <p class="qualifier">Code repair: {bind("orbit", "stats.codeTeamPass.display")} with the reviewer, '
-                      f'{bind("orbit", "stats.codeSinglePass.display")} for a single agent. Paired 95% interval 0.000 to 0.15625 '
-                      f'includes zero, so the gap is not an improvement.</p>'),
-}
+RULES = [
+    ("Decide the test first", "Splits, metrics, baselines and the rule for a disappointing answer are tagged in git before the test set is opened."),
+    ("No look-ahead", "Models refit on past data only. Tests fail if changing data after a decision date changes the decision."),
+    ("Intervals, not points", "Every comparison carries its interval. When the interval includes zero, the page says it is not an improvement."),
+    ("Every number traced", "Figures are read from one data file that names each result's source, and a check fails the build if a page drifts."),
+]
 
-
-SYSTEMS = [
-    ("AI agents and LLMs", "Agents that act inside bounds a human signed, and hand work to each other in messages that code checks.",
-     [("Aurvane", "#m-aurvane"), ("Orbit", "#m-orbit")],
-     "LLM agents, multi-agent systems, tool calling, MCP, structured outputs, QLoRA, prompt-injection defense, LLM evaluation"),
-    ("Machine learning and deep learning", "Models written and trained from scratch in PyTorch, scored once on frozen, pre-registered tests.",
-     [("Portfolio", "#m-deep-portfolio-constructor"), ("TSFM", "#m-tsfm"), ("ATLAS", "#m-atlas")],
-     "PyTorch, transformers, differentiable optimisation, time-series forecasting, mixed precision, scikit-learn, bootstrap intervals"),
-    ("Quant research and portfolios", "Factor-neutral portfolios, walk-forward backtests, and causal estimates of how markets react to central banks.",
-     [("Portfolio", "#m-deep-portfolio-constructor"), ("Shock Lab", "#m-world-shock-lab"), ("ATLAS", "#m-atlas")],
-     "Portfolio optimisation, risk models, cvxpy, factor models, econometrics, statsmodels, Newey-West inference, QUARCC"),
-    ("Engineering practice", "Typed, tested, reproducible code with CI, from Python SDKs and an MCP server to live sites and dashboards.",
-     [("Aurvane", "#m-aurvane"), ("Shock Lab", "#m-world-shock-lab"), ("TSFM", "#m-tsfm")],
-     "Python, TypeScript, SQL, FastAPI, DuckDB, Git, GitHub Actions, pytest, Playwright, Docker"),
+TOOLKIT = [
+    ("Deep learning", "Transformers written and trained in PyTorch, attention across assets, differentiable optimisation, probabilistic forecasting, mixed precision.",
+     ["deep-portfolio-constructor", "tsfm"]),
+    ("Quant and finance", "Portfolio optimisation, risk and factor models, walk-forward backtests, event studies, Newey-West and bootstrap inference.",
+     ["deep-portfolio-constructor", "world-shock-lab"]),
+    ("AI agents and engineering", "LLM agents, tool calling, MCP, prompt-injection defence. Python, TypeScript, SQL, pytest, GitHub Actions.",
+     ["aurvane", "world-shock-lab"]),
 ]
 
 
-def systems() -> str:
+def rules() -> str:
+    return "".join(f'<li><span class="num">{i:02d}</span><h3>{e(t)}</h3><p>{e(d)}</p></li>' for i, (t, d) in enumerate(RULES, 1))
+
+
+def toolkit() -> str:
     out = []
-    for title, text, ev, skills in SYSTEMS:
-        links = "".join(f'<li><a href="{h}">{e(n)}</a></li>' for n, h in ev)
-        out.append(f"""
-        <article class="system" data-reveal>
-          <h3>{e(title)}</h3>
-          <p>{e(text)}</p>
-          <ul class="evidence" aria-label="Evidence">{links}</ul>
-          <p class="skills">{e(skills)}</p>
-        </article>""")
+    for title, text, proof in TOOLKIT:
+        links = "".join(f'<a href="#p-{pid}">{e(SHORT[pid])}</a>' for pid in proof)
+        out.append(f'<article><h3>{e(title)}</h3><p>{e(text)}</p><p class="proof"><span class="label">See</span>{links}</p></article>')
     return "".join(out)
 
 
 def page() -> str:
     tagline = e(DATA["tagline"])
     titles = ", ".join(P[i]["title"] for i in ORDER)
-    desc = f"Sherif Morsi builds AI agents, deep learning models and quant research systems, scored on tests fixed in advance. Missions: {titles}."
+    count = len(ORDER)
+    words = {3: "Three", 4: "Four", 5: "Five", 6: "Six"}.get(count, str(count))
+    desc = (f"Sherif Morsi builds deep learning systems for finance: portfolios, forecasts and AI agents, "
+            f"scored on tests fixed in advance. Projects: {titles}.")
     return f"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Sherif Morsi · AI agents, deep learning, quant research</title>
+  <title>Sherif Morsi · Deep learning for finance</title>
   <meta name="description" content="{e(desc)}">
   <meta name="author" content="Sherif Morsi">
   <meta name="theme-color" content="#000000">
@@ -159,15 +329,15 @@ def page() -> str:
   <meta property="og:site_name" content="Sherif Morsi">
   <meta property="og:locale" content="en_CA">
   <meta property="og:url" content="https://shmorsi.github.io/">
-  <meta property="og:title" content="Sherif Morsi · Mission manifest">
-  <meta property="og:description" content="{tagline} Six missions, each with its own page and every figure traced to a result file.">
+  <meta property="og:title" content="Sherif Morsi · Deep learning for finance">
+  <meta property="og:description" content="{tagline} {words} projects, each with its own page and every figure traced to a result file.">
   <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Sherif Morsi. {tagline}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Sherif Morsi · Mission manifest">
+  <meta name="twitter:title" content="Sherif Morsi · Deep learning for finance">
   <meta name="twitter:description" content="{tagline}">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/og.png">
   <meta name="twitter:image:alt" content="Sherif Morsi. {tagline}">
@@ -176,7 +346,7 @@ def page() -> str:
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preload" href="assets/fonts/inter-tight-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/site.css">
-  <script>try{{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}}catch(e){{}}document.documentElement.classList.add("js")</script>
+  <script>try{{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}}catch(e){{}}</script>
   <script src="assets/site.js" defer></script>
   <script type="application/ld+json">
   {{
@@ -188,192 +358,144 @@ def page() -> str:
     "jobTitle": "Computer Science student",
     "homeLocation": {{"@type": "Place", "name": "Montreal, Quebec, Canada"}},
     "alumniOf": {{"@type": "CollegeOrUniversity", "name": "Concordia University"}},
-    "knowsAbout": ["AI agents", "Multi-agent systems", "Large language models", "Deep learning", "PyTorch", "Portfolio construction", "Quantitative research", "Time-series forecasting", "Econometrics", "Python"],
-    "sameAs": ["https://github.com/shmorsi", "https://www.linkedin.com/in/sherif-morsi-a17628295"]
+    "knowsAbout": ["Deep learning", "PyTorch", "Transformers", "Portfolio construction", "Quantitative research", "Risk models", "Time-series forecasting", "Econometrics", "AI agents", "Python"],
+    "sameAs": ["{GITHUB}", "https://www.linkedin.com/in/sherif-morsi-a17628295"]
   }}
   </script>
 </head>
 <body data-root="" data-metrics="data/projects.json">
   <a class="skip" href="#main">Skip to content</a>
-  <canvas class="stars" data-stars aria-hidden="true"></canvas>
 
   <header class="site-header"></header>
 
   <main id="main">
-    <section class="hero launch wrap" aria-labelledby="hero-title">
-      <!-- A planet limb with slow orbits. Decorative; still under reduced motion. -->
-      <canvas class="hero-sky" data-orbits aria-hidden="true"></canvas>
-      <div class="hero-main">
-        <p class="label">Montreal · Concordia University · Winter 2027 internships</p>
-        <h1 id="hero-title">Sherif<br>Morsi</h1>
-        <p class="tagline">{tagline}</p>
-        <p class="hero-meta">Third-year Computer Science student at Concordia University. Open to 4 to 16 month internships anywhere in Canada from January 2027, in AI agents, machine learning, quantitative research and portfolio construction.</p>
-        <div class="actions">
-          <a class="button button-solid" href="#missions">View missions</a>
-          <a class="button" href="resume/Sherif_Morsi_Resume.pdf" download>Resume</a>
-          <a class="button" href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
-          <a class="button" href="https://www.linkedin.com/in/sherif-morsi-a17628295/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-        </div>
-      </div>
-      <!-- Figures below mirror data/projects.json so they show without JavaScript. scripts/check_site.py fails if they drift. -->
-      <ol class="mission-index" aria-label="Mission telemetry">
-        {"".join(telemetry(i) for i in ORDER)}
-      </ol>
-    </section>
-
-    <section class="section wrap" id="missions" aria-labelledby="missions-title">
-      <span id="work"></span>
-      <div class="section-head" data-reveal>
-        <p class="label">Mission manifest</p>
-        <h2 id="missions-title">Missions</h2>
-        <p>Six projects. Each has its own mission page with the method, the results and the limits. Filter by the kind of role you are hiring for.</p>
-      </div>
-      <div class="tracks" role="group" aria-label="Filter missions by track">
-        <button type="button" data-track-filter="all" aria-pressed="true">All</button>
-        <button type="button" data-track-filter="agents" aria-pressed="false">AI agents</button>
-        <button type="button" data-track-filter="ml" aria-pressed="false">Deep learning and ML</button>
-        <button type="button" data-track-filter="quant" aria-pressed="false">Quant and finance</button>
-        <button type="button" data-track-filter="eng" aria-pressed="false">Engineering</button>
-        <span class="visually-hidden" data-track-count aria-live="polite"></span>
-      </div>
-      <ol class="mission-grid">{"".join(card(i) for i in ORDER)}
-      </ol>
-      <p class="file-note">Every figure on this site is read from <a href="data/projects.json"><code>data/projects.json</code></a>, and each one names the result file it came from.</p>
-    </section>
-
-    <section class="section wrap" id="capabilities" aria-labelledby="capabilities-title">
-      <div class="section-head" data-reveal>
-        <p class="label">Flight systems</p>
-        <h2 id="capabilities-title">Capabilities</h2>
-        <p>Four kinds of work, each backed by missions you can open and check.</p>
-      </div>
-      <div class="systems">{systems()}
-      </div>
-    </section>
-
-    <section class="section wrap protocol" id="method" aria-labelledby="method-title">
-      <div class="section-head" data-reveal>
-        <p class="label">Flight rules</p>
-        <h2 id="method-title">Method</h2>
-        <p>The same four rules on every mission. They are why a number on this site means something.</p>
-      </div>
-      <ol class="principles" data-reveal>
-        <li><span class="label">01 · Decide the test first</span><h3>Pre-registered</h3><p>Splits, metrics, baselines and the rule for a disappointing answer are tagged in git before the test set is opened.</p></li>
-        <li><span class="label">02 · No look-ahead</span><h3>Walk-forward only</h3><p>Models refit on past data only. Tests fail if changing data after a decision date changes the decision.</p></li>
-        <li><span class="label">03 · Intervals, not points</span><h3>Uncertainty shown</h3><p>Every comparison carries its interval. When the interval includes zero, the page says it is not an improvement.</p></li>
-        <li><span class="label">04 · Every number traced</span><h3>Checked by code</h3><p>Figures are read from one data file that names each result's source, and a check fails the build if a page drifts.</p></li>
-      </ol>
-      <p class="label relay-label">Inside three missions</p>
-      <div class="relay" data-reveal>
-        <div class="lane">
-          <p class="label">Orbit · a team that reviews itself</p>
-          <ol class="flow">
-            <li><b>Planner</b><span>Plan, as JSON</span></li>
-            <li><b>Coder</b><span>Full files, source only</span></li>
-            <li><b>Tests</b><span>pytest, no network</span></li>
-            <li><b>Critic</b><span>Accept or revise</span></li>
-            <li><b>Reviewer</b><span>Code, not a model</span></li>
-            <li><b>Trace</b><span>Every turn, JSONL</span></li>
-          </ol>
-        </div>
-        <div class="lane">
-          <p class="label">Aurvane · a chain of trust</p>
-          <ol class="flow">
-            <li><b>You</b><span>Sign a mandate</span></li>
-            <li><b>Agent</b><span>Reads anything</span></li>
-            <li><b>Sub-agent</b><span>Narrower mandate</span></li>
-            <li><b>Guard</b><span>Four rules</span></li>
-            <li><b>Tool</b><span>Allow, ask, or block</span></li>
-            <li><b>Log</b><span>Hash-chained</span></li>
-          </ol>
-        </div>
-        <div class="lane">
-          <p class="label">Deep Portfolio Constructor · learning through the decision</p>
-          <ol class="flow">
-            <li><b>AlphaFormer</b><span>Views, PyTorch</span></li>
-            <li><b>Risk model</b><span>Covariance, PyTorch</span></li>
-            <li><b>Optimiser</b><span>Neutral, differentiable</span></li>
-            <li><b>Portfolio</b><span>Long-short</span></li>
-            <li><b>Next month</b><span>Realised return</span></li>
-            <li><b>Gradient</b><span>Back through all three</span></li>
-          </ol>
-        </div>
-      </div>
-    </section>
-
-    <section class="section wrap" id="record" aria-labelledby="record-title">
-      <span id="experience"></span>
-      <div class="section-head" data-reveal>
-        <p class="label">Flight record</p>
-        <h2 id="record-title">Experience</h2>
-      </div>
-      <article class="role" data-reveal>
-        <p class="when"><b>Nokia</b>Aug 2026 to Sep 2026<br>Cairo, Egypt</p>
-        <div>
-          <h3>AI &amp; Machine Learning Intern</h3>
-          <ul>
-            <li>Trained and evaluated Python and PyTorch models on wireless network telemetry to forecast 5G energy demand.</li>
-            <li>Developed data and ML pipelines for 5G energy telemetry, to support automated network management and optimization.</li>
-            <li>Trained in agentic AI for intent-based 5G network slicing (Amazon Bedrock). Presented findings to cross-functional data science and engineering teams, and led the project proposal and requirements review.</li>
-          </ul>
-        </div>
-      </article>
-      <article class="role" data-reveal>
-        <p class="when"><b>Qatar National Bank</b>Aug 2025 to Sep 2025<br>Cairo, Egypt</p>
-        <div>
-          <h3>Credit Analyst Job Shadow</h3>
-          <ul>
-            <li>Built and documented Python utilities and SQL queries that preprocess and validate SME financial records for the bank's credit-review process, improving data quality and reliability.</li>
-          </ul>
-        </div>
-      </article>
-      <article class="role" data-reveal>
-        <p class="when"><b>Concordia University</b>Expected May 2028<br>Montreal, QC</p>
-        <div>
-          <h3>Bachelor of Computer Science</h3>
-          <ul>
-            <li>Available Winter 2027 (January to April 2027) for 4, 8, 12, or 16 months, anywhere in Canada. Willing to relocate within Canada.</li>
-            <li>Coursework includes data structures and algorithms, object-oriented programming, artificial intelligence, machine learning, linear algebra, and multivariable calculus.</li>
-          </ul>
-        </div>
-      </article>
-      <div data-reveal>
-        <p class="label certs-label">Certifications</p>
-        <div class="certs">
-          <article><h3>Building with the Claude API</h3><p>Anthropic</p></article>
-          <article><h3>Claude Code 101</h3><p>Anthropic</p></article>
-          <article><h3>Claude 101</h3><p>Anthropic</p></article>
-          <article><h3>Machine Learning with Python</h3><p>IBM</p></article>
-        </div>
-        <p class="quarcc"><strong>Quantitative Research and Competitions Club (QUARCC)</strong>, member, Concordia University.</p>
-      </div>
-    </section>
-
-    <section class="section wrap contact" id="contact" aria-labelledby="contact-title">
-      <span id="about"></span>
-      <p class="label">Ground control</p>
-      <h2 id="contact-title">Contact</h2>
-      <div class="split">
-        <div>
-          <p class="lede">I build AI systems that can be trusted to act, train the models underneath them, and write the measurement down, including when the answer is no.</p>
-          <dl class="facts">
-            <div><dt>Based</dt><dd>Montreal, Quebec, Canada</dd></div>
-            <div><dt>Status</dt><dd>Canadian permanent resident. UAE Golden Visa.</dd></div>
-            <div><dt>Open to</dt><dd>Internships of 4, 8, 12, or 16 months, anywhere in Canada, from January 2027</dd></div>
-            <div><dt>Languages</dt><dd>English, Arabic, and French (learning)</dd></div>
-            <div><dt>Also</dt><dd>QUARCC member. Arab Run Club Montreal. John Molson Book Club.</dd></div>
-          </dl>
-        </div>
-        <div>
-          <a class="email" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
-          <p class="phone"><a href="tel:+14385966468">+1 (438) 596-6468</a></p>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-grid wrap">
+        <div class="hero-copy">
+          <p class="eyebrow">Computer Science · Concordia University · Montreal</p>
+          <h1 id="hero-title">Sherif Morsi</h1>
+          <p class="hero-lead">{tagline}</p>
+          <p class="hero-meta">Third-year Computer Science student. Open to 4 to 16 month internships anywhere in Canada from January 2027, in machine learning, quantitative research, portfolio construction and AI agents.</p>
           <div class="actions">
-            <a class="button button-solid" href="resume/Sherif_Morsi_Resume.pdf" download>Download resume</a>
-            <a class="button" href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a class="button" href="https://www.linkedin.com/in/sherif-morsi-a17628295" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <button class="text-link" type="button" data-copy-email="shmorsi@outlook.com">Copy email</button>
+            <a class="button button-solid" href="#work">See the work</a>
+            <a class="button" href="{RESUME}" download>Resume</a>
+            <a class="button" href="{GITHUB}" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a class="button" href="{LINKEDIN}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
           </div>
         </div>
+        <figure class="hero-viz">
+          <!-- Drawn by assets/site.js. An illustration, not data; a still frame under reduced motion. -->
+          <canvas class="hero-canvas" data-market aria-hidden="true"></canvas>
+          <figcaption>Illustration, not data. Prices stream into a transformer that sets long and short weights; the amber pulses are the gradient of the result flowing back.</figcaption>
+        </figure>
+      </div>
+      <div class="telemetry-band">
+        <!-- Figures below mirror data/projects.json so they show without JavaScript. scripts/check_site.py fails if they drift. -->
+        <ol class="telemetry wrap" aria-label="Headline result of each project">
+          {"".join(telemetry(i) for i in ORDER)}
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="work" aria-labelledby="work-title">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <p class="label">Work</p>
+          <h2 id="work-title">{words} projects</h2>
+          <p>Deep learning, markets and AI agents. Each project has its own page with the method, the results and the limits, including the results that did not work.</p>
+        </div>
+        {feature()}
+        <ol class="cards">{"".join(card(i) for i in CARDS)}
+        </ol>
+        <p class="file-note">Every figure and chart on this site is read from <a href="data/projects.json"><code>data/projects.json</code></a>, and each figure names the committed result file it came from.</p>
+      </div>
+    </section>
+
+    <section class="section" id="approach" aria-labelledby="approach-title">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <p class="label">Approach</p>
+          <h2 id="approach-title">How I work</h2>
+          <p>The same four rules on every project. They are why a number on this site means something.</p>
+        </div>
+        <ol class="rules" data-reveal>{rules()}</ol>
+        <div class="toolkit" data-reveal>{toolkit()}</div>
+      </div>
+    </section>
+
+    <section class="section" id="experience" aria-labelledby="experience-title">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <p class="label">Experience</p>
+          <h2 id="experience-title">Experience</h2>
+        </div>
+        <article class="role" data-reveal>
+          <p class="when"><b>Nokia</b>Aug 2026 to Sep 2026<br>Cairo, Egypt</p>
+          <div>
+            <h3>AI &amp; Machine Learning Intern</h3>
+            <ul>
+              <li>Trained and evaluated Python and PyTorch models on wireless network telemetry to forecast 5G energy demand.</li>
+              <li>Developed data and ML pipelines for 5G energy telemetry, to support automated network management and optimization.</li>
+              <li>Trained in agentic AI for intent-based 5G network slicing (Amazon Bedrock). Presented findings to cross-functional data science and engineering teams, and led the project proposal and requirements review.</li>
+            </ul>
+          </div>
+        </article>
+        <article class="role" data-reveal>
+          <p class="when"><b>Qatar National Bank</b>Aug 2025 to Sep 2025<br>Cairo, Egypt</p>
+          <div>
+            <h3>Credit Analyst Job Shadow</h3>
+            <ul>
+              <li>Built and documented Python utilities and SQL queries that preprocess and validate SME financial records for the bank's credit-review process, improving data quality and reliability.</li>
+            </ul>
+          </div>
+        </article>
+        <article class="role" data-reveal>
+          <p class="when"><b>Concordia University</b>Expected May 2028<br>Montreal, QC</p>
+          <div>
+            <h3>Bachelor of Computer Science</h3>
+            <ul>
+              <li>Available Winter 2027 (January to April 2027) for 4, 8, 12, or 16 months, anywhere in Canada. Willing to relocate within Canada.</li>
+              <li>Coursework includes data structures and algorithms, object-oriented programming, artificial intelligence, machine learning, linear algebra, and multivariable calculus.</li>
+              <li>Quantitative Research and Competitions Club (QUARCC), member.</li>
+            </ul>
+          </div>
+        </article>
+        <div class="certs-block" data-reveal>
+          <p class="label">Certifications</p>
+          <div class="certs">
+            <article><h3>Building with the Claude API</h3><p>Anthropic</p></article>
+            <article><h3>Claude Code 101</h3><p>Anthropic</p></article>
+            <article><h3>Claude 101</h3><p>Anthropic</p></article>
+            <article><h3>Machine Learning with Python</h3><p>IBM</p></article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section contact" id="contact" aria-labelledby="contact-title">
+      <div class="wrap">
+        <p class="label">Contact</p>
+        <h2 id="contact-title">Let's talk</h2>
+        <div class="split">
+          <p class="lede">I build deep learning systems for finance, train the models underneath them, and write the measurement down, including when the answer is no.</p>
+          <div class="reach">
+            <a class="email" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
+            <p class="phone"><a href="tel:+14385966468">+1 (438) 596-6468</a></p>
+            <div class="actions">
+              <a class="button button-solid" href="{RESUME}" download>Download resume</a>
+              <a class="button" href="{GITHUB}" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <a class="button" href="{LINKEDIN}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              <button class="text-link" type="button" data-copy-email="shmorsi@outlook.com">Copy email</button>
+            </div>
+          </div>
+        </div>
+        <dl class="facts">
+          <div><dt>Based</dt><dd>Montreal, Quebec, Canada</dd></div>
+          <div><dt>Status</dt><dd>Canadian permanent resident. UAE Golden Visa.</dd></div>
+          <div><dt>Open to</dt><dd>Internships of 4, 8, 12, or 16 months, anywhere in Canada, from January 2027</dd></div>
+          <div><dt>Languages</dt><dd>English, Arabic, and French (learning)</dd></div>
+          <div><dt>Also</dt><dd>QUARCC member. Arab Run Club Montreal. John Molson Book Club.</dd></div>
+        </dl>
       </div>
     </section>
   </main>

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build projects/deep-portfolio-constructor.html (the mission page) from data/projects.json.
+"""Build projects/deep-portfolio-constructor.html (the project page) from data/projects.json.
 
 Same rule as the master page: every figure is a data-bind whose fallback text
 is copied from the data here, so the page reads correctly without JavaScript
-and scripts/check_site.py can verify it. Run after scripts/sync_dpc.py.
+and scripts/check_site.py can verify it. Run after scripts/sync_dpc.py, then run
+scripts/sync_chrome.py, which writes the header, the project label and the previous / next links.
 """
 
 from __future__ import annotations
@@ -57,14 +58,14 @@ def page() -> str:
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Sherif Morsi">
   <meta property="og:url" content="https://shmorsi.github.io/projects/{PID}.html">
-  <meta property="og:title" content="{e(t)} · Mission 02">
+  <meta property="og:title" content="{e(t)} · Sherif Morsi">
   <meta property="og:description" content="{e(D['purpose'])}">
   <meta property="og:image" content="https://shmorsi.github.io/assets/og-dpc.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="{e(t)}: deep learning at every layer of a market-neutral portfolio.">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{e(t)} · Mission 02">
+  <meta name="twitter:title" content="{e(t)} · Sherif Morsi">
   <meta name="twitter:description" content="{e(D['purpose'])}">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/og-dpc.png">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
@@ -72,20 +73,16 @@ def page() -> str:
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
   <link rel="preload" href="../assets/fonts/inter-tight-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="../assets/site.css">
-  <script>try{{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}}catch(e){{}}document.documentElement.classList.add("js")</script>
+  <script>try{{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}}catch(e){{}}</script>
   <script src="../assets/site.js" defer></script>
 </head>
 <body data-root="../" data-metrics="../data/projects.json">
   <a class="skip" href="#main">Skip to content</a>
-  <canvas class="stars" data-stars aria-hidden="true"></canvas>
   <header class="site-header"></header>
   <main id="main">
-    <header class="cs-hero wrap mission-hero">
-      <a class="text-link back manifest-link" href="../#missions">Mission manifest</a>
-      <div class="mission-meta">
-        <img class="patch" src="../assets/patches/{PID}.svg" alt="" width="88" height="88">
-        <p class="label">Mission {D["mission"]} · {e(D["kicker"])} · <span class="status">Walk-forward</span></p>
-      </div>
+    <header class="cs-hero wrap">
+      <a class="text-link all-link" href="../#work">All projects</a>
+      <div class="project-meta"></div>
       <h1>{e(t)}</h1>
       {b("purpose", "p", "cs-purpose")}
       <p class="proves"><span class="label">What it proves</span>{b("proves")}</p>
@@ -131,7 +128,7 @@ def page() -> str:
       </section>
 
       <section class="cs-section" aria-labelledby="s-results">
-        <h2 id="s-results">Flight data</h2>
+        <h2 id="s-results">Results</h2>
         <div class="prose">
           <p class="big">Portfolio construction removed the unintended risk; training through the optimiser gave the best Sharpe, and the edge is not statistically significant.</p>
           <p>Neutralising sectors, beta, size and value raised the share of risk from intended stock bets from the naive portfolio to the optimised one: {s("intendedShift")}. Then the ablation, one deep component at a time, net Sharpe: classical optimiser {s("sharpeClassical")}; with the deep risk model {s("sharpeDeepRisk")}; with deep views as well {s("sharpeAlpha")}; trained end to end through the optimiser {s("sharpeE2E")}; fully deep, adding the AlphaFormer to end-to-end training, {s("sharpeDeep")}. The end-to-end model's edge over the classical optimiser is {s("diffMonthly")} per month with a Newey-West t of {s("diffT")}: not significant at 5%.</p>
@@ -207,10 +204,7 @@ def page() -> str:
         </div>
       </section>
 
-      <nav class="mission-switch" aria-label="Other missions">
-        <a href="../aurvane/"><span class="label">Previous · Mission 01</span><strong>Aurvane</strong></a>
-        <a href="../orbit/"><span class="label">Next · Mission 03</span><strong>Orbit</strong></a>
-      </nav>
+      <nav class="project-switch" aria-label="Other projects"></nav>
     </div>
   </main>
   <footer class="site-footer"></footer>

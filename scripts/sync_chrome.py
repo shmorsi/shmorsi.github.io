@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Keep the header, footer and private-repo links identical on every page.
+"""Keep the header, footer, project header and private-repo links identical on every page.
 
 * Rewrites the <header class="site-header"> and <footer class="site-footer">
-  blocks of the master page, the mission pages and the Orbit mission page.
+  blocks of the master page and every project page on this site.
+* On project pages, writes the project label (mark, number, kicker, status),
+  the section index slot, and the previous / next project links, in the order
+  of data/projects.json.
 * Replaces links to repositories that visitors cannot open (data/projects.json
-  links with "public": false) with a plain "Code: private" note, so the site
-  never shows a dead GitHub link. Flip the flag to true and re-run when a
-  repository goes public.
+  links with "public": false) with a plain "Code: private repository" note, so
+  the site never shows a dead GitHub link. Flip the flag to true and re-run
+  when a repository goes public.
 
 aurvane/index.html is built in the aurvane repository and is left untouched.
 """
@@ -19,32 +22,35 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "projects.json").read_text())
+PROJECTS = {p["id"]: p for p in DATA["projects"]}
+ORDER = [p["id"] for p in DATA["projects"]]
 
-MISSIONS = [  # (label, path from the site root)
-    ("Aurvane", "aurvane/"),
-    ("Portfolio", "projects/deep-portfolio-constructor.html"),
-    ("Orbit", "orbit/"),
-    ("TSFM", "projects/tsfm.html"),
-    ("Shock Lab", "projects/world-shock-lab.html"),
-    ("ATLAS", "projects/atlas.html"),
-]
-HOME_NAV = [("Missions", "#missions"), ("Capabilities", "#capabilities"), ("Method", "#method"),
-            ("Record", "#record"), ("Contact", "#contact")]
+PATH_OF = {  # each project's own page, from the site root
+    "deep-portfolio-constructor": "projects/deep-portfolio-constructor.html",
+    "tsfm": "projects/tsfm.html",
+    "world-shock-lab": "projects/world-shock-lab.html",
+    "aurvane": "aurvane/",
+}
+SHORT = {"deep-portfolio-constructor": "Portfolio", "tsfm": "TSFM", "world-shock-lab": "Shock Lab", "aurvane": "Aurvane"}
+STATUS = {"deep-portfolio-constructor": "Walk-forward", "tsfm": "Test scored", "world-shock-lab": "Live", "aurvane": "Simulated"}
+HOME_NAV = [("Work", "#work"), ("Approach", "#approach"), ("Experience", "#experience"), ("Contact", "#contact")]
 RESUME = "resume/Sherif_Morsi_Resume.pdf"
 TOGGLE = ('<button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><svg viewBox="0 0 20 20" aria-hidden="true">'
           '<circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.75a7.25 7.25 0 0 1 0 14.5Z" fill="currentColor"/></svg></button>')
 MENU = '<button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>'
+THEME_SCRIPT = '<script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>'
 
 
 def header(prefix: str, current: str | None, home: bool) -> str:
     if home:
         items = [f'<a href="{href}" data-section="{href[1:]}">{label}</a>' for label, href in HOME_NAV]
     else:
-        items = [f'<a href="{prefix}#missions">Missions</a>']
-        for label, path in MISSIONS:
+        items = [f'<a href="{prefix}#work">Work</a>']
+        for pid in ORDER:
+            path = PATH_OF[pid]
             cur = ' aria-current="page"' if path == current else ""
-            items.append(f'<a href="{prefix}{path}"{cur}>{label}</a>')
-    items.append(f'<a href="{prefix}{RESUME}">Resume</a>')
+            items.append(f'<a href="{prefix}{path}"{cur}>{SHORT[pid]}</a>')
+    items.append(f'<a class="nav-resume" href="{prefix}{RESUME}">Resume</a>')
     nav = "\n        ".join(items)
     return f"""<header class="site-header">
     <a class="wordmark" href="{prefix or './'}">Sherif Morsi</a>
@@ -66,7 +72,7 @@ def footer(prefix: str) -> str:
       <a href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
       <a href="https://www.linkedin.com/in/sherif-morsi-a17628295/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       <a href="{prefix}{RESUME}">Resume</a>
-      <a href="{prefix}#missions">Missions</a>
+      <a href="{prefix}#work">All projects</a>
     </span>
   </footer>"""
 
@@ -103,67 +109,60 @@ def unlink_private(html: str) -> str:
     return html
 
 
-ORDER = ["aurvane", "deep-portfolio-constructor", "orbit", "tsfm", "world-shock-lab", "atlas"]
-PATH_OF = dict(zip(ORDER, [path for _, path in MISSIONS]))
-TITLE_OF = {"aurvane": "Aurvane", "deep-portfolio-constructor": "Deep Portfolio Constructor", "orbit": "Orbit",
-            "tsfm": "Time-series foundation model", "world-shock-lab": "World Shock Lab", "atlas": "ATLAS"}
-STATUS = {"aurvane": "Simulated", "deep-portfolio-constructor": "Walk-forward", "orbit": "Scored once",
-          "tsfm": "Test scored", "world-shock-lab": "Live", "atlas": "Local app"}
-PROJECTS = {p["id"]: p for p in DATA["projects"]}
-
-
-def mission_switch(pid: str) -> str:
+def project_switch(pid: str) -> str:
     i = ORDER.index(pid)
     prev_id, next_id = ORDER[i - 1], ORDER[(i + 1) % len(ORDER)]
-    num = lambda x: f"{ORDER.index(x) + 1:02d}"  # noqa: E731
-    return (f'<nav class="mission-switch" aria-label="Other missions">\n'
-            f'        <a href="../{PATH_OF[prev_id]}"><span class="label">Previous · Mission {num(prev_id)}</span><strong>{TITLE_OF[prev_id]}</strong></a>\n'
-            f'        <a href="../{PATH_OF[next_id]}"><span class="label">Next · Mission {num(next_id)}</span><strong>{TITLE_OF[next_id]}</strong></a>\n'
+    title = lambda x: PROJECTS[x]["title"]  # noqa: E731
+    num = lambda x: PROJECTS[x]["number"]  # noqa: E731
+    return (f'<nav class="project-switch" aria-label="Other projects">\n'
+            f'        <a href="../{PATH_OF[prev_id]}"><span class="label">Previous · {num(prev_id)}</span><strong>{title(prev_id)}</strong></a>\n'
+            f'        <a href="../{PATH_OF[next_id]}"><span class="label">Next · {num(next_id)}</span><strong>{title(next_id)}</strong></a>\n'
             f'      </nav>')
 
 
-def missionize(html: str, pid: str) -> str:
-    """Patch + mission label in the hero, the section index, and previous/next missions."""
+def projectize(html: str, pid: str) -> str:
+    """Mark and project label in the hero, the section index, and previous/next projects."""
     p = PROJECTS[pid]
     live = " is-live" if pid == "world-shock-lab" else ""
-    meta = (f'<a class="text-link back manifest-link" href="../#missions">Mission manifest</a>\n'
-            f'      <div class="mission-meta">\n'
-            f'        <img class="patch" src="../assets/patches/{pid}.svg" alt="" width="88" height="88">\n'
-            f'        <p class="label">Mission {p["mission"]} · {p["kicker"]} · <span class="status{live}">{STATUS[pid]}</span></p>\n'
+    meta = (f'<a class="text-link all-link" href="../#work">All projects</a>\n'
+            f'      <div class="project-meta">\n'
+            f'        <img class="mark" src="../assets/marks/{pid}.svg" alt="" width="72" height="72">\n'
+            f'        <p class="label"><span class="num">{p["number"]}</span> {p["kicker"]} · <span class="status{live}">{STATUS[pid]}</span></p>\n'
             f'      </div>')
-    html = re.sub(r'<a class="text-link back[^"]*" href="[^"]*">[^<]*</a>\s*(?:<p class="label">[^<]*</p>|<div class="mission-meta">.*?</div>)',
-                  lambda m: meta, html, count=1, flags=re.S)
-    if 'data-subnav' not in html:
+    html, n = re.subn(r'<a class="text-link (?:back|all-link)[^"]*" href="[^"]*">[^<]*</a>\s*'
+                      r'(?:<p class="label">[^<]*</p>|<div class="(?:mission|project)-meta">.*?</div>)',
+                      lambda m: meta, html, count=1, flags=re.S)
+    if n != 1:
+        raise SystemExit(f"{pid}: could not find the project label block")
+    if "data-subnav" not in html:
         start = html.index('<header class="cs-hero')
-        end = html.index('</header>', start) + len('</header>')
+        end = html.index("</header>", start) + len("</header>")
         html = html[:end] + '\n\n    <nav class="subnav" data-subnav aria-label="On this page"></nav>' + html[end:]
-    html = re.sub(r'<nav class="(?:next-project|mission-switch)".*?</nav>', lambda m: mission_switch(pid), html, count=1, flags=re.S)
+    html, n = re.subn(r'<nav class="(?:next-project|mission-switch|project-switch)".*?</nav>', lambda m: project_switch(pid),
+                      html, count=1, flags=re.S)
+    if n != 1:
+        raise SystemExit(f"{pid}: could not find the previous / next block")
     return html
 
 
-PAGES = {  # page -> (prefix to the site root, current mission path, is the master page)
-    "index.html": ("", None, True),
-    "projects/deep-portfolio-constructor.html": ("../", "projects/deep-portfolio-constructor.html", False),
-    "projects/tsfm.html": ("../", "projects/tsfm.html", False),
-    "projects/world-shock-lab.html": ("../", "projects/world-shock-lab.html", False),
-    "projects/atlas.html": ("../", "projects/atlas.html", False),
-    "orbit/index.html": ("../", "orbit/", False),
-}
+PAGES = {"index.html": ("", None, True)}  # page -> (prefix to the site root, its own path, is the master page)
+PAGES.update({path: ("../", path, False) for pid, path in PATH_OF.items() if path.endswith(".html")})
 
 
 def main() -> None:
     for rel, (prefix, current, home) in PAGES.items():
         path = ROOT / rel
         if not path.exists():
-            print(f"skip {rel} (missing)")
-            continue
+            raise SystemExit(f"missing page {rel}")
         html = path.read_text(encoding="utf-8")
         html = re.sub(r'<header class="site-header">.*?</header>', header(prefix, current, home), html, count=1, flags=re.S)
         html = re.sub(r'<footer class="site-footer">.*?</footer>', footer(prefix), html, count=1, flags=re.S)
+        html = re.sub(r'\n[ \t]*<canvas class="stars"[^>]*></canvas>', "", html)  # the old star field
+        html = re.sub(r'<script>try\{var t=localStorage\.getItem\("theme"\).*?</script>', THEME_SCRIPT, html, count=1)
         html = unlink_private(html)
-        mission = next((m for m, path in PATH_OF.items() if path == current), None)
-        if mission and mission != "deep-portfolio-constructor":  # that page is generated in the new template
-            html = missionize(html, mission)
+        pid = next((p for p, own in PATH_OF.items() if own == current), None)
+        if pid:
+            html = projectize(html, pid)
         path.write_text(html, encoding="utf-8")
         print(f"synced {rel}")
 
