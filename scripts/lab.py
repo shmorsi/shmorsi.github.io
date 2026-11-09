@@ -552,3 +552,98 @@ def start_toy() -> str:
             <p class="toy-say" aria-live="polite" data-start-say>{e(start_say(s, i))}</p>
             <figcaption class="chart-note">The same out-of-sample run, read from a later start: nothing is refit. Of the {len(s["years"])} start years from {s["years"][0]} to {s["years"][-1]}, each with at least ten years to run, the network ended ahead in {ahead}. Net of costs, from <a href="../data/dpc_wealth.json">data/dpc_wealth.json</a>. <script type="application/json" data-start-data>{json.dumps(s, separators=(",", ":"))}</script></figcaption>
           </figure>"""
+
+
+# ---------------------------------------------------------------- how it learned: 70 networks, walk-forward
+
+def _train_scale(curves: list[dict]) -> tuple[float, float, list[int]]:
+    vals = [x for c in curves for x in c["gain"]] + [0.0]
+    lo, hi = math.floor(min(vals)) - 0.5, math.ceil(max(vals)) + 0.5
+    step = 1 if hi - lo <= 6 else 2
+    ticks = [t for t in range(math.ceil(lo), math.floor(hi) + 1) if t % step == 0]
+    return lo, hi, ticks
+
+
+def _train_paths(curves: list[dict], lo: float, hi: float, width: float, height: float, xmax: int, dots: bool) -> str:
+    y = lambda v: height * (hi - v) / (hi - lo)  # noqa: E731
+    out = [f'<line class="zero" x1="0" x2="{width}" y1="{y(0):.1f}" y2="{y(0):.1f}"/>']
+    for c in curves:
+        pts = " ".join(f"{width * i / xmax:.1f},{y(v):.1f}" for i, v in enumerate(c["gain"]))
+        kept = c["gain"][c["best"]]
+        title = (f"Seed {c['seed']}: kept its starting weights" if c["bestStep"] == 0
+                 else f"Seed {c['seed']}: stopped at step {c['bestStep']}, {signed(kept, 1)}% a year on validation")
+        out.append(f'<polyline class="tr" points="{pts}"><title>{e(title)}</title></polyline>')
+    if dots:  # drawn last so every kept point sits on top
+        for c in curves:
+            x0, y0 = f'{width * c["best"] / xmax:.1f}', f'{y(c["gain"][c["best"]]):.1f}'
+            out.append(f'<line class="kept-ring" x1="{x0}" x2="{x0}" y1="{y0}" y2="{y0}"/><line class="kept" x1="{x0}" x2="{x0}" y1="{y0}" y2="{y0}"/>')
+    return "".join(out)
+
+
+def _refit_text(refit: str, last_year: int, first: bool) -> dict:
+    yr = int(refit[:4])
+    return {"val": f"{yr - 9}–{yr}", "used": f"{yr + 1}–{min(yr + 5, last_year)}" if yr + 1 < last_year else str(last_year),
+            "start": "the market" if first else "its own network from five years earlier"}
+
+
+def training_view() -> str:
+    """Every network behind the deployed policy, one refit at a time: validation growth gained per training step."""
+    t = WEALTH.get("training")
+    if not t:
+        return ""
+    refits, curves, every = t["refits"], t["curves"], t["everySteps"]
+    last_year = int(WEALTH["dates"][-1][:4])
+    runs = max(len(c["gain"]) for r in refits for c in curves[r]) - 1
+    show = refits[0]
+    W, H = 1000, 300
+    groups, ylabs, thumbs = [], [], []
+    for k, r in enumerate(refits):
+        cs = curves[r]
+        lo, hi, ticks = _train_scale(cs)
+        on = " is-on" if r == show else ""
+        grid = "".join(f'<line class="grid" x1="0" x2="{W}" y1="{H * (hi - v) / (hi - lo):.1f}" y2="{H * (hi - v) / (hi - lo):.1f}"/>' for v in ticks if v)
+        groups.append(f'<g class="tr-g{on}" data-train-g="{r}">{grid}{_train_paths(cs, lo, hi, W, H, runs, True)}</g>')
+        ylabs.append(f'<div class="lab-y tr-y{on}" data-train-y="{r}">' + "".join(
+            f'<span style="top:{100 * (hi - v) / (hi - lo):.2f}%">{signed(v, 0) if v else "0"}%</span>' for v in ticks) + "</div>")
+        improved = sum(1 for c in cs if c["bestStep"])
+        gains = sorted(c["gain"][c["best"]] for c in cs)
+        txt = _refit_text(r, last_year, k == 0)
+        stops = ", ".join(str(c["bestStep"]) for c in cs)
+        rest = len(cs) - improved
+        say = (f"Trained on data before {txt['val'][:4]}, stopped on {txt['val']}, then trusted with {txt['used']}. Every seed began as "
+               f"{txt['start']}. " + (
+                   f"None found weights that grew wealth faster on the validation years, so all {len(cs)} kept their starting weights." if improved == 0 else
+                   f"All {len(cs)} found weights that grew wealth faster on the validation years." if rest == 0 else
+                   f"{improved} of {len(cs)} found weights that grew wealth faster on the validation years; "
+                   f"{rest} kept {'its' if rest == 1 else 'their'} starting weights."))
+        thumbs.append(
+            f'<button type="button" role="radio" aria-checked="{str(r == show).lower()}" data-train="{r}" '
+            f'data-improved="{improved} of {len(cs)}" data-gain="{signed(gains[len(gains) // 2], 1)}%" data-val="{txt["val"]}" '
+            f'data-used="{txt["used"]}" data-stops="{stops}" data-say="{e(say)}" aria-label="Refit at the end of {r[:4]}, used for {txt["used"]}">'
+            f'<svg viewBox="0 0 100 44" preserveAspectRatio="none" aria-hidden="true" focusable="false">{_train_paths(cs, lo, hi, 100, 44, runs, False)}</svg>'
+            f'<span>{txt["used"].split("–")[0]}</span></button>')
+    xt = [s for s in range(0, runs * every + 1, 100)]
+    xlabels = "".join(f'<span style="left:{100 * s / (runs * every):.2f}%">{s}</span>' for s in xt)
+    first = curves[show]
+    gains0 = sorted(c["gain"][c["best"]] for c in first)
+    txt0 = _refit_text(show, last_year, True)
+    say0 = next(b for b in thumbs if f'data-train="{show}"' in b)
+    say0 = html.unescape(re.search(r'data-say="([^"]*)"', say0).group(1))
+    improved0 = sum(1 for c in first if c["bestStep"])
+    return f"""<figure class="toy train" data-training aria-label="Training curves of the networks behind the deployed policy">
+            <div class="train-pick" role="radiogroup" aria-label="Walk-forward refit, by the years its network was used">{"".join(thumbs)}</div>
+            <div class="lab-plot train-plot">
+              <svg viewBox="0 0 {W} {H}" preserveAspectRatio="none" aria-hidden="true" focusable="false">{"".join(groups)}</svg>
+              {"".join(ylabs)}
+            </div>
+            <p class="lab-x" aria-hidden="true">{xlabels}</p>
+            <p class="train-axis">Training step. Up is faster growth of wealth on the validation years, % a year, against where training started.</p>
+            <dl class="toy-stats">
+              <div><dt>Seeds that improved</dt><dd data-tk="improved">{improved0} of {len(first)}</dd></div>
+              <div><dt>Median gain kept</dt><dd data-tk="gain">{signed(gains0[len(gains0) // 2], 1)}%</dd></div>
+              <div><dt>Validation years</dt><dd data-tk="val">{txt0["val"]}</dd></div>
+              <div><dt>Then used for</dt><dd data-tk="used">{txt0["used"]}</dd></div>
+            </dl>
+            <p class="toy-say" aria-live="polite" data-train-say>{e(say0)}</p>
+            <figcaption class="chart-note">Each line is one seed's network, validated every {every} training steps on the ten years before its refit; the dot is the point early stopping kept. These are validation scores, the numbers used to choose when to stop, so they flatter the network: out of sample the averaged policy grew {stat("vsMktDeep")} a year faster than the market, which the pre-registered test calls {stat("vsMktVerdictDeep")}. From the project's {source_link(WEALTH["commit"], "reports/wealth/training", "committed training logs")}.</figcaption>
+          </figure>"""

@@ -247,6 +247,20 @@ for project in DATA["projects"]:
 
 if "prefers-reduced-motion" not in (ROOT / "assets" / "site.css").read_text(encoding="utf-8"):
     errors.append("stylesheet must respect prefers-reduced-motion")
+# How it learned: the training view covers every network in the copied logs, and its caption keeps the honesty line.
+_wealth = json.loads((ROOT / "data" / "dpc_wealth.json").read_text())
+_train = _wealth.get("training")
+if _train:
+    _n = sum(len(_train["curves"][r]) for r in _train["refits"])
+    _dpc = projects.get("deep-portfolio-constructor", {}).get("stats", {})
+    if _dpc.get("trainNetworks", {}).get("display") != str(_n):
+        errors.append(f"deep-portfolio-constructor.stats.trainNetworks must be {_n}, the networks in data/dpc_wealth.json")
+    _page = (ROOT / "projects" / "deep-portfolio-constructor.html").read_text(encoding="utf-8")
+    if 'id="s-learn"' not in _page or _page.count("data-train=") != len(_train["refits"]):
+        errors.append("projects/deep-portfolio-constructor.html must show 'How it learned' with one button per refit")
+    if "so they flatter the network" not in _page:
+        errors.append("the training view must say validation scores flatter the network")
+
 # Aurvane: displayed figures match the copied summary, and the page says they are simulated.
 aurvane = projects.get("aurvane")
 asum_path = ROOT / "data" / "measurements" / "aurvane" / "worst-case_summary.json"

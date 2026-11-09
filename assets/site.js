@@ -877,6 +877,33 @@
     });
   });
 
+  /* ---- How it learned: the five seeds of one walk-forward refit, picked from fourteen. ----------- */
+  document.querySelectorAll("[data-training]").forEach((fig) => {
+    const buttons = [...fig.querySelectorAll("[data-train]")];
+    const groups = [...fig.querySelectorAll("[data-train-g], [data-train-y]")];
+    const say = fig.querySelector("[data-train-say]");
+    const pick = (button) => {
+      const refit = button.dataset.train;
+      buttons.forEach((b) => b.setAttribute("aria-checked", String(b === button)));
+      groups.forEach((g) => g.classList.toggle("is-on", (g.dataset.trainG || g.dataset.trainY) === refit));
+      ["improved", "gain", "val", "used"].forEach((key) => {
+        fig.querySelector(`[data-tk="${key}"]`).textContent = button.dataset[key];
+      });
+      say.textContent = button.dataset.say;
+    };
+    buttons.forEach((button, i) => {
+      button.addEventListener("click", () => pick(button));
+      button.addEventListener("keydown", (event) => {
+        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+        if (!step) return;
+        event.preventDefault();
+        const next = buttons[(i + step + buttons.length) % buttons.length];
+        next.focus();
+        pick(next);
+      });
+    });
+  });
+
   /* ---- Try it: why the network is trained on growth, not average return. ------------------------- */
   document.querySelectorAll("[data-growth-toy]").forEach((fig) => {
     const D = JSON.parse(fig.querySelector("[data-toy-data]").textContent);

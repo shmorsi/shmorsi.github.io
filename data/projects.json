@@ -917,6 +917,31 @@
           "label": "Yearly gap from the monthly engine",
           "display": "+0.021%",
           "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.engine_check.annual_log_gap], from reports/results/wealth/*.parquet"
+        },
+        "trainNetworks": {
+          "label": "Networks trained for the deployed policy",
+          "display": "70",
+          "source": "deep-portfolio-constructor reports/wealth/training/deep.json: 5 seeds x 14 walk-forward refits"
+        },
+        "trainKept": {
+          "label": "Later refits where early stopping kept the previous network",
+          "display": "22 of 65",
+          "source": "deep-portfolio-constructor reports/wealth/training/deep.json: best_step 0 at refits after 1959-12"
+        },
+        "trainFirstGain": {
+          "label": "Median validation gain at the first refit, from holding the market",
+          "display": "+1.6%",
+          "source": "deep-portfolio-constructor reports/wealth/training/deep.json: refit 1959-12, 12 x (best - step-0 validation monthly log growth), median of 5 seeds"
+        },
+        "trainHours": {
+          "label": "Wall-clock time to train them",
+          "display": "1.3 hours",
+          "source": "deep-portfolio-constructor reports/wealth/training/deep.json: seconds 4739.9"
+        },
+        "trainEvery": {
+          "label": "Training steps between validation runs",
+          "display": "10",
+          "source": "deep-portfolio-constructor reports/wealth/training/deep.json: steps / validation runs"
         }
       },
       "tables": {
