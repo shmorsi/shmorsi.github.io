@@ -64,6 +64,34 @@ def png_size(path: Path) -> tuple[int, int]:
     return struct.unpack(">II", head[16:24])
 
 
+def training_curves(src_path: Path) -> dict | None:
+    """The deployed network's training histories (reports/wealth/training/deep.json beside the export).
+
+    Each curve is validation growth gained during training, in % a year of log growth, measured from
+    where that seed started at that refit (the market at the first refit, its own previous network
+    after). best is the index of the validation run early stopping kept."""
+    path = src_path.parent / "wealth" / "training" / "deep.json"
+    if not path.is_file():
+        return None
+    t = json.loads(path.read_text())
+    seeds, refits, hist = [str(x) for x in t["seeds"]], t["refits"], t["histories"]
+    every = {h["steps"] // (len(h["val"]) - 1) for sd in seeds for h in hist[sd].values() if len(h["val"]) > 1}
+    if len(every) != 1:
+        raise SystemExit(f"{path}: validation runs are not evenly spaced ({sorted(every)})")
+    step = next(iter(every))
+    curves = {}
+    for r in refits:
+        curves[r] = []
+        for sd in seeds:
+            h = hist[sd][r]
+            v0, best = h["val"][0], h["best_step"] // step
+            if h["best_step"] % step or abs(h["val"][best] - h["best_val_monthly_log_growth"]) > 1e-9:
+                raise SystemExit(f"{path}: seed {sd} refit {r}: best_step {h['best_step']} is not a recorded validation run")
+            curves[r].append({"seed": int(sd), "gain": [round(1200 * (v - v0), 3) for v in h["val"]], "best": best, "bestStep": h["best_step"]})
+    return {"source": f"{REPO} reports/wealth/training/deep.json", "variant": t["variant"], "seeds": [int(x) for x in seeds],
+            "refits": refits, "everySteps": step, "seconds": t["seconds"], "curves": curves}
+
+
 def main(src: str) -> None:
     src_path = Path(src)
     site = json.loads(src_path.read_text())
@@ -257,6 +285,25 @@ def main(src: str) -> None:
               f"{pct(mom['diff_log_growth'], 2, sign=True)} a year above the market (t {num(mom['t_nw'])}). US data only: one country's "
               f"century is still one history.")
     gw, gh = png_size(src_path.parent / "figures" / "wealth" / "growth.png")
+    train = training_curves(src_path)
+    if train:
+        tsrc = f"{train['source']}"
+        flat = [c for r in train["refits"] for c in train["curves"][r]]
+        later = [c for r in train["refits"][1:] for c in train["curves"][r]]
+        kept = sum(1 for c in later if c["bestStep"] == 0)
+        first = sorted(c["gain"][c["best"]] for c in train["curves"][train["refits"][0]])
+        stats["trainNetworks"] = {"label": "Networks trained for the deployed policy", "display": str(len(flat)),
+                                  "source": f"{tsrc}: {len(train['seeds'])} seeds x {len(train['refits'])} walk-forward refits"}
+        stats["trainKept"] = {"label": "Later refits where early stopping kept the previous network",
+                              "display": f"{kept} of {len(later)}", "source": f"{tsrc}: best_step 0 at refits after {train['refits'][0]}"}
+        stats["trainFirstGain"] = {"label": "Median validation gain at the first refit, from holding the market",
+                                   "display": pct(first[len(first) // 2] / 100, 1, sign=True),
+                                   "source": f"{tsrc}: refit {train['refits'][0]}, 12 x (best - step-0 validation monthly log growth), median of {len(first)} seeds"}
+        stats["trainHours"] = {"label": "Wall-clock time to train them", "display": f"{train['seconds'] / 3600:.1f} hours",
+                               "source": f"{tsrc}: seconds {train['seconds']}"}
+        stats["trainEvery"] = {"label": "Training steps between validation runs", "display": str(train["everySteps"]),
+                               "source": f"{tsrc}: steps / validation runs"}
+
     entry = {
         "id": REPO,
         "number": "01",
@@ -309,6 +356,8 @@ def main(src: str) -> None:
                                            "growth": bench["nasdaq"]["growth"]}}
     if sched:
         wealth["schedules"] = sched["growth"]
+    if train:
+        wealth["training"] = train
     (ROOT / "data" / "dpc_wealth.json").write_text(json.dumps(wealth, separators=(",", ":")) + "\n")
     for name, dest in FIGURES.items():
         shutil.copyfile(src_path.parent / "figures" / "wealth" / name, ROOT / "assets" / "img" / dest)

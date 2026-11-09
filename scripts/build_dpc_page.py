@@ -137,6 +137,21 @@ def ablation_item(sfx: str, name: str, what: str) -> str:
     return f"<li><strong>{e(name)}</strong> ({what}): {s(f'wealth{sfx}')}, trading {s(f'traded{sfx}')} a year{vs}.</li>"
 
 
+def learning_section() -> str:
+    """Every network behind the deployed policy, from the project's committed training logs."""
+    if not has("trainNetworks"):
+        return ""
+    return f"""<section class="cs-section" aria-labelledby="s-learn">
+        <h2 id="s-learn">How it learned</h2>
+        <div class="prose">
+          <p class="big">{s("trainNetworks")} networks, each trained on the past only and stopped by years it never trained on.</p>
+          <p>The deployed policy is not one network. At each {term("walk-forward", "walk-forward")} refit, every five years from 1959, five seeds are trained on data before the last ten years, those ten years decide when to stop, and the five targets are averaged. Pick a refit to watch its five seeds learn.</p>
+          <p>At the first refit every seed starts as the market, because the tilt head is zero at birth, and the median seed found {s("trainFirstGain")} a year of extra growth on the validation decade. After that each seed starts from its own network of five years earlier, and in {s("trainKept")} of those refits early stopping found nothing better and kept it: the network is allowed not to change its mind. Training all {s("trainNetworks")} took {s("trainHours")} of wall-clock time.</p>
+        </div>
+        <div class="wide">{lab.training_view()}</div>
+      </section>"""
+
+
 def page() -> str:
     t = D["title"]
     desc = ("A long-only portfolio for long-term wealth, built by a neural network in PyTorch: a transformer trained on the growth "
@@ -238,6 +253,8 @@ def page() -> str:
           </ul>
         </div>
       </section>
+
+{learning_section()}
 
       <section class="cs-section" aria-labelledby="s-results">
         <h2 id="s-results">Results</h2>
