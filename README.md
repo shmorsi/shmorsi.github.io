@@ -15,6 +15,20 @@ The site is a **master page plus one page per project**. The master page feature
 
 Project numbers follow the order of `data/projects.json`. "Private" means visitors cannot open the repository: the site shows "Code: private repository" instead of a dead link. To publish one, set `"public": true` on its repo link in `data/projects.json` (or remove the key), then run `python3 scripts/build_home.py` and `python3 scripts/sync_chrome.py`.
 
+## Keep the site in sync with the projects
+
+Change a project in its own repository first, merge it to that repository's `main`, then bring it here. One command does every step below, in order, and stops on the first problem:
+
+```sh
+python3 scripts/sync_all.py          # expects the project repos checked out next to this one (--src to point elsewhere)
+```
+
+It copies what each project generates (the Deep Portfolio Constructor's `reports/site_wealth.json`, Aurvane's `ui/index.html` and benchmark summaries), checks every hand-written TSFM and World Shock Lab figure against the raw numbers in the JSON file it cites, fails if World Shock Lab has scored a decision the page still calls pending, then rebuilds and runs `check_site.py`. Exit 0 means the site matches every project.
+
+The [Sync projects](.github/workflows/sync.yml) workflow runs the same script daily against each project's `main` (or on demand from the Actions tab) and opens one pull request, `auto/sync-projects`, when anything changed. It never merges by itself. If a hand-written figure went stale it fails instead, and the run summary names the stat and the page to fix. It needs one setting: Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
+
+To keep merges clean: one branch per change, merged to `main` before starting the next; project repo first, site second; never edit a generated file (`index.html`, `projects/deep-portfolio-constructor.html`, `aurvane/index.html`, `data/dpc_wealth.json`) by hand, because the next sync overwrites it.
+
 ## Update a measured number
 
 Do not type a new figure into a page. Every displayed figure, and every chart on the master page, is read from **[data/projects.json](data/projects.json)**, and each figure names the committed result it came from. `scripts/check_site.py` fails if the visible fallback text drifts from that file, or if the master page no longer matches a fresh build.
