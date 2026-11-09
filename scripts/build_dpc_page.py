@@ -89,6 +89,46 @@ def learned() -> str:
             f"adjusting for market, size and value, its alpha is {s('alphaDeep')} a year ({term('t-stat', 't')} = {s('alphaTDeep')}).")
 
 
+def benchmarks_block() -> str:
+    """The S&P 500 and the NASDAQ, added after the pre-registered test (only when the data has them)."""
+    if not has("wealthSp500"):
+        return ""
+    return f"""<div class="prose">
+          <h3>Against the S&amp;P 500 and the NASDAQ</h3>
+          <p>Added after the pre-registered test, as context: the test's benchmark stays the whole US market. With dividends reinvested, $1 in the S&amp;P 500 at the end of 1959 became {s("wealthSp500")} ({s("cagrSp500")} a year). The network's difference from it is {s("vsSpDeep")} a year ({term("t-stat", "t")} = {s("vsSpTDeep")}): {s("vsSpVerdictDeep")}.</p>
+          <p>The NASDAQ Composite starts in February 1971, and its free history has no dividends, so it is understated. From then, $1 became {s("wealth1971Nasdaq")} in the NASDAQ, {s("wealth1971Sp500")} in the S&amp;P 500, {s("wealth1971Market")} in the whole market and {s("wealth1971Deep")} with the network: {s("vsNqDeep")} a year against the NASDAQ (t = {s("vsNqTDeep")}): {s("vsNqVerdictDeep")}.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Against the S&amp;P 500 and the NASDAQ" data-table="{PID}.tables.benchmarks"></div>
+          <p class="file-note">Sources: Yahoo Finance's S&amp;P 500 total-return index (from 1988), S&amp;P 500 prices and the NASDAQ Composite, with S&amp;P 500 dividends before 1988 from Robert Shiller's monthly data. Where both exist, the joined series tracks the official total-return index with a correlation of {s("spliceCorr")}.</p>
+        </div>"""
+
+
+def schedules_section() -> str:
+    """The same network on four rebalancing schedules, added after the pre-registered test."""
+    if not has("schedMonthlyWealth"):
+        return ""
+    names = {"Daily": "every day", "Monthly": "every month", "Quarterly": "every quarter", "Yearly": "every year"}
+    best = max(names, key=lambda k: lab.number(D["stats"][f"sched{k}Wealth"]["display"]))
+    lead = ("Once a month, the schedule it was trained for, grew the most." if best == "Monthly"
+            else f"Rebalancing {names[best]} grew the most.")
+    return f"""<section class="cs-section" aria-labelledby="s-schedule">
+        <h2 id="s-schedule">How often to trade</h2>
+        <div class="prose">
+          <p class="big">The same network, rebalanced every day, month, quarter or year. {lead}</p>
+          <p>Nothing is retrained. Each schedule runs the trained network on the same {s("years")} years and pays the same 10 bps per trade; only how often it trades changes. This was added after the pre-registered test, which judged the monthly schedule only.</p>
+          <ul>
+            <li><strong>Every month</strong>, as tested: at each month-end it reads the latest data, sets a target and moves most of the way there.</li>
+            <li><strong>Every quarter or every year</strong>: the network is asked only at the end of each quarter, or only each December. In between, prices move the holdings and nothing is traded.</li>
+            <li><strong>Every day</strong>: the network still decides at each month-end, because its inputs are monthly. Then at every daily close the portfolio is traded back to the mix it chose, using Kenneth French's daily industry returns. As a check, trading only at month-ends on the daily data gives {s("engineCheckWealth")}, against {s("wealthDeep")} from the monthly engine.</li>
+          </ul>
+          <p>Trading every day only keeps the portfolio at the month's chosen mix, and it costs more: {s("schedDailyCost")} a year against {s("schedMonthlyCost")}. Trading less often costs less ({s("schedYearlyCost")} a year once a year) but lets the tilts go stale: once a year it grew {s("schedYearlyVs")} a year against the market. That suggests what the network knows about each industry fades within months.</p>
+        </div>
+        <div class="wide">{lab.schedule_lab()}</div>
+        <div class="prose">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Rebalancing schedules" data-table="{PID}.tables.schedules"></div>
+        </div>
+      </section>"""
+
+
 def ablation_item(sfx: str, name: str, what: str) -> str:
     if not has(f"wealth{sfx}"):
         return ""
@@ -214,6 +254,7 @@ def page() -> str:
           <p>A long-term investor does not get to pick 1960. Slide the start year to see what $1 became from any January to today.</p>
         </div>
         <div class="wide">{lab.start_toy()}</div>
+        {benchmarks_block()}
       </section>
 
       <section class="cs-section" aria-labelledby="s-holdings">
@@ -227,6 +268,8 @@ def page() -> str:
           {figure("assets/img/dpc-tilts.png", "Heatmap of the network's tilt against the market weight for each of the 30 industries, in five-year averages from 1960. Blue cells are overweights, red underweights.", "The network's tilt against each industry's market weight, averaged over five-year blocks: blue is overweight, red underweight.")}
         </div>
       </section>
+
+      {schedules_section()}
 
       <section class="cs-section" aria-labelledby="s-decades">
         <h2 id="s-decades">Decade by decade</h2>

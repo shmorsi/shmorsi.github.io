@@ -152,6 +152,39 @@ def main(src: str) -> None:
     put("dataCorr", "Correlation of the rebuilt market portfolio with French's market return", f"{site['data_check']['correlation']:.4f}",
         "data_check.correlation, from reports/wealth/data_summary.json")
 
+    bench, sched = site.get("benchmarks"), site.get("schedules")
+    if bench:  # added after the pre-registered test: the S&P 500 and the NASDAQ Composite
+        sp, nq, chk = bench["sp500"], bench["nasdaq"], bench["checks"]["sp500_splice"]
+        put("wealthSp500", "$1 invested in January 1960, S&P 500 with dividends reinvested", money(sp["wealth"]["sp500"]), "benchmarks.sp500.wealth.sp500")
+        put("cagrSp500", "Compound growth per year, S&P 500 with dividends reinvested", pct(sp["cagr"]["sp500"], 2), "benchmarks.sp500.cagr.sp500")
+        for who, sfx in (("deep", "Deep"), ("market", "Market")):
+            c = sp["comparisons"][f"{who} - sp500"]
+            put(f"vsSp{sfx}", f"Growth per year against the S&P 500 (log), {labels[who]}", pct(c["diff_log_growth"], 2, sign=True), f"benchmarks.sp500.comparisons.{who} - sp500.diff_log_growth")
+            put(f"vsSpT{sfx}", f"Newey-West t against the S&P 500, {labels[who]}", num(c["t_nw"]), f"benchmarks.sp500.comparisons.{who} - sp500.t_nw")
+            put(f"vsSpVerdict{sfx}", f"Verdict against the S&P 500 (same rule, added after the test), {labels[who]}", c["verdict"], f"benchmarks.sp500.comparisons.{who} - sp500.verdict")
+        for who, sfx in (("nasdaq", "Nasdaq"), ("deep", "Deep"), ("market", "Market"), ("sp500", "Sp500")):
+            put(f"wealth1971{sfx}", f"$1 invested at the end of February 1971, {who}", money(nq["wealth"][who]), f"benchmarks.nasdaq.wealth.{who}")
+        c = nq["comparisons"]["deep - nasdaq"]
+        put("vsNqDeep", "Growth per year against the NASDAQ Composite, price only (log), Deep Growth Network", pct(c["diff_log_growth"], 2, sign=True), "benchmarks.nasdaq.comparisons.deep - nasdaq.diff_log_growth")
+        put("vsNqTDeep", "Newey-West t against the NASDAQ Composite", num(c["t_nw"]), "benchmarks.nasdaq.comparisons.deep - nasdaq.t_nw")
+        put("vsNqVerdictDeep", "Verdict against the NASDAQ Composite (same rule, added after the test)", c["verdict"], "benchmarks.nasdaq.comparisons.deep - nasdaq.verdict")
+        put("spliceCorr", "Correlation of the S&P 500 price-plus-dividends series with the official total-return index", f"{chk['correlation']:.4f}", "benchmarks.checks.sp500_splice.correlation")
+        put("spliceGap", "Yearly gap between them", pct(chk["annual_log_gap"], 3, sign=True), "benchmarks.checks.sp500_splice.annual_log_gap")
+    if sched:  # added after the pre-registered test: the same network on four rebalancing schedules
+        for n in ("daily", "monthly", "quarterly", "yearly"):
+            v, sfx = sched[n], n.capitalize()
+            put(f"sched{sfx}Wealth", f"$1 invested in January 1960, network rebalanced {n}", money(v["terminal_wealth"]), f"schedules.{n}.terminal_wealth")
+            put(f"sched{sfx}Gross", f"The same before costs, rebalanced {n}", money(v["gross_terminal_wealth"]), f"schedules.{n}.gross_terminal_wealth")
+            put(f"sched{sfx}Cagr", f"Compound growth per year, rebalanced {n}", pct(v["cagr"], 2), f"schedules.{n}.cagr")
+            put(f"sched{sfx}Traded", f"Share of the portfolio traded per year, rebalanced {n}", pct(v["turnover_per_year"], 0), f"schedules.{n}.turnover_per_year")
+            put(f"sched{sfx}Cost", f"Trading cost per year, rebalanced {n}", pct(v["cost_per_year"], 2), f"schedules.{n}.cost_per_year")
+            put(f"sched{sfx}Vs", f"Growth per year against the market, rebalanced {n}", pct(v["vs_market"]["diff_log_growth"], 2, sign=True), f"schedules.{n}.vs_market.diff_log_growth")
+            put(f"sched{sfx}T", f"Newey-West t against the market, rebalanced {n}", num(v["vs_market"]["t_nw"]), f"schedules.{n}.vs_market.t_nw")
+            put(f"sched{sfx}Verdict", f"Verdict against the market, rebalanced {n}", v["vs_market"]["verdict"], f"schedules.{n}.vs_market.verdict")
+        e = sched["engine_check"]
+        put("engineCheckWealth", "$1 from 1960 on daily data, trading only at month-ends (engine check)", money(e["daily_engine_month_end_only_wealth"]), "schedules.engine_check.daily_engine_month_end_only_wealth")
+        put("engineCheckGap", "Yearly gap from the monthly engine", pct(e["annual_log_gap"], 3, sign=True), "schedules.engine_check.annual_log_gap")
+
     rows = []
     for sid in MAIN:
         p = perf[sid]
@@ -176,6 +209,30 @@ def main(src: str) -> None:
             "source": f"{REPO} reports/wealth/decades.csv via reports/site_wealth.json",
         },
     }
+    if bench:
+        sp, nq = bench["sp500"], bench["nasdaq"]
+        tables["benchmarks"] = {
+            "caption": ("What $1 became, added after the pre-registered test. S&P 500 with dividends reinvested; NASDAQ Composite price only, "
+                        "so it is understated. Strategies net of 10 bps per trade."),
+            "headers": ["", f"From the end of {month_name(sp['start_wealth_date'])}", f"From the end of {month_name(nq['start_wealth_date'])}"],
+            "rows": [[sp["label"], money(sp["wealth"]["sp500"]), money(nq["wealth"]["sp500"])],
+                     [nq["label"], "not yet listed", money(nq["wealth"]["nasdaq"])],
+                     ["Whole US market", money(sp["wealth"]["market"]), money(nq["wealth"]["market"])],
+                     [labels["deep"], money(sp["wealth"]["deep"]), money(nq["wealth"]["deep"])]],
+            "highlightRow": 3,
+            "source": f"{REPO} reports/wealth/summary.json [benchmarks] via reports/site_wealth.json",
+        }
+    if sched:
+        words = {"daily": "Every day", "monthly": "Every month (as tested)", "quarterly": "Every quarter", "yearly": "Every year"}
+        tables["schedules"] = {
+            "caption": "The same trained network on four rebalancing schedules, January 1960 to September 2026, added after the pre-registered test.",
+            "headers": ["Rebalanced", "$1 became", "Before costs", "Traded per year", "Cost per year", "Growth vs market"],
+            "rows": [[words[n], money(sched[n]["terminal_wealth"]), money(sched[n]["gross_terminal_wealth"]), pct(sched[n]["turnover_per_year"], 0),
+                      pct(sched[n]["cost_per_year"], 2), f"{pct(sched[n]['vs_market']['diff_log_growth'], 2, sign=True)} (t {num(sched[n]['vs_market']['t_nw'])})"]
+                     for n in ("daily", "monthly", "quarterly", "yearly")],
+            "highlightRow": 1,
+            "source": f"{REPO} reports/wealth/summary.json [schedules] via reports/site_wealth.json",
+        }
 
     c = comps["deep - market"]
     verdict = c["verdict"]
@@ -246,6 +303,12 @@ def main(src: str) -> None:
         "holdings": {"industries": h["industries"], "dates": [dates[i] for i in keep], "deepBp": [h["deepBp"][i] for i in keep],
                      "marketBp": [h["marketBp"][i] for i in keep], "kappa": [h["kappa"][i] for i in keep] if h.get("kappa") else None},
     }
+    if bench:
+        wealth["benchmarks"] = {"sp500": bench["sp500"]["growth"]["sp500"],
+                                "nasdaq": {"start": bench["nasdaq"]["start_wealth_date"], "dates": bench["nasdaq"]["dates"],
+                                           "growth": bench["nasdaq"]["growth"]}}
+    if sched:
+        wealth["schedules"] = sched["growth"]
     (ROOT / "data" / "dpc_wealth.json").write_text(json.dumps(wealth, separators=(",", ":")) + "\n")
     for name, dest in FIGURES.items():
         shutil.copyfile(src_path.parent / "figures" / "wealth" / name, ROOT / "assets" / "img" / dest)

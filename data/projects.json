@@ -655,13 +655,268 @@
         },
         "tests": {
           "label": "Automated tests",
-          "display": "102",
+          "display": "106",
           "source": "deep-portfolio-constructor reports/site_wealth.json [tests], from reports/results/wealth/*.parquet"
         },
         "dataCorr": {
           "label": "Correlation of the rebuilt market portfolio with French's market return",
           "display": "0.9998",
           "source": "deep-portfolio-constructor reports/site_wealth.json [data_check.correlation, from reports/wealth/data_summary.json], from reports/results/wealth/*.parquet"
+        },
+        "wealthSp500": {
+          "label": "$1 invested in January 1960, S&P 500 with dividends reinvested",
+          "display": "$831",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.sp500.wealth.sp500], from reports/results/wealth/*.parquet"
+        },
+        "cagrSp500": {
+          "label": "Compound growth per year, S&P 500 with dividends reinvested",
+          "display": "10.60%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.sp500.cagr.sp500], from reports/results/wealth/*.parquet"
+        },
+        "vsSpDeep": {
+          "label": "Growth per year against the S&P 500 (log), Deep Growth Network",
+          "display": "+0.75%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.sp500.comparisons.deep - sp500.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsSpTDeep": {
+          "label": "Newey-West t against the S&P 500, Deep Growth Network",
+          "display": "1.56",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.sp500.comparisons.deep - sp500.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsSpVerdictDeep": {
+          "label": "Verdict against the S&P 500 (same rule, added after the test), Deep Growth Network",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.sp500.comparisons.deep - sp500.verdict], from reports/results/wealth/*.parquet"
+        },
+        "vsSpMarket": {
+          "label": "Growth per year against the S&P 500 (log), Market (hold the index)",
+          "display": "+0.17%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.sp500.comparisons.market - sp500.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsSpTMarket": {
+          "label": "Newey-West t against the S&P 500, Market (hold the index)",
+          "display": "0.65",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.sp500.comparisons.market - sp500.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsSpVerdictMarket": {
+          "label": "Verdict against the S&P 500 (same rule, added after the test), Market (hold the index)",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.sp500.comparisons.market - sp500.verdict], from reports/results/wealth/*.parquet"
+        },
+        "wealth1971Nasdaq": {
+          "label": "$1 invested at the end of February 1971, nasdaq",
+          "display": "$265",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.nasdaq.wealth.nasdaq], from reports/results/wealth/*.parquet"
+        },
+        "wealth1971Deep": {
+          "label": "$1 invested at the end of February 1971, deep",
+          "display": "$586",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.nasdaq.wealth.deep], from reports/results/wealth/*.parquet"
+        },
+        "wealth1971Market": {
+          "label": "$1 invested at the end of February 1971, market",
+          "display": "$388",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.nasdaq.wealth.market], from reports/results/wealth/*.parquet"
+        },
+        "wealth1971Sp500": {
+          "label": "$1 invested at the end of February 1971, sp500",
+          "display": "$360",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.nasdaq.wealth.sp500], from reports/results/wealth/*.parquet"
+        },
+        "vsNqDeep": {
+          "label": "Growth per year against the NASDAQ Composite, price only (log), Deep Growth Network",
+          "display": "+1.43%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.nasdaq.comparisons.deep - nasdaq.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsNqTDeep": {
+          "label": "Newey-West t against the NASDAQ Composite",
+          "display": "0.84",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.nasdaq.comparisons.deep - nasdaq.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsNqVerdictDeep": {
+          "label": "Verdict against the NASDAQ Composite (same rule, added after the test)",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.nasdaq.comparisons.deep - nasdaq.verdict], from reports/results/wealth/*.parquet"
+        },
+        "spliceCorr": {
+          "label": "Correlation of the S&P 500 price-plus-dividends series with the official total-return index",
+          "display": "0.9999",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.checks.sp500_splice.correlation], from reports/results/wealth/*.parquet"
+        },
+        "spliceGap": {
+          "label": "Yearly gap between them",
+          "display": "−0.072%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [benchmarks.checks.sp500_splice.annual_log_gap], from reports/results/wealth/*.parquet"
+        },
+        "schedDailyWealth": {
+          "label": "$1 invested in January 1960, network rebalanced daily",
+          "display": "$1,217",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.daily.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "schedDailyGross": {
+          "label": "The same before costs, rebalanced daily",
+          "display": "$1,630",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.daily.gross_terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "schedDailyCagr": {
+          "label": "Compound growth per year, rebalanced daily",
+          "display": "11.23%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.daily.cagr], from reports/results/wealth/*.parquet"
+        },
+        "schedDailyTraded": {
+          "label": "Share of the portfolio traded per year, rebalanced daily",
+          "display": "218%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.daily.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "schedDailyCost": {
+          "label": "Trading cost per year, rebalanced daily",
+          "display": "0.44%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.daily.cost_per_year], from reports/results/wealth/*.parquet"
+        },
+        "schedDailyVs": {
+          "label": "Growth per year against the market, rebalanced daily",
+          "display": "+0.41%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.daily.vs_market.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "schedDailyT": {
+          "label": "Newey-West t against the market, rebalanced daily",
+          "display": "0.97",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.daily.vs_market.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "schedDailyVerdict": {
+          "label": "Verdict against the market, rebalanced daily",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.daily.vs_market.verdict], from reports/results/wealth/*.parquet"
+        },
+        "schedMonthlyWealth": {
+          "label": "$1 invested in January 1960, network rebalanced monthly",
+          "display": "$1,368",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.monthly.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "schedMonthlyGross": {
+          "label": "The same before costs, rebalanced monthly",
+          "display": "$1,685",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.monthly.gross_terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "schedMonthlyCagr": {
+          "label": "Compound growth per year, rebalanced monthly",
+          "display": "11.43%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.monthly.cagr], from reports/results/wealth/*.parquet"
+        },
+        "schedMonthlyTraded": {
+          "label": "Share of the portfolio traded per year, rebalanced monthly",
+          "display": "155%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.monthly.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "schedMonthlyCost": {
+          "label": "Trading cost per year, rebalanced monthly",
+          "display": "0.31%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.monthly.cost_per_year], from reports/results/wealth/*.parquet"
+        },
+        "schedMonthlyVs": {
+          "label": "Growth per year against the market, rebalanced monthly",
+          "display": "+0.58%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.monthly.vs_market.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "schedMonthlyT": {
+          "label": "Newey-West t against the market, rebalanced monthly",
+          "display": "1.40",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.monthly.vs_market.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "schedMonthlyVerdict": {
+          "label": "Verdict against the market, rebalanced monthly",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.monthly.vs_market.verdict], from reports/results/wealth/*.parquet"
+        },
+        "schedQuarterlyWealth": {
+          "label": "$1 invested in January 1960, network rebalanced quarterly",
+          "display": "$1,162",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.quarterly.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "schedQuarterlyGross": {
+          "label": "The same before costs, rebalanced quarterly",
+          "display": "$1,267",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.quarterly.gross_terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "schedQuarterlyCagr": {
+          "label": "Compound growth per year, rebalanced quarterly",
+          "display": "11.15%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.quarterly.cagr], from reports/results/wealth/*.parquet"
+        },
+        "schedQuarterlyTraded": {
+          "label": "Share of the portfolio traded per year, rebalanced quarterly",
+          "display": "64%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.quarterly.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "schedQuarterlyCost": {
+          "label": "Trading cost per year, rebalanced quarterly",
+          "display": "0.13%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.quarterly.cost_per_year], from reports/results/wealth/*.parquet"
+        },
+        "schedQuarterlyVs": {
+          "label": "Growth per year against the market, rebalanced quarterly",
+          "display": "+0.34%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.quarterly.vs_market.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "schedQuarterlyT": {
+          "label": "Newey-West t against the market, rebalanced quarterly",
+          "display": "0.80",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.quarterly.vs_market.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "schedQuarterlyVerdict": {
+          "label": "Verdict against the market, rebalanced quarterly",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.quarterly.vs_market.verdict], from reports/results/wealth/*.parquet"
+        },
+        "schedYearlyWealth": {
+          "label": "$1 invested in January 1960, network rebalanced yearly",
+          "display": "$902",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.yearly.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "schedYearlyGross": {
+          "label": "The same before costs, rebalanced yearly",
+          "display": "$930",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.yearly.gross_terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "schedYearlyCagr": {
+          "label": "Compound growth per year, rebalanced yearly",
+          "display": "10.73%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.yearly.cagr], from reports/results/wealth/*.parquet"
+        },
+        "schedYearlyTraded": {
+          "label": "Share of the portfolio traded per year, rebalanced yearly",
+          "display": "22%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.yearly.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "schedYearlyCost": {
+          "label": "Trading cost per year, rebalanced yearly",
+          "display": "0.05%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.yearly.cost_per_year], from reports/results/wealth/*.parquet"
+        },
+        "schedYearlyVs": {
+          "label": "Growth per year against the market, rebalanced yearly",
+          "display": "−0.04%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.yearly.vs_market.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "schedYearlyT": {
+          "label": "Newey-West t against the market, rebalanced yearly",
+          "display": "−0.12",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.yearly.vs_market.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "schedYearlyVerdict": {
+          "label": "Verdict against the market, rebalanced yearly",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.yearly.vs_market.verdict], from reports/results/wealth/*.parquet"
+        },
+        "engineCheckWealth": {
+          "label": "$1 from 1960 on daily data, trading only at month-ends (engine check)",
+          "display": "$1,388",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.engine_check.daily_engine_month_end_only_wealth], from reports/results/wealth/*.parquet"
+        },
+        "engineCheckGap": {
+          "label": "Yearly gap from the monthly engine",
+          "display": "+0.021%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [schedules.engine_check.annual_log_gap], from reports/results/wealth/*.parquet"
         }
       },
       "tables": {
@@ -830,6 +1085,85 @@
           ],
           "highlightRow": 6,
           "source": "deep-portfolio-constructor reports/wealth/decades.csv via reports/site_wealth.json"
+        },
+        "benchmarks": {
+          "caption": "What $1 became, added after the pre-registered test. S&P 500 with dividends reinvested; NASDAQ Composite price only, so it is understated. Strategies net of 10 bps per trade.",
+          "headers": [
+            "",
+            "From the end of December 1959",
+            "From the end of February 1971"
+          ],
+          "rows": [
+            [
+              "S&P 500 (dividends reinvested)",
+              "$831",
+              "$360"
+            ],
+            [
+              "NASDAQ Composite (price only)",
+              "not yet listed",
+              "$265"
+            ],
+            [
+              "Whole US market",
+              "$929",
+              "$388"
+            ],
+            [
+              "Deep Growth Network",
+              "$1,368",
+              "$586"
+            ]
+          ],
+          "highlightRow": 3,
+          "source": "deep-portfolio-constructor reports/wealth/summary.json [benchmarks] via reports/site_wealth.json"
+        },
+        "schedules": {
+          "caption": "The same trained network on four rebalancing schedules, January 1960 to September 2026, added after the pre-registered test.",
+          "headers": [
+            "Rebalanced",
+            "$1 became",
+            "Before costs",
+            "Traded per year",
+            "Cost per year",
+            "Growth vs market"
+          ],
+          "rows": [
+            [
+              "Every day",
+              "$1,217",
+              "$1,630",
+              "218%",
+              "0.44%",
+              "+0.41% (t 0.97)"
+            ],
+            [
+              "Every month (as tested)",
+              "$1,368",
+              "$1,685",
+              "155%",
+              "0.31%",
+              "+0.58% (t 1.40)"
+            ],
+            [
+              "Every quarter",
+              "$1,162",
+              "$1,267",
+              "64%",
+              "0.13%",
+              "+0.34% (t 0.80)"
+            ],
+            [
+              "Every year",
+              "$902",
+              "$930",
+              "22%",
+              "0.05%",
+              "−0.04% (t −0.12)"
+            ]
+          ],
+          "highlightRow": 1,
+          "source": "deep-portfolio-constructor reports/wealth/summary.json [schedules] via reports/site_wealth.json"
         }
       }
     },

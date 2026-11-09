@@ -119,7 +119,8 @@ def growth_chart(uid: str) -> str:
     series, labels = {}, None
     for sid, *_ in STRATEGIES:
         series[sid], labels = sampled(WEALTH["growth"][sid], dates)
-    allv = [v for vals in series.values() for v in vals]
+    bench = sampled(WEALTH["benchmarks"]["sp500"], dates)[0] if WEALTH.get("benchmarks") else None
+    allv = [v for vals in series.values() for v in vals] + (bench or [])
     lo, hi = min(allv) * 0.8, max(allv) * 1.25
     ypos = lambda v: 100 * (math.log(hi) - math.log(v)) / (math.log(hi) - math.log(lo))  # noqa: E731
     xfull = lambda i: 100 * i / (len(full_market) - 1)  # noqa: E731
@@ -130,6 +131,8 @@ def growth_chart(uid: str) -> str:
                     for a, b in market_stress(full_market))
     lines = "".join(f'<path class="ln{" is-on" if sid == PRIMARY else ""}{" is-ref" if sid == "market" else ""}" data-s="{sid}" '
                     f'd="{_path(series[sid], lo, hi)}"><title>{e(name)}</title></path>' for sid, name, _ in STRATEGIES)
+    if bench:  # a fixed reference, not one of the strategies to pick
+        lines += f'<path class="ln is-bench" data-bench="sp500" d="{_path(bench, lo, hi)}"><title>S&amp;P 500, dividends reinvested</title></path>'
     years = sorted({int(d[:4]) for d in labels})
     xt = [y for y in years if y % 10 == 0] + ([years[-1]] if years[-1] % 10 else [])
     # The final, partial decade's year is dropped on phones (CSS), where it would collide with the decade before it.
@@ -222,9 +225,77 @@ def portfolio_lab(uid: str) -> str:
             </dl>
             <p class="lab-vs" data-lab-vs>Against the market: <b data-k="vs">{stat_text("vsMkt" + first)}</b> a year of growth, {term('t-stat', 't')} = <b data-k="vst">{stat_text("vsMktT" + first)}</b>: <b data-k="verdict">{stat_text("vsMktVerdict" + first)}</b>.</p>
             <div class="lab-notes" aria-live="polite">{notes}</div>
-            <p class="chart-note">Shaded: months when the market was 20% or more below its previous peak. Long-only, fully invested, every trade costs 10 bps, out of sample from January 1960 to {e(WEALTH["dates"][-1][:4])}. Kenneth French's 30 US industry portfolios, which include the firms that later failed. Read from the project's {source_link(WEALTH["commit"], "reports/results/wealth", "committed results")} ({e(WEALTH["commit"])}).</p>
+            <p class="chart-note">{bench_note()}Shaded: months when the market was 20% or more below its previous peak. Long-only, fully invested, every trade costs 10 bps, out of sample from January 1960 to {e(WEALTH["dates"][-1][:4])}. Kenneth French's 30 US industry portfolios, which include the firms that later failed. Read from the project's {source_link(WEALTH["commit"], "reports/results/wealth", "committed results")} ({e(WEALTH["commit"])}).</p>
           </div>
         </div>"""
+
+
+def bench_note() -> str:
+    if "wealthSp500" not in P[DPC]["stats"]:
+        return ""
+    return f'<span class="key-bench" aria-hidden="true"></span>Dashed amber: the S&amp;P 500 with dividends reinvested, {stat("wealthSp500")}. '
+
+
+# ---------------------------------------------------------------- how often to trade: the same network on four schedules
+
+SCHEDULE_TEXT = {
+    "daily": ("Every day", "The network still decides at each month-end; then at every daily close the portfolio is traded back to the mix it chose."),
+    "monthly": ("Every month", "As tested: at each month-end it reads the latest data, sets a target and moves most of the way there."),
+    "quarterly": ("Every quarter", "The network is asked only at the end of March, June, September and December; in between, prices move the holdings."),
+    "yearly": ("Every year", "The network is asked only each December; for the other eleven months the portfolio is left alone."),
+}
+
+
+def schedule_lab() -> str:
+    """The same trained network on four rebalancing schedules; opens on the tested one (monthly)."""
+    if not WEALTH.get("schedules"):
+        return ""
+    dates = WEALTH["dates"]
+    series = {n: sampled(WEALTH["schedules"][n], dates)[0] for n in SCHEDULE_TEXT}
+    market, labels = sampled(WEALTH["growth"]["market"], dates)
+    sp = sampled(WEALTH["benchmarks"]["sp500"], dates)[0] if WEALTH.get("benchmarks") else None
+    allv = [v for vals in series.values() for v in vals] + market + (sp or [])
+    lo, hi = min(allv) * 0.8, max(allv) * 1.25
+    ypos = lambda v: 100 * (math.log(hi) - math.log(v)) / (math.log(hi) - math.log(lo))  # noqa: E731
+    ticks = [t for t in (1, 10, 100, 1000, 10000) if lo < t < hi]
+    grid = "".join(f'<line class="grid{" one" if t == 1 else ""}" x1="0" x2="1000" y1="{3 * ypos(t):.1f}" y2="{3 * ypos(t):.1f}"/>' for t in ticks)
+    ylabels = "".join(f'<span style="top:{ypos(t):.2f}%">${t:,}</span>' for t in ticks)
+    lines = f'<path class="ln is-ref" d="{_path(market, lo, hi)}"><title>Whole US market</title></path>'
+    if sp:
+        lines += f'<path class="ln is-bench" d="{_path(sp, lo, hi)}"><title>S&amp;P 500, dividends reinvested</title></path>'
+    lines += "".join(f'<path class="ln{" is-on" if n == "monthly" else ""}" data-sched-line="{n}" d="{_path(series[n], lo, hi)}">'
+                     f'<title>{e(SCHEDULE_TEXT[n][0])}</title></path>' for n in SCHEDULE_TEXT)
+    years = sorted({int(d[:4]) for d in labels})
+    xt = [y for y in years if y % 10 == 0] + ([years[-1]] if years[-1] % 10 else [])
+    xlabels = "".join(f'<span{" class=\"is-end\"" if y % 10 else ""} style="left:{100 * next(i for i, d in enumerate(labels) if d.startswith(str(y))) / (len(labels) - 1):.2f}%">{y}</span>' for y in xt)
+    buttons = []
+    for n, (name, say) in SCHEDULE_TEXT.items():
+        sfx = n.capitalize()
+        attrs = " ".join(f'data-{k}="{e(stat_text(f"sched{sfx}{v}"))}"' for k, v in
+                         (("wealth", "Wealth"), ("gross", "Gross"), ("traded", "Traded"), ("cost", "Cost"), ("vs", "Vs"), ("vst", "T"), ("verdict", "Verdict")))
+        buttons.append(f'<button type="button" role="radio" aria-checked="{str(n == "monthly").lower()}" data-sched="{n}" data-say="{e(say)}" {attrs}>{e(name)}</button>')
+    m = "Monthly"
+    return f"""<figure class="toy sched" data-schedules aria-label="The same network rebalanced every day, month, quarter or year">
+            <div class="seg" role="radiogroup" aria-label="How often it rebalances">{"".join(buttons)}</div>
+            <div class="lab-plot sched-plot" data-sched-plot>
+              <svg viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">{grid}{lines}</svg>
+              <div class="lab-y" aria-hidden="true">{ylabels}</div>
+            </div>
+            <p class="lab-x" aria-hidden="true">{xlabels}</p>
+            <dl class="toy-stats">
+              <div><dt>$1 became</dt><dd data-sk="wealth">{stat_text(f"sched{m}Wealth")}</dd></div>
+              <div><dt>Before costs</dt><dd data-sk="gross">{stat_text(f"sched{m}Gross")}</dd></div>
+              <div><dt>Traded per year</dt><dd data-sk="traded">{stat_text(f"sched{m}Traded")}</dd></div>
+              <div><dt>Cost per year</dt><dd data-sk="cost">{stat_text(f"sched{m}Cost")}</dd></div>
+            </dl>
+            <p class="lab-vs">Against the market: <b data-sk="vs">{stat_text(f"sched{m}Vs")}</b> a year of growth, {term('t-stat', 't')} = <b data-sk="vst">{stat_text(f"sched{m}T")}</b>: <b data-sk="verdict">{stat_text(f"sched{m}Verdict")}</b>.</p>
+            <p class="toy-say" aria-live="polite" data-sched-say>{e(SCHEDULE_TEXT["monthly"][1])}</p>
+            <figcaption class="chart-note">The same trained network on each schedule, nothing retrained, every trade at 10 bps, January 1960 to {e(month_name_text(WEALTH["dates"][-1]))}. Dashed grey: the whole US market; dashed amber: the S&amp;P 500 with dividends reinvested. Added after the pre-registered test, which judged the monthly schedule only. From the project's {source_link(WEALTH["commit"], "reports/results/wealth", "committed results")} ({e(WEALTH["commit"])}).</figcaption>
+          </figure>"""
+
+
+def month_name_text(ym: str) -> str:
+    return f"{MONTH_NAMES[int(ym[5:7]) - 1]} {ym[:4]}"
 
 
 # ---------------------------------------------------------------- World Shock Lab: a surprise of any size

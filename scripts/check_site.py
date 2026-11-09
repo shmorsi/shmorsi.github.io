@@ -393,7 +393,7 @@ dpc_page = (ROOT / "projects" / "deep-portfolio-constructor.html").read_text(enc
 for hook, where, text in (("data-lab=", "index.html", home), ("data-shock", "index.html", home), ("data-attack", "index.html", home),
                           ("data-market-pause", "index.html", home), ("data-lab=", "the portfolio page", dpc_page),
                           ("data-growth-toy", "the portfolio page", dpc_page), ("data-holdings=", "the portfolio page", dpc_page),
-                          ("data-start-toy", "the portfolio page", dpc_page)):
+                          ("data-start-toy", "the portfolio page", dpc_page), ("data-schedules", "the portfolio page", dpc_page)):
     if hook not in text:
         errors.append(f"{where} is missing its interactive piece {hook}")
 glossary = set(re.findall(r'^\s+"([a-z-]+)": \[', site_js, re.M))

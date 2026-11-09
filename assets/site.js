@@ -851,6 +851,32 @@
     update();
   });
 
+  /* ---- How often to trade: the same network rebalanced every day, month, quarter or year. -------- */
+  document.querySelectorAll("[data-schedules]").forEach((fig) => {
+    const buttons = [...fig.querySelectorAll("[data-sched]")];
+    const lines = [...fig.querySelectorAll("[data-sched-line]")];
+    const say = fig.querySelector("[data-sched-say]");
+    const pick = (button) => {
+      buttons.forEach((b) => b.setAttribute("aria-checked", String(b === button)));
+      lines.forEach((line) => line.classList.toggle("is-on", line.dataset.schedLine === button.dataset.sched));
+      ["wealth", "gross", "traded", "cost", "vs", "vst", "verdict"].forEach((key) => {
+        fig.querySelector(`[data-sk="${key}"]`).textContent = button.dataset[key];
+      });
+      say.textContent = button.dataset.say;
+    };
+    buttons.forEach((button, i) => {
+      button.addEventListener("click", () => pick(button));
+      button.addEventListener("keydown", (event) => {
+        const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+        if (!step) return;
+        event.preventDefault();
+        const next = buttons[(i + step + buttons.length) % buttons.length];
+        next.focus();
+        pick(next);
+      });
+    });
+  });
+
   /* ---- Try it: why the network is trained on growth, not average return. ------------------------- */
   document.querySelectorAll("[data-growth-toy]").forEach((fig) => {
     const D = JSON.parse(fig.querySelector("[data-toy-data]").textContent);
