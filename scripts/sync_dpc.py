@@ -1,144 +1,224 @@
 #!/usr/bin/env python3
-"""Write the Deep Portfolio Constructor entry in data/projects.json.
+"""Copy the Deep Portfolio Constructor's committed results into the site.
 
-Every figure is copied from the project's committed export,
-deep-portfolio-constructor/reports/site_figures.json (written by
-`python -m dpc.cli site`), and keeps that file and row as its source.
-Nothing here is typed by hand.
+Input: the project's reports/site_wealth.json, written by ``python -m dpc.cli
+wealth-site`` from its committed results, and the figures beside it. Output:
 
-    python3 scripts/sync_dpc.py ../deep-portfolio-constructor/reports/site_figures.json
+* the project's entry in data/projects.json (every figure with its source);
+* data/dpc_wealth.json: the growth of $1 of every strategy and the network's
+  holdings, for the interactive charts;
+* assets/img/dpc-*.png: the project's own figures.
+
+Nothing is typed here: every number is formatted from the export. Run:
+    python3 scripts/sync_dpc.py ../deep-portfolio-constructor/reports/site_wealth.json
+then build_home.py, build_dpc_page.py and sync_chrome.py.
 """
 
 from __future__ import annotations
 
 import json
+import shutil
+import struct
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = "deep-portfolio-constructor"
+SUFFIX = {"market": "Market", "equal_weight": "Equal", "min_variance": "MinVar", "risk_parity": "RiskParity",
+          "growth_classical": "Growth", "momentum_tilt": "Momentum", "deep": "Deep",
+          "deep_trade_all": "DeepTradeAll", "deep_mlp": "DeepMlp", "deep_unanchored": "DeepUnanchored", "deep_pair": "DeepPair"}
+MAIN = ["market", "equal_weight", "min_variance", "risk_parity", "growth_classical", "momentum_tilt", "deep"]
+ABLATIONS = ["deep_trade_all", "deep_mlp", "deep_unanchored"]
+FIGURES = {"growth.png": "dpc-growth.png", "tilts.png": "dpc-tilts.png", "rolling.png": "dpc-rolling.png"}
+MINUS = "−"
 
 
-def main(fig_path: str) -> None:
-    F = json.loads(Path(fig_path).read_text())
+def money(x: float) -> str:
+    return f"${x:,.0f}" if x >= 10 else f"${x:,.2f}"
 
-    def v(key: str) -> float:
-        return F[key]["value"]
 
-    def src(*keys: str) -> str:
-        return "; ".join(f"{REPO} reports/site_figures.json [{k}], from {F[k]['source']}" for k in keys)
+def pct(x: float, digits: int = 1, sign: bool = False) -> str:
+    text = f"{abs(100 * x):.{digits}f}"
+    if float(text) == 0:
+        return f"{text}%"
+    if sign:
+        return ("+" if x > 0 else MINUS) + text + "%"
+    return (MINUS if x < 0 else "") + text + "%"
 
-    pct = lambda x: f"{x * 100:.0f}%"  # noqa: E731
-    sgn = lambda x, d=2: f"{x:+.{d}f}".replace("-", "−")  # noqa: E731
-    num = lambda x, d=2: f"{x:.{d}f}".replace("-", "−")  # noqa: E731
 
-    def stat(label: str, display: str, *keys: str) -> dict:
-        return {"label": label, "display": display, "source": src(*keys)}
+def num(x: float, digits: int = 2) -> str:
+    text = f"{abs(x):.{digits}f}"
+    return (MINUS if x < 0 and float(text) != 0 else "") + text
 
-    seeds = sorted(k for k in F if k.startswith("seeds.seed="))
-    seed_disp = " / ".join(num(v(k)) for k in seeds)
-    diff = "diff.e2e - ls_classical"  # the primary end-to-end model, pre-specified in Stage 5
-    diff_deep = "diff.e2e_deep - ls_classical"
-    stats = {
-        "intendedShift": stat("Share of risk from intended stock bets, naive to optimised",
-                              f"{pct(v('ls_naive.exante_share_specific'))} → {pct(v('ls_classical.exante_share_specific'))}",
-                              "ls_naive.exante_share_specific", "ls_classical.exante_share_specific"),
-        "specificE2E": stat("Share of risk from intended bets, end-to-end model", pct(v("e2e.exante_share_specific")), "e2e.exante_share_specific"),
-        "specificDeep": stat("Share of risk from intended bets, fully deep model", pct(v("e2e_deep.exante_share_specific")), "e2e_deep.exante_share_specific"),
-        "sharpeE2E": stat("Net Sharpe, end-to-end model (deep risk, trained through the optimiser)", num(v("e2e.sharpe")), "e2e.sharpe"),
-        "sharpeDeep": stat("Net Sharpe, fully deep model (adds the AlphaFormer)", num(v("e2e_deep.sharpe")), "e2e_deep.sharpe"),
-        "sharpeAlpha": stat("Net Sharpe, deep views and deep risk, two-stage", num(v("ls_deep_alpha.sharpe")), "ls_deep_alpha.sharpe"),
-        "sharpeDeepRisk": stat("Net Sharpe, deep risk model only", num(v("ls_deep_twostage.sharpe")), "ls_deep_twostage.sharpe"),
-        "sharpeClassical": stat("Net Sharpe, classical optimiser", num(v("ls_classical.sharpe")), "ls_classical.sharpe"),
-        "sharpeNaive": stat("Net Sharpe, naive signal portfolio", num(v("ls_naive.sharpe")), "ls_naive.sharpe"),
-        "diffT": stat("End-to-end minus classical, Newey-West t", num(v(f"{diff}.t_stat")), f"{diff}.t_stat"),
-        "diffMonthly": stat("End-to-end minus classical, monthly return", f"{sgn(v(f'{diff}.mean_monthly_diff') * 100)}%", f"{diff}.mean_monthly_diff"),
-        "diffDeepT": stat("Fully deep minus classical, Newey-West t", num(v(f"{diff_deep}.t_stat")), f"{diff_deep}.t_stat"),
-        "betaE2E": stat("Realised market beta, end-to-end model", num(v("e2e.beta_mkt")), "e2e.beta_mkt"),
-        "betaDeep": stat("Realised market beta, fully deep model", num(v("e2e_deep.beta_mkt")), "e2e_deep.beta_mkt"),
-        "hedgedE2E": stat("Net Sharpe after hedging its own trailing beta, end-to-end model", num(v("e2e.sharpe_beta_hedged")), "e2e.sharpe_beta_hedged"),
-        "unhedgedE2E": stat("Same window, before the hedge", num(v("e2e.sharpe_unhedged")), "e2e.sharpe_unhedged"),
-        "alphaTE2E": stat("FF6 alpha t-stat, end-to-end model", num(v("e2e.alpha_t_ff6")), "e2e.alpha_t_ff6"),
-        "alphaTDeep": stat("FF6 alpha t-stat, fully deep model", num(v("e2e_deep.alpha_t_ff6")), "e2e_deep.alpha_t_ff6"),
-        "icDeep": stat("Out-of-sample rank IC, AlphaFormer", num(v("ic.deep_alpha.mean_IC"), 4), "ic.deep_alpha.mean_IC"),
-        "icDeepT": stat("AlphaFormer IC, Newey-West t", num(v("ic.deep_alpha.IC_t_stat_NW")), "ic.deep_alpha.IC_t_stat_NW"),
-        "icMomentum": stat("Out-of-sample rank IC, momentum alone", num(v("ic.momentum.mean_IC"), 4), "ic.momentum.mean_IC"),
-        "spreadMomentum": stat("Top minus bottom quintile, momentum alone, per month", f"{sgn(v('ic.momentum.Q5_minus_Q1_monthly') * 100)}%", "ic.momentum.Q5_minus_Q1_monthly"),
-        "icComposite": stat("Out-of-sample rank IC, classical composite", num(v("ic.combined.mean_IC"), 4), "ic.combined.mean_IC"),
-        "spreadDeep": stat("Top minus bottom quintile, AlphaFormer, per month", f"{sgn(v('ic.deep_alpha.Q5_minus_Q1_monthly') * 100)}%", "ic.deep_alpha.Q5_minus_Q1_monthly"),
-        "nllDeep": stat("Out-of-sample covariance NLL, deep model (lower is better)", num(v("risk.deep.mean_oos_nll"), 3), "risk.deep.mean_oos_nll"),
-        "nllLW": stat("Out-of-sample covariance NLL, Ledoit-Wolf", num(v("risk.ledoit_wolf.mean_oos_nll"), 3), "risk.ledoit_wolf.mean_oos_nll"),
-        "gmvDeep": stat("Minimum-variance realised vol, deep covariance", f"{v('risk.deep.gmv_realised_vol_ann') * 100:.1f}%", "risk.deep.gmv_realised_vol_ann"),
-        "gmvLW": stat("Minimum-variance realised vol, Ledoit-Wolf", f"{v('risk.ledoit_wolf.gmv_realised_vol_ann') * 100:.1f}%", "risk.ledoit_wolf.gmv_realised_vol_ann"),
-        "seedsE2E": stat("Net Sharpe of the end-to-end model across seeds 42 / 43 / 44", seed_disp, *seeds),
-        "tests": stat("Automated tests", f"{int(v('tests'))}", "tests"),
-        "oracleSharpe": stat("Sharpe of a deliberately cheating oracle (look-ahead calibration)", num(v("oracle_sharpe"), 1), "oracle_sharpe"),
-        "costE2E20": stat("End-to-end model Sharpe at 20 bps costs", num(v("cost.e2e.sharpe@20bps")), "cost.e2e.sharpe@20bps"),
-        "costE2E40": stat("End-to-end model Sharpe at 40 bps costs", num(v("cost.e2e.sharpe@40bps")), "cost.e2e.sharpe@40bps"),
-        "constraintRange": stat("End-to-end model Sharpe across position caps 3-10% and sector limits 2.5-10%",
-                                f"{num(v('constraints.e2e.sharpe_min'))} to {num(v('constraints.e2e.sharpe_max'))}",
-                                "constraints.e2e.sharpe_min", "constraints.e2e.sharpe_max"),
-        "paramsAlpha": stat("AlphaFormer parameters, per ensemble member", f"{int(v('params.alpha_former')):,}", "params.alpha_former"),
-        "paramsRisk": stat("Deep risk model parameters", f"{int(v('params.risk_model')):,}", "params.risk_model"),
-        "stocks": stat("Stocks, US and Canadian large caps", f"{int(v('universe.n_stocks'))}", "universe.n_stocks"),
-        "months": stat("Out-of-sample months, walk-forward", f"{int(v(f'{diff}.n_months'))}", f"{diff}.n_months"),
-    }
-    names = [("ls_naive", "Naive signal, no risk model"), ("ls_classical", "Classical: Ledoit-Wolf + optimiser"),
-             ("ls_deep_twostage", "Deep risk model + optimiser"), ("ls_deep_alpha", "Deep views + deep risk + optimiser"),
-             ("e2e", "End-to-end through the optimiser (primary)"), ("e2e_deep", "Fully deep: adds AlphaFormer to end-to-end")]
-    perf_rows = [[label, num(v(f"{sid}.sharpe")), f"{v(f'{sid}.ann_return') * 100:.1f}%".replace("-", "\u2212"),
-                  f"{v(f'{sid}.ann_vol') * 100:.1f}%", f"{v(f'{sid}.max_drawdown') * 100:.0f}%".replace("-", "\u2212"),
-                  num(v(f"{sid}.alpha_t_ff6")), num(v(f"{sid}.beta_mkt")), pct(v(f"{sid}.exante_share_specific"))]
-                 for sid, label in names if f"{sid}.sharpe" in F]
+
+def png_size(path: Path) -> tuple[int, int]:
+    with path.open("rb") as f:
+        head = f.read(24)
+    assert head[:8] == b"\x89PNG\r\n\x1a\n", path
+    return struct.unpack(">II", head[16:24])
+
+
+def main(src: str) -> None:
+    src_path = Path(src)
+    site = json.loads(src_path.read_text())
+    if "deep" not in site["performance"]:
+        raise SystemExit("the export has no Deep Growth Network results yet")
+    perf, comps, labels = site["performance"], site["comparisons"], site["labels"]
+    origin = f"{REPO} reports/site_wealth.json"
+    stats: dict[str, dict] = {}
+
+    def put(key: str, label: str, display: str, path: str) -> None:
+        stats[key] = {"label": label, "display": display, "source": f"{origin} [{path}], from reports/results/wealth/*.parquet"}
+
+    def versus(prefix: str, key: str, what: str) -> None:
+        """prefix, prefix+T, prefix+Ci, prefix+Verdict: one pre-registered comparison."""
+        c = comps[key]
+        put(prefix, f"Growth per year (log), {what}", pct(c["diff_log_growth"], 2, sign=True), f"comparisons.{key}.diff_log_growth")
+        put(prefix + "T", f"Newey-West t, {what}", num(c["t_nw"]), f"comparisons.{key}.t_nw")
+        put(prefix + "Ci", f"95% block-bootstrap interval, {what}", f"{pct(c['ci_low'], 2, sign=True)} to {pct(c['ci_high'], 2, sign=True)}",
+            f"comparisons.{key}.ci_low, ci_high")
+        put(prefix + "Verdict", f"Pre-registered verdict, {what}", c["verdict"], f"comparisons.{key}.verdict")
+
+    for sid in MAIN:
+        sfx, p, label = SUFFIX[sid], perf[sid], labels[sid]
+        put(f"wealth{sfx}", f"$1 invested in January 1960, {label}", money(p["terminal_wealth"]), f"performance.{sid}.terminal_wealth")
+        put(f"cagr{sfx}", f"Compound growth per year, {label}", pct(p["cagr"], 2), f"performance.{sid}.cagr")
+        put(f"mdd{sfx}", f"Worst fall from a peak, {label}", pct(p["max_drawdown"], 0), f"performance.{sid}.max_drawdown")
+        put(f"sharpe{sfx}", f"Sharpe ratio, {label}", num(p["sharpe"]), f"performance.{sid}.sharpe")
+        put(f"traded{sfx}", f"Share of the portfolio traded per year, {label}", pct(p["turnover_per_year"], 0), f"performance.{sid}.turnover_per_year")
+        if sid != "market":  # vsMkt{S}, vsMktT{S}, vsMktCi{S}, vsMktVerdict{S}: the names scripts/lab.py reads
+            put(f"beat{sfx}", f"Share of rolling 10-year windows in which it grew faster than the market, {label}",
+                pct(p["beat_market_rolling"], 0), f"performance.{sid}.beat_market_rolling")
+            key, c = f"{sid} - market", comps[f"{sid} - market"]
+            put(f"vsMkt{sfx}", f"Growth per year above the market (log), {label}", pct(c["diff_log_growth"], 2, sign=True),
+                f"comparisons.{key}.diff_log_growth")
+            put(f"vsMktT{sfx}", f"Newey-West t of that difference, {label}", num(c["t_nw"]), f"comparisons.{key}.t_nw")
+            put(f"vsMktCi{sfx}", f"95% block-bootstrap interval of that difference, {label}",
+                f"{pct(c['ci_low'], 2, sign=True)} to {pct(c['ci_high'], 2, sign=True)}", f"comparisons.{key}.ci_low, ci_high")
+            put(f"vsMktVerdict{sfx}", f"Pre-registered verdict against the market, {label}", c["verdict"], f"comparisons.{key}.verdict")
+    for sid in ("momentum_tilt", "equal_weight", "growth_classical"):
+        versus(f"deepVs{SUFFIX[sid]}", f"deep - {sid}", f"Deep Growth Network minus {labels[sid]}")
+
+    d, m = perf["deep"], perf["market"]
+    put("holdDeep", "Average holding period, Deep Growth Network", f"{d['holding_years']:.1f} years", "performance.deep.holding_years")
+    put("activeDeep", "How far its weights sit from the index on average (active share), Deep Growth Network", pct(d["active_share"], 0),
+        "performance.deep.active_share")
+    put("alphaDeep", "Fama-French three-factor alpha per year, Deep Growth Network", pct(d["alpha_annual"], 2, sign=True), "performance.deep.alpha_annual")
+    put("alphaTDeep", "Newey-West t of that alpha", num(d["alpha_t"]), "performance.deep.alpha_t")
+    put("betaDeep", "Market beta (three-factor regression), Deep Growth Network", num(d["beta_mkt"]), "performance.deep.beta_mkt")
+    put("volDeep", "Volatility per year, Deep Growth Network", pct(d["volatility"], 1), "performance.deep.volatility")
+    put("volMarket", "Volatility per year, the market", pct(m["volatility"], 1), "performance.market.volatility")
+    put("worstYearDeep", "Worst calendar year, Deep Growth Network", pct(d["worst_year"], 0), "performance.deep.worst_year")
+    put("worstYearMarket", "Worst calendar year, the market", pct(m["worst_year"], 0), "performance.market.worst_year")
+    seeds = [site["seeds"][k]["terminal_wealth"] for k in sorted(site["seeds"])]
+    put("seedsDeep", "$1 in 1960 for each seed's network on its own (seeds 42 to 46)", ", ".join(money(x) for x in seeds), "seeds.*.terminal_wealth")
+    put("seedsBeatDeep", "Seeds whose network on its own ended above the market", f"{sum(x > m['terminal_wealth'] for x in seeds)} of {len(seeds)}",
+        "seeds.*.terminal_wealth against performance.market.terminal_wealth")
+    for c in (0, 25, 50):
+        key = f"deep@{c}bps"
+        put(f"costDeep{c}", f"Growth per year above the market at {c} bps per trade, same decisions re-priced",
+            pct(site["costs"][key]["vs_market_log_growth"], 2, sign=True), f"costs.{key}.vs_market_log_growth")
+    if site.get("trade_fraction"):
+        put("kappaDeep", "Median share of the gap to its target the network trades each month", pct(site["trade_fraction"]["median"], 0),
+            "trade_fraction.median")
+    if "deep_pair" in perf:
+        put("wealthDeepPair", f"$1 invested in January 1960, {labels['deep_pair']}", money(perf["deep_pair"]["terminal_wealth"]),
+            "performance.deep_pair.terminal_wealth")
+    for sid in ABLATIONS:
+        if sid not in perf:
+            continue
+        sfx = SUFFIX[sid]
+        put(f"wealth{sfx}", f"$1 invested in January 1960, {labels[sid]}", money(perf[sid]["terminal_wealth"]), f"performance.{sid}.terminal_wealth")
+        put(f"traded{sfx}", f"Share of the portfolio traded per year, {labels[sid]}", pct(perf[sid]["turnover_per_year"], 0),
+            f"performance.{sid}.turnover_per_year")
+        if f"{sid} - deep_pair" in comps:
+            versus(f"vsPair{sfx}", f"{sid} - deep_pair", f"{labels[sid]} minus the full network with the same seeds")
+    put("oracle", "$1 in 1960 for a deliberately cheating policy that sees next month's returns (calibration)",
+        f"${site['oracle_terminal_wealth'] / 1e6:,.0f} million", "oracle_terminal_wealth")
+    put("months", "Out-of-sample months", f"{site['oos']['months']}", "oos.months")
+    put("years", "Whole years out of sample", f"{site['oos']['months'] // 12}", "oos.months // 12")
+    put("industries", "US industry portfolios", f"{len(site['holdings']['industries'])}", "holdings.industries")
+    put("params", "Parameters in one Deep Growth Network", f"{site['params']:,}", "params")
+    put("tests", "Automated tests", f"{site['tests']}", "tests")
+    put("dataCorr", "Correlation of the rebuilt market portfolio with French's market return", f"{site['data_check']['correlation']:.4f}",
+        "data_check.correlation, from reports/wealth/data_summary.json")
+
+    rows = []
+    for sid in MAIN:
+        p = perf[sid]
+        vs = "benchmark" if sid == "market" else f"{pct(comps[f'{sid} - market']['diff_log_growth'], 2, sign=True)} (t {num(comps[f'{sid} - market']['t_nw'])})"
+        rows.append([labels[sid], money(p["terminal_wealth"]), pct(p["cagr"], 2), num(p["sharpe"]), pct(p["max_drawdown"], 0),
+                     pct(p["turnover_per_year"], 0), vs])
+    cols = sorted(site["decades"].keys())
+    end_year = site["oos"]["end"][:4]
+    dheaders = ["Strategy"] + [c if c != cols[-1] else f"{c} (to {end_year})" for c in cols]
+    drows = [[labels[sid]] + [pct(site["decades"][c][sid], 1) for c in cols] for sid in MAIN]
     tables = {
         "performance": {
-            "caption": "Market-neutral strategies, out of sample January 2008 to September 2026, monthly rebalancing, net of 10 bps costs.",
-            "headers": ["Strategy", "Net Sharpe", "Return", "Volatility", "Max drawdown", "FF6 alpha t", "Market beta", "Risk from intended bets"],
-            "rows": perf_rows,
-            "highlightRow": [sid for sid, _ in names if f"{sid}.sharpe" in F].index("e2e"),
-            "source": f"{REPO} reports/stage6_performance.csv and reports/stage6_risk_decomposition.csv via reports/site_figures.json",
+            "caption": (f"$1 invested in January 1960, long-only and fully invested, out of sample to {site['oos']['end']}, every trade costs "
+                        f"{site['cost_bps']:g} bps. Growth vs market is the yearly difference in log growth, with its Newey-West t."),
+            "headers": ["Strategy", "$1 became", "Per year", "Sharpe", "Worst fall", "Traded per year", "Growth vs market"],
+            "rows": rows, "highlightRow": MAIN.index("deep"),
+            "source": f"{REPO} reports/wealth/performance.csv and reports/wealth/comparisons.csv via reports/site_wealth.json",
+        },
+        "decades": {
+            "caption": "Compound growth per year in each decade, net of costs.",
+            "headers": dheaders, "rows": drows, "highlightRow": MAIN.index("deep"),
+            "source": f"{REPO} reports/wealth/decades.csv via reports/site_wealth.json",
         },
     }
+
+    c = comps["deep - market"]
+    verdict = c["verdict"]
+    wd, wm = money(d["terminal_wealth"]), money(m["terminal_wealth"])
+    diff, t = pct(c["diff_log_growth"], 2, sign=True), num(c["t_nw"])
+    if verdict == "better":
+        proves = (f"Trained only on the growth of wealth, the network turned $1 in 1960 into {wd}, against {wm} for the market: "
+                  f"{diff} a year, long-only and after costs, better by the pre-registered test (t = {t}).")
+    elif verdict == "worse":
+        proves = (f"An honest negative: the network turned $1 in 1960 into {wd}, against {wm} for the market, {diff} a year, "
+                  f"worse by the pre-registered test (t = {t}).")
+    else:
+        proves = (f"Trained only on the growth of wealth, the network turned $1 in 1960 into {wd}, against {wm} for the market: "
+                  f"{diff} a year, a gap the pre-registered test cannot tell from luck (t = {t}).")
+    mom = comps["momentum_tilt - market"]
+    caveat = (f"Out of sample from January 1960 to {site['oos']['end']} ({site['oos']['months']} months), long-only, fully invested, every trade "
+              f"costs {site['cost_bps']:g} bps. The test, the comparisons and the decision rule were pre-registered in git before the network "
+              f"was run out of sample; against the market the verdict is {verdict} (Newey-West t {t}, 95% interval "
+              f"{pct(c['ci_low'], 2, sign=True)} to {pct(c['ci_high'], 2, sign=True)} a year). Kenneth French's 30 US industry portfolios hold "
+              f"every listed firm at each date, so there is no survivorship bias among firms, but they are industries, not funds an investor "
+              f"could buy in 1960, and the features are ones finance research found later. A simple momentum tilt grew "
+              f"{pct(mom['diff_log_growth'], 2, sign=True)} a year above the market (t {num(mom['t_nw'])}). US data only: one country's "
+              f"century is still one history.")
+    gw, gh = png_size(src_path.parent / "figures" / "wealth" / "growth.png")
     entry = {
         "id": REPO,
         "number": "01",
         "code": "DPC",
         "role": "featured",
-        "badge": "Walk-forward",
-        "kicker": "Deep learning and quant",
+        "badge": f"1960 to {end_year}",
+        "kicker": "Deep learning and long-term investing",
         "title": "Deep Portfolio Constructor",
-        "summary": ("A market-neutral long-short equity portfolio built as a five-step ablation, with PyTorch at every layer: a "
-                    "transformer return model (AlphaFormer), a transformer covariance model, and end-to-end training through a "
-                    "differentiable constrained optimiser (cvxpylayers). Walk-forward from January 2008, net of 10 bps costs, "
-                    f"{int(v('universe.n_stocks'))} US and Canadian large caps."),
-        "purpose": ("A long-short portfolio that keeps the intended stock bets and removes unintended sector and factor risk, "
-                    "with PyTorch models for the views, the risk, and the decision itself."),
-        "proves": (f"Making the optimiser neutral to sectors, beta, size and value raised the share of risk from intended stock bets "
-                   f"from {pct(v('ls_naive.exante_share_specific'))} to {pct(v('ls_classical.exante_share_specific'))}. "
-                   f"Training through the optimiser gave the best net Sharpe, {num(v('e2e.sharpe'))} against "
-                   f"{num(v('ls_classical.sharpe'))} for the classical optimiser; the gap is not statistically significant, "
-                   f"and adding the deep return model on top did not help."),
-        "caveat": (f"Walk-forward, out of sample from January 2008, {int(v(f'{diff}.n_months'))} months, net of 10 bps costs, monthly rebalancing. "
-                   f"The universe is today's {int(v('universe.n_stocks'))} large caps, so survivorship bias inflates long-only results. "
-                   f"The end-to-end model's edge over the classical optimiser has a Newey-West t of {num(v(f'{diff}.t_stat'))}, not significant. "
-                   f"Its realised market beta was {num(v('e2e.beta_mkt'))} despite an ex-ante limit of 0.05; hedging its own trailing beta "
-                   f"takes its Sharpe from {num(v('e2e.sharpe_unhedged'))} to {num(v('e2e.sharpe_beta_hedged'))} on the same window. "
-                   f"The fully deep model, which adds the AlphaFormer, scored {num(v('e2e_deep.sharpe'))} with an FF6 alpha t of "
-                   f"{num(v('e2e_deep.alpha_t_ff6'))}, one seed. The deep covariance model wins on likelihood but loses to Ledoit-Wolf "
-                   f"on minimum-variance volatility."),
-        "image": {"src": "assets/img/dpc-risk.png", "alt": "Bar chart: share of predicted portfolio variance from stock-specific bets, style factors and sectors for each strategy.",
-                  "width": 1600, "height": 900},
-        "tags": ["Python", "PyTorch", "cvxpylayers", "cvxpy", "pandas", "pytest", "Streamlit"],
+        "purpose": ("A neural network that builds a long-only portfolio for long-term wealth: it buys, holds, and trades only when "
+                    "the expected growth is worth the cost."),
+        "proves": proves,
+        "summary": (f"A transformer that allocates across Kenneth French's {len(site['holdings']['industries'])} US industries, trained in "
+                    f"PyTorch on the growth of wealth itself through a differentiable simulator of buying, holding and paying to trade, "
+                    f"walk-forward from 1960 and tested out of sample against the market and five classical long-only strategies."),
+        "caveat": caveat,
+        "image": {"src": "assets/img/dpc-growth.png", "alt": "Growth of $1 invested in January 1960 for seven long-only strategies, on a log scale.",
+                  "width": gw, "height": gh},
+        "tags": ["Python", "PyTorch", "pandas", "NumPy", "cvxpy", "statsmodels", "pytest"],
         "links": [
             {"label": "Project page", "href": "projects/deep-portfolio-constructor.html", "kind": "site"},
             {"label": "GitHub", "href": "https://github.com/shmorsi/deep-portfolio-constructor", "kind": "repo", "external": True},
         ],
-        "glanceIds": ["sharpeE2E", "specificE2E", "icDeep", "tests"],
-        "factIds": ["sharpeE2E", "icDeep", "diffT"],
+        "glanceIds": ["wealthDeep", "vsMktDeep", "tradedDeep", "tests"],
+        "factIds": ["wealthDeep", "vsMktDeep", "tradedDeep"],
         "headline": {
-            "stat": "intendedShift",
-            "qualifier": (f"Ex-ante share of portfolio variance from stock-specific bets, independent Barra-style model, "
-                          f"out of sample from January 2008. The end-to-end model keeps {pct(v('e2e.exante_share_specific'))}."),
+            "stat": "wealthDeep",
+            "qualifier": (f"Long-only, out of sample from January 1960, net of {site['cost_bps']:g} bps per trade. Holding the market grew to {wm}; "
+                          f"the difference is {diff} a year: {verdict}, by the pre-registered test."),
         },
         "stats": stats,
         "tables": tables,
@@ -148,8 +228,21 @@ def main(fig_path: str) -> None:
     data["projects"] = [p for p in data["projects"] if p["id"] != REPO]
     data["projects"].insert(0, entry)  # the featured project leads the page
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
-    print(f"synced {REPO}: {len(stats)} stats")
+
+    dates = site["dates"]
+    keep = [i for i, day in enumerate(dates) if day[5:7] in ("03", "06", "09", "12") or i == len(dates) - 1]
+    h = site["holdings"]
+    wealth = {
+        "source": site["source"], "commit": site["commit"], "start": site["start"], "dates": dates,
+        "labels": {k: labels[k] for k in MAIN}, "growth": {k: site["growth"][k] for k in MAIN},
+        "holdings": {"industries": h["industries"], "dates": [dates[i] for i in keep], "deepBp": [h["deepBp"][i] for i in keep],
+                     "marketBp": [h["marketBp"][i] for i in keep], "kappa": [h["kappa"][i] for i in keep] if h.get("kappa") else None},
+    }
+    (ROOT / "data" / "dpc_wealth.json").write_text(json.dumps(wealth, separators=(",", ":")) + "\n")
+    for name, dest in FIGURES.items():
+        shutil.copyfile(src_path.parent / "figures" / "wealth" / name, ROOT / "assets" / "img" / dest)
+    print(f"synced {REPO} {site['commit']}: {len(stats)} stats; deep vs market: {verdict}")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else str(ROOT.parent / REPO / "reports" / "site_figures.json"))
+    main(sys.argv[1] if len(sys.argv) > 1 else str(ROOT.parent / REPO / "reports" / "site_wealth.json"))

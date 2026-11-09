@@ -233,9 +233,9 @@
       .catch(() => { /* the fallback text already on the page is the same data */ });
   }
 
-  /* ---- Hero illustration: end-to-end learning for a long-short book. -------------------------
+  /* ---- Hero illustration: end-to-end learning for a long-only portfolio. ---------------------
      Prices stream in on the left, a small network attends across them, and its outputs set the
-     long and short weights on the right. Amber pulses run backwards: the gradient of the result.
+     portfolio's weights on the right. Amber pulses run backwards: the gradient of the result.
      A seeded random walk, not market data. Point at a stock to trace it; click its price line to
      shock it. Paused off screen, in background tabs and on request; a still frame under reduced motion. */
   const canvas = document.querySelector("[data-market]");
@@ -256,13 +256,12 @@
     };
     assets.forEach((a) => { for (let i = 0; i < LEN; i += 1) tick(a); });
 
-    /* The "model": 24-step momentum, demeaned across assets so the book is dollar-neutral. */
+    /* The "model": 24-step momentum through a softmax, so the portfolio is long-only and fully invested. */
     const signal = () => {
       const m = assets.map((a) => a.path[a.path.length - 1] - a.path[Math.max(0, a.path.length - 25)]);
-      const mean = m.reduce((s, x) => s + x, 0) / N;
-      const d = m.map((x) => x - mean);
-      const gross = d.reduce((s, x) => s + Math.abs(x), 0) || 1;
-      return d.map((x) => (2 * x) / gross);
+      const e = m.map((x) => Math.exp(6 * x));
+      const total = e.reduce((s, x) => s + x, 0);
+      return e.map((x) => x / total);
     };
     let target = signal();
     const shown = target.slice();
@@ -305,7 +304,7 @@
         xIn: W * 0.355, xH1: W * 0.47, xH2: W * 0.585, xOut: W * 0.7,
         b0: W * 0.76, b1: W, band: ((bottom - top) / N) * 0.62
       };
-      geo.zero = (geo.b0 + geo.b1) / 2;
+      geo.zero = geo.b0 + 6;                 /* every weight starts from the left: nothing is short */
     };
     const nodeXY = (layer, index) => {
       if (layer === 0) return [geo.xIn, geo.row(index)];
@@ -330,9 +329,7 @@
       /* Column titles and the zero line of the book. */
       label("PRICES", geo.p0, top - 18, "left");
       label("MODEL", (geo.xIn + geo.xOut) / 2, top - 18, "center");
-      label("WEIGHTS", geo.b1, top - 18, "right");
-      label("SHORT", geo.zero - 8, bottom + 20, "right");
-      label("LONG", geo.zero + 8, bottom + 20, "left");
+      label("PORTFOLIO", geo.b1, top - 18, "right");
       g.strokeStyle = rgba(colors.ink, 0.22);
       g.lineWidth = 1;
       g.beginPath(); g.moveTo(geo.zero + 0.5, top - 6); g.lineTo(geo.zero + 0.5, bottom + 6); g.stroke();
@@ -415,18 +412,17 @@
       const peak = Math.max(...shown.map(Math.abs)) || 1;
       for (let m = 0; m < N; m += 1) node(geo.xOut, row(m), 3.6, shown[m] > 0 ? rgba(colors.accent, 0.25 + 0.75 * (shown[m] / peak)) : null, m === focus ? colors.accent : null);
 
-      /* The book: longs to the right in accent, shorts to the left in ink. */
-      const half = (geo.b1 - geo.b0) / 2 - 4;
+      /* The portfolio: one bar per stock, its share of the money. Long-only, so every bar grows to the right. */
+      const span = geo.b1 - geo.zero - 4;
       shown.forEach((w, m) => {
         const y = row(m);
-        const len = (Math.abs(w) / peak) * half;
+        const len = Math.max(1, (w / peak) * span);
         const h = Math.max(6, Math.min(14, geo.band * 0.42));
         const lit = m === focus;
-        g.fillStyle = w >= 0 ? colors.accent : rgba(colors.ink, lit ? 0.75 : 0.42);
-        if (w >= 0) g.fillRect(geo.zero + 1, y - h / 2, len, h);
-        else g.fillRect(geo.zero - len, y - h / 2, len, h);
+        g.fillStyle = lit ? colors.accent : rgba(colors.accent, 0.35 + 0.65 * (w / peak));
+        g.fillRect(geo.zero + 1, y - h / 2, len, h);
         g.strokeStyle = rgba(colors.ink, lit ? 0.3 : 0.1);
-        g.beginPath(); g.moveTo(geo.xOut + 4, y); g.lineTo(geo.zero - (w < 0 ? len : 0) - 2, y); g.stroke();
+        g.beginPath(); g.moveTo(geo.xOut + 4, y); g.lineTo(geo.zero - 2, y); g.stroke();
       });
 
       /* The traced stock, in words. */
@@ -434,7 +430,7 @@
         const w = shown[focus];
         const a = assets[focus];
         const mom = a.path[a.path.length - 1] - a.path[Math.max(0, a.path.length - 25)];
-        const side = `${w >= 0 ? "LONG" : "SHORT"} ${(100 * Math.abs(w)).toFixed(0)}%`;
+        const side = `${(100 * w).toFixed(0)}% OF THE PORTFOLIO`;
         const text = `${a.shock > 0 ? "SHOCKED · " : ""}STOCK ${focus + 1} · ${mom >= 0 ? "+" : "−"}${Math.abs(100 * mom).toFixed(1)}% → ${side}`;
         label(text, geo.p0, bottom + 20, "left", a.shock > 0 ? colors.warm : colors.accent);
       }
@@ -566,24 +562,24 @@
 
   /* ---- Plain-English definitions: a dotted word opens one on hover, focus or tap. ---------------- */
   const GLOSSARY = {
-    "sharpe": ["Sharpe ratio", "Average yearly return divided by how much it swings. It rewards steady gains: about 0.5 is respectable for a market-neutral book, and below zero means it lost money for the risk it took."],
-    "market-neutral": ["Market-neutral", "Longs and shorts sized so that broad market moves cancel out, leaving only the stock picks."],
-    "intended-risk": ["Risk from intended bets", "The share of a portfolio's predicted risk that comes from its individual stock picks, rather than from the market, sectors or style factors it holds by accident."],
-    "factor": ["Style and sector bets", "Exposure to broad forces that move many stocks together, such as company size, value, momentum or a whole sector. A stock-picking book wants little of it."],
-    "rank-ic": ["Rank IC", "Information coefficient: the correlation between how a forecast ranked the stocks and how they actually ranked the next month. 0 is no skill; a few hundredths is typical of a real signal."],
-    "likelihood": ["Likelihood", "How probable the realised returns were under the model's forecast. Shown as a negative log-likelihood, so lower is better."],
-    "transformer": ["Transformer", "The neural-network design behind modern language models. Attention lets every input weigh every other input; here, every stock weighs every other stock."],
-    "end-to-end": ["End-to-end training", "Training the models on the final result, the portfolio's net return after the optimiser and costs, instead of on each model's own forecast error."],
-    "differentiable": ["Differentiable optimiser", "An optimiser that passes gradients backwards, so the networks before it learn how their outputs changed the portfolio."],
+    "sharpe": ["Sharpe ratio", "Average yearly return above cash divided by how much it swings. It rewards steady gains; the US stock market's was about 0.5 from 1960 to today."],
+    "kelly": ["Growth of wealth (the Kelly criterion)", "The rate at which money compounds: roughly the average return minus half its variance. Maximising it is the Kelly criterion, the best rule for an investor who reinvests for decades. Two portfolios with the same average return grow at different speeds if one swings more."],
+    "cagr": ["CAGR", "Compound annual growth rate: the steady yearly return that would turn $1 into the same final amount."],
+    "survivorship": ["Survivorship bias", "Testing only on companies that exist today flatters the past, because the failures are left out. Industry portfolios avoid it: at every date they held every listed firm in the industry, including the ones that later failed."],
+    "active-share": ["Differs from the index", "Half the sum of the gaps between the portfolio's weights and the market's: 0% is the index itself, 100% shares nothing with it."],
+    "turnover": ["Traded per year", "The share of the portfolio sold and bought again in a year. Low turnover means low costs and taxes: closer to buy and hold."],
+    "transformer": ["Transformer", "The neural-network design behind modern language models. Attention lets every input weigh every other input; here, every industry weighs every other industry before the network decides."],
+    "end-to-end": ["End-to-end training", "Training the network on the final result, the growth of the portfolio's wealth after costs, instead of on how well it forecasts returns."],
+    "differentiable": ["Differentiable simulator", "A simulator of the investing rules (prices move the holdings, every trade costs money) written so that gradients flow back through every month, letting the network learn from the wealth it ends up with."],
     "t-stat": ["t-statistic", "How many standard errors an estimate sits from zero. Below about 2, the edge could plausibly be luck, so it is reported as not significant."],
-    "beta": ["Beta", "How much a portfolio moves with the market. 0 is no market exposure; 0.19 means about a fifth of the market's moves come through."],
+    "beta": ["Beta", "How much a portfolio moves with the market. 1 moves with it; 0.5 moves half as much."],
     "drawdown": ["Drawdown", "The fall from a previous high. The worst drawdown is the deepest such fall over the whole period."],
     "walk-forward": ["Walk-forward", "Every model is refit using only the data available at that date and judged on the months after it, as if it were trading live. No look-ahead."],
     "bp": ["Basis point (bp)", "One hundredth of a percentage point. A 10 bp surprise means the 2-year yield moved 0.10 points more than markets expected on the decision."],
     "prompt-injection": ["Prompt injection", "Instructions hidden in a web page, email or file that try to make an AI agent do something its user never asked for."],
     "crps": ["CRPS", "Continuous ranked probability score: how far a whole forecast distribution lands from what happened. Lower is better; 0.688× means 31% lower than the baseline."],
     "ci": ["Confidence interval", "The range the true value plausibly lies in. When it excludes the baseline, the difference is unlikely to be chance."],
-    "pre-registered": ["Pre-registered", "The test, the metrics and the rule for a disappointing answer were fixed in git before the test data was opened."]
+    "pre-registered": ["Pre-registered", "The test, the metrics and the rule for reading a disappointing answer were fixed in git before the result was computed, so the answer cannot steer the question."]
   };
   const terms = [...document.querySelectorAll(".term[data-term]")].filter((t) => GLOSSARY[t.dataset.term]);
   if (terms.length) {
@@ -639,7 +635,7 @@
     window.addEventListener("resize", () => { if (owner) place(); }, { passive: true });
   }
 
-  /* ---- The portfolio lab: one click per step of the ablation, on the project's committed results. -- */
+  /* ---- The wealth lab: $1 in 1960, one click per strategy, on the project's committed results. ---- */
   document.querySelectorAll("[data-lab]").forEach((root) => {
     const dataNode = root.querySelector(`[data-lab-data="${root.dataset.lab}"]`);
     if (!dataNode) return;
@@ -653,7 +649,8 @@
     const read = plot.querySelector(".lab-read");
     const nameNode = root.querySelector("[data-lab-name]");
     const k = (key) => root.querySelector(`[data-k="${key}"]`);
-    const bars = { spec: root.querySelector(".r-spec"), style: root.querySelector(".r-style"), sector: root.querySelector(".r-sector") };
+    const vsLine = root.querySelector("[data-lab-vs]");
+    const vsHtml = vsLine ? vsLine.innerHTML : "";
     const notes = [...root.querySelectorAll(".lab-take[data-take]")];
     const n = data.dates.length;
     const xp = (i) => (100 * i) / (n - 1);
@@ -682,15 +679,17 @@
       lines.forEach((p, key) => p.classList.toggle("is-on", key === sid));
       plot.dataset.sel = sid;
       nameNode.textContent = button.querySelector(".step-name").textContent;
-      k("sharpe").textContent = button.dataset.sharpe;
-      k("final").textContent = button.dataset.final;
-      k("dd").textContent = button.dataset.dd;
-      k("beta").textContent = button.dataset.beta;
-      ["spec", "style", "sector"].forEach((key) => {
-        const share = Number(button.dataset[key]);
-        bars[key].style.width = pctText(share);
-        k(key).textContent = pctText(share);
-      });
+      ["wealth", "cagr", "dd", "traded"].forEach((key) => { k(key).textContent = button.dataset[key]; });
+      if (vsLine) {
+        if (button.dataset.vs) {
+          vsLine.innerHTML = vsHtml;
+          k("vs").textContent = button.dataset.vs;
+          k("vst").textContent = button.dataset.vst;
+          k("verdict").textContent = button.dataset.verdict;
+        } else {
+          vsLine.textContent = "The benchmark every other strategy is measured against.";
+        }
+      }
       notes.forEach((note) => note.classList.toggle("is-active", note.dataset.take === sid));
       draw(sid, animate);
       if (!plot.classList.contains("is-hover")) read.textContent = "";
@@ -721,7 +720,7 @@
       cursor.style.left = `${xp(i)}%`;
       dot.style.top = `${yp(v)}%`;
       plot.classList.add("is-hover");
-      read.textContent = `${monthText(data.dates[i])} · $1 → $${v.toFixed(2)}`;
+      read.textContent = `${monthText(data.dates[i])} · $1 → $${v < 10 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")}`;
       read.classList.toggle("is-right", xp(i) < 40);
     });
     plot.addEventListener("pointerleave", () => { plot.classList.remove("is-hover"); read.textContent = ""; });
@@ -729,211 +728,166 @@
     onceVisible(root, () => draw(current, true));
   });
 
-  /* ---- Inside the book: the end-to-end model's real weights at each monthly rebalance. ----------- */
-  const SECTOR_SHORT = {
-    "Communication Services": "Comm.", "Consumer Discretionary": "Discr.", "Consumer Staples": "Staples", "Energy": "Energy",
-    "Financials": "Financials", "Health Care": "Health", "Industrials": "Industrials", "Information Technology": "Tech",
-    "Materials": "Materials", "Real Estate": "Real est.", "Utilities": "Utilities"
+  /* ---- Inside the portfolio: the network's holdings against the market's, 1960 to today. -------- */
+  const INDUSTRY_NAMES = {
+    Food: "Food", Beer: "Beer and liquor", Smoke: "Tobacco", Games: "Recreation", Books: "Printing and publishing",
+    Hshld: "Consumer goods", Clths: "Apparel", Hlth: "Healthcare", Chems: "Chemicals", Txtls: "Textiles",
+    Cnstr: "Construction", Steel: "Steel", FabPr: "Fabricated products and machinery", ElcEq: "Electrical equipment",
+    Autos: "Autos", Carry: "Aircraft, ships and rail", Mines: "Mining", Coal: "Coal", Oil: "Oil and gas",
+    Util: "Utilities", Telcm: "Communication", Servs: "Business services", BusEq: "Business equipment (tech)",
+    Paper: "Business supplies and packaging", Trans: "Transportation", Whlsl: "Wholesale", Rtail: "Retail",
+    Meals: "Restaurants and hotels", Fin: "Finance", Other: "Other"
   };
-  document.querySelectorAll("[data-book]").forEach((fig) => {
-    const plot = fig.querySelector("[data-book-plot]");
-    const range = fig.querySelector("[data-book-range]");
-    const play = fig.querySelector("[data-book-play]");
-    const dateNode = fig.querySelector("[data-book-date]");
-    const readNode = fig.querySelector("[data-book-read]");
-    const statNode = (key) => fig.querySelector(`[data-b="${key}"]`);
-    fetch(fig.dataset.book)
+  document.querySelectorAll("[data-holdings]").forEach((fig) => {
+    const plot = fig.querySelector("[data-h-plot]");
+    const range = fig.querySelector("[data-h-range]");
+    const play = fig.querySelector("[data-h-play]");
+    const dateNode = fig.querySelector("[data-h-date]");
+    const readNode = fig.querySelector("[data-h-read]");
+    const hint = readNode.textContent;
+    const statNode = (key) => fig.querySelector(`[data-h="${key}"]`);
+    fetch(fig.dataset.holdings)
       .then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); })
-      .then((book) => {
-        const count = book.tickers.length;
-        const groups = [];
-        book.sectors.forEach((sector, i) => {
-          const lastGroup = groups[groups.length - 1];
-          if (lastGroup && lastGroup.name === sector) lastGroup.end = i;
-          else groups.push({ name: sector, start: i, end: i });
-        });
-        const xs = [];
-        let x = 0;
-        groups.forEach((group, gi) => {
-          if (gi) x += 16;
-          group.x0 = x;
-          for (let i = group.start; i <= group.end; i += 1) { xs[i] = x; x += 10; }
-          group.x1 = x - 2;
-        });
-        const W = x - 2; const HH = 300; const mid = HH / 2; const scale = (mid - 12) / 0.06; /* ±6% of capital fills the height */
+      .then((data) => {
+        const h = data.holdings;
+        const n = h.industries.length;
+        /* Fixed order for the whole animation: by average market weight, largest first. */
+        const avg = h.industries.map((_, i) => h.marketBp.reduce((s, row) => s + row[i], 0) / h.marketBp.length);
+        const order = h.industries.map((_, i) => i).sort((a, b) => avg[b] - avg[a]);
+        const top = Math.max(...h.deepBp.flat(), ...h.marketBp.flat()) / 10000;
         const ns = "http://www.w3.org/2000/svg";
+        const W = n * 30; const HH = 300; const base = HH - 4;
+        const scale = (base - 10) / top;
         const svg = document.createElementNS(ns, "svg");
         svg.setAttribute("viewBox", `0 0 ${W} ${HH}`);
         svg.setAttribute("preserveAspectRatio", "none");
         svg.setAttribute("aria-hidden", "true");
-        const make = (tag, attrs, parent = svg) => {
-          const el = document.createElementNS(ns, tag);
-          Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
-          parent.append(el);
-          return el;
-        };
-        groups.forEach((group, gi) => { if (gi % 2) make("rect", { class: "band", x: group.x0 - 8, y: 0, width: group.x1 - group.x0 + 16, height: HH }); });
-        [-0.05, 0.05].forEach((v) => make("line", { class: "limit", x1: 0, x2: W, y1: mid - v * scale, y2: mid - v * scale }));
-        make("line", { class: "zero", x1: 0, x2: W, y1: mid, y2: mid });
-        const rects = book.tickers.map((_, i) => make("rect", { x: xs[i], width: 8, y: mid, height: 0 }));
-        const nets = groups.map((group) => make("line", { class: "net", x1: group.x0 - 3, x2: group.x1 + 3, y1: mid, y2: mid }));
+        const make = (tag, attrs) => { const el = document.createElementNS(ns, tag); Object.entries(attrs).forEach(([k2, v]) => el.setAttribute(k2, v)); svg.append(el); return el; };
+        make("line", { class: "zero", x1: 0, x2: W, y1: base, y2: base });
+        const mkt = order.map((_, j) => make("rect", { class: "mkt", x: j * 30 + 3, width: 24, y: base, height: 0 }));
+        const net = order.map((_, j) => make("rect", { class: "long", x: j * 30 + 8, width: 14, y: base, height: 0 }));
         const labels = document.createElement("div");
-        labels.className = "book-sectors";
+        labels.className = "book-sectors holdings-labels";
         labels.setAttribute("aria-hidden", "true");
-        labels.innerHTML = groups.map((group) => `<span style="left:${(100 * (group.x0 + group.x1) / 2 / W).toFixed(2)}%" data-n="${group.end - group.start + 1}">${esc(SECTOR_SHORT[group.name] || group.name)}</span>`).join("");
-        const limits = document.createElement("div");
-        limits.className = "book-limits";
-        limits.setAttribute("aria-hidden", "true");
-        limits.innerHTML = `<span style="top:${(100 * (mid - 0.05 * scale) / HH).toFixed(2)}%">+5%</span><span style="top:${(100 * (mid + 0.05 * scale) / HH).toFixed(2)}%">−5%</span>`;
-        plot.replaceChildren(svg, limits);
+        labels.innerHTML = order.map((i, j) => `<span style="left:${((j * 30 + 15) / W * 100).toFixed(2)}%">${esc(h.industries[i])}</span>`).join("");
+        plot.replaceChildren(svg);
         plot.after(labels);
         let t = Number(range.value);
-        let hoverIndex = -1;
+        let hover = -1;
+        const name = (i) => INDUSTRY_NAMES[h.industries[i]] || h.industries[i];
         const describe = (i) => {
-          const w = book.weightsBp[t][i] / 100;
-          const side = w > 0 ? `long ${w.toFixed(2)}%` : w < 0 ? `short ${Math.abs(w).toFixed(2)}%` : "no position";
-          return `${book.names[i]} (${book.tickers[i]}) · ${book.sectors[i]} · ${book.countries[i] === "CA" ? "Canada" : book.countries[i] === "US" ? "US" : book.countries[i]} · ${side}`;
+          const d = h.deepBp[t][i] / 100; const m = h.marketBp[t][i] / 100;
+          return `${name(i)} (${h.industries[i]}) · network ${d.toFixed(1)}% · market ${m.toFixed(1)}% · ${(d / m).toFixed(2)}× its market weight`;
         };
         const update = () => {
-          const row = book.weightsBp[t];
-          let longs = 0; let shorts = 0; let gross = 0; let net = 0;
-          row.forEach((bp, i) => {
-            const w = bp / 10000;
-            const h = Math.abs(w) * scale;
-            rects[i].setAttribute("y", w >= 0 ? mid - h : mid);
-            rects[i].setAttribute("height", Math.max(h, bp === 0 ? 0 : 0.6));
-            rects[i].setAttribute("class", `${w > 0 ? "long" : w < 0 ? "short" : ""}${i === hoverIndex ? " hot" : ""}`);
-            if (bp > 0) longs += 1;
-            if (bp < 0) shorts += 1;
-            gross += Math.abs(bp); net += bp;
+          const d = h.deepBp[t]; const m = h.marketBp[t];
+          order.forEach((i, j) => {
+            const hd = (d[i] / 10000) * scale; const hm = (m[i] / 10000) * scale;
+            net[j].setAttribute("y", base - hd); net[j].setAttribute("height", hd);
+            mkt[j].setAttribute("y", base - hm); mkt[j].setAttribute("height", hm);
+            net[j].setAttribute("class", `long${i === hover ? " hot" : ""}`);
           });
-          groups.forEach((group, gi) => {
-            let s = 0;
-            for (let i = group.start; i <= group.end; i += 1) s += row[i];
-            const y = mid - (s / 10000) * scale;
-            nets[gi].setAttribute("y1", y); nets[gi].setAttribute("y2", y);
-          });
-          dateNode.textContent = monthText(book.dates[t]);
-          statNode("longs").textContent = String(longs);
-          statNode("shorts").textContent = String(shorts);
-          statNode("gross").textContent = `${Math.round(gross / 100)}%`;
-          statNode("net").textContent = `${signed(net / 100, 1)}%`;
-          statNode("spec").textContent = book.shareSpecific[t] == null ? "–" : pctText(book.shareSpecific[t]);
-          statNode("next").textContent = book.nextMonthNet[t] == null ? "–" : `${signed(100 * book.nextMonthNet[t], 1)}%`;
-          range.setAttribute("aria-valuetext", monthText(book.dates[t]));
-          if (hoverIndex >= 0) readNode.textContent = describe(hoverIndex);
+          const ratio = h.industries.map((_, i) => d[i] / Math.max(m[i], 1));
+          const over = ratio.indexOf(Math.max(...ratio)); const under = ratio.indexOf(Math.min(...ratio));
+          dateNode.textContent = monthText(h.dates[t]);
+          statNode("over").textContent = `${h.industries[over]} ${ratio[over].toFixed(1)}×`;
+          statNode("under").textContent = `${h.industries[under]} ${ratio[under].toFixed(1)}×`;
+          statNode("active").textContent = `${Math.round(d.reduce((s, x, i) => s + Math.abs(x - m[i]), 0) / 200)}%`;
+          statNode("kappa").textContent = h.kappa ? `${Math.round(100 * h.kappa[t])}% of the way` : "–";
+          range.setAttribute("aria-valuetext", monthText(h.dates[t]));
+          if (hover >= 0) readNode.textContent = describe(hover);
         };
         range.addEventListener("input", () => { t = Number(range.value); update(); });
         plot.addEventListener("pointermove", (event) => {
           const box = plot.getBoundingClientRect();
-          const ux = ((event.clientX - box.left) / box.width) * W;
-          let best = -1; let bestD = 12;
-          xs.forEach((bx, i) => { const d = Math.abs(bx + 4 - ux); if (d < bestD) { bestD = d; best = i; } });
-          if (best !== hoverIndex) { hoverIndex = best; update(); if (best < 0) readNode.textContent = "Point at a bar to see the stock and its weight."; }
+          const j = Math.floor(((event.clientX - box.left) / box.width) * n);
+          const i = j >= 0 && j < n ? order[j] : -1;
+          if (i !== hover) { hover = i; update(); if (i < 0) readNode.textContent = hint; }
         });
-        plot.addEventListener("pointerleave", () => { hoverIndex = -1; update(); readNode.textContent = "Point at a bar to see the stock and its weight."; });
+        plot.addEventListener("pointerleave", () => { hover = -1; update(); readNode.textContent = hint; });
         let timer = 0;
         const stopPlay = () => { clearInterval(timer); timer = 0; play.textContent = "Play"; play.setAttribute("aria-pressed", "false"); };
         play.addEventListener("click", () => {
           if (timer) { stopPlay(); return; }
-          if (t >= book.dates.length - 1) t = 0;
+          if (t >= h.dates.length - 1) t = 0;
           play.textContent = "Pause"; play.setAttribute("aria-pressed", "true");
           timer = setInterval(() => {
             t += 1; range.value = String(t); update();
-            if (t >= book.dates.length - 1) stopPlay();
-          }, reduce() ? 400 : 140);
+            if (t >= h.dates.length - 1) stopPlay();
+          }, reduce() ? 400 : 120);
         });
         range.addEventListener("pointerdown", stopPlay);
         update();
       })
-      .catch(() => { plot.innerHTML = '<p class="caveat">The book could not be loaded. The numbers are in data/dpc_book.json.</p>'; });
+      .catch(() => { plot.innerHTML = '<p class="caveat">The holdings could not be loaded. The numbers are in data/dpc_wealth.json.</p>'; });
   });
 
-  /* ---- Try it: a long-short book of eight made-up stocks, optimised in the browser. ------------- */
-  const solve = (A, B) => { /* Gaussian elimination with partial pivoting: A x = B, B with one or more columns */
-    const n = A.length; const m = B[0].length;
-    const M = A.map((row, i) => [...row, ...B[i]]);
-    for (let c = 0; c < n; c += 1) {
-      let p = c;
-      for (let r = c + 1; r < n; r += 1) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
-      [M[c], M[p]] = [M[p], M[c]];
-      for (let r = 0; r < n; r += 1) {
-        if (r === c) continue;
-        const f = M[r][c] / M[c][c];
-        for (let j = c; j < n + m; j += 1) M[r][j] -= f * M[c][j];
-      }
-    }
-    return M.map((row, i) => row.slice(n).map((v) => v / M[i][i]));
-  };
-  document.querySelectorAll("[data-toy]").forEach((fig) => {
-    const D = JSON.parse(fig.querySelector("[data-toy-data]").textContent);
-    const n = D.beta.length;
-    const energy = D.tech.map((t) => 1 - t);
-    const sigma = D.beta.map((bi, i) => D.beta.map((bj, j) => D.marketVol ** 2 * bi * bj + (D.tech[i] === D.tech[j] ? D.sectorVol ** 2 : 0) + (i === j ? D.specificVol ** 2 : 0)));
-    const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
-    const modes = fig.querySelector('[role="radiogroup"]');
-    const boxes = [...fig.querySelectorAll("[data-con]")];
-    const items = [...fig.querySelectorAll(".toy-bars li")];
-    const say = fig.querySelector("[data-toy-say]");
-    const tset = (key, text) => { fig.querySelector(`[data-t="${key}"]`).textContent = text; };
-    let mode = "naive";
-    const weights = () => {
-      let w;
-      if (mode === "naive") {
-        const mean = D.alpha.reduce((s, x) => s + x, 0) / n;
-        w = D.alpha.map((x) => x - mean);
-      } else {
-        const rows = [Array(n).fill(1)];
-        if (boxes.find((b) => b.dataset.con === "beta").checked) rows.push(D.beta);
-        if (boxes.find((b) => b.dataset.con === "sector").checked) rows.push(D.tech);
-        const sa = solve(sigma, D.alpha.map((x) => [x])).map((r) => r[0]);              /* Σ⁻¹α */
-        const sA = solve(sigma, D.alpha.map((_, i) => rows.map((r) => r[i])));          /* Σ⁻¹Aᵀ */
-        const M = rows.map((r) => rows.map((_, j) => dot(r, sA.map((row) => row[j])))); /* A Σ⁻¹ Aᵀ */
-        const mu = solve(M, rows.map((r) => [dot(r, sa)])).map((r) => r[0]);
-        w = sa.map((v, i) => v - dot(sA[i], mu));                                        /* Σ⁻¹(α − Aᵀμ) */
-      }
-      const gross = w.reduce((s, x) => s + Math.abs(x), 0) || 1;
-      return w.map((x) => (2 * x) / gross);
-    };
+  /* ---- Your start year: $1 from any January to today, network against market. -------------------- */
+  document.querySelectorAll("[data-start-toy]").forEach((fig) => {
+    const D = JSON.parse(fig.querySelector("[data-start-data]").textContent);
+    const slider = fig.querySelector("[data-start-year]");
+    const out = fig.querySelector("[data-start-out]");
+    const say = fig.querySelector("[data-start-say]");
+    const set = (key, text) => { fig.querySelector(`[data-s="${key}"]`).textContent = text; };
+    const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const end = `${MONTHS[Number(D.end.slice(5, 7)) - 1]} ${D.end.slice(0, 4)}`;
+    const money = (x) => (x >= 100 ? `$${Math.round(x).toLocaleString("en-US")}` : `$${x.toFixed(2)}`);
+    const pctText = (x) => `${(100 * x).toFixed(2)}%`;
     const update = () => {
-      const w = weights();
-      const beta = dot(D.beta, w);
-      const vm = D.marketVol ** 2 * beta ** 2;
-      const vs = D.sectorVol ** 2 * (dot(D.tech, w) ** 2 + dot(energy, w) ** 2);
-      const vi = D.specificVol ** 2 * dot(w, w);
-      const total = vm + vs + vi;
-      const [pi, pm, ps] = [vi / total, vm / total, vs / total];
-      items.forEach((li, i) => {
-        const h = Math.min(Math.abs(w[i]) / 0.8, 1) * 50;
-        const bar = li.querySelector(".toy-track i");
-        bar.style.top = w[i] >= 0 ? `${50 - h}%` : "50%";
-        bar.style.height = `${h}%`;
-        li.classList.toggle("is-short", w[i] < 0);
-        li.querySelector(".toy-w").textContent = `${signed(100 * w[i], 0)}%`;
-      });
-      tset("beta", signed(Math.abs(beta) < 0.005 ? 0 : beta));
-      tset("picks", pctText(pi)); tset("market", pctText(pm)); tset("sector", pctText(ps));
-      fig.querySelector(".riskbar .r-spec").style.width = pctText(pi);
-      fig.querySelector(".riskbar .r-style").style.width = pctText(pm);
-      fig.querySelector(".riskbar .r-sector").style.width = pctText(ps);
-      const b = signed(Math.abs(beta) < 0.005 ? 0 : beta);
-      const cb = boxes.find((x) => x.dataset.con === "beta").checked;
-      const cs = boxes.find((x) => x.dataset.con === "sector").checked;
-      let text;
-      if (mode === "naive") text = `Following the signal: beta ${b}, and only ${pctText(pi)} of the risk is the stock picks. ${pctText(pm)} is the market and ${pctText(ps)} a sector bet nobody chose.`;
-      else if (cb && cs) text = `Neutral to the market and to sectors: ${pctText(pi)} of the risk is now the stock picks themselves.${fig.dataset.real ? ` On the real 99 stocks, the same idea took the share of intended risk ${fig.dataset.real}.` : ""}`;
-      else if (cb) text = `Beta-neutral: the market's share falls to ${pctText(pm)}, but the book still bets on one sector over the other: ${pctText(ps)} of its risk.`;
-      else if (cs) text = `Sector-neutral: no sector bet left, but beta is ${b}, so ${pctText(pm)} of the risk is the market.`;
-      else text = `The optimiser alone spreads risk a little better (${pctText(pi)} from the picks) but keeps beta ${b}. Now add a constraint.`;
-      say.textContent = text;
+      const i = Number(slider.value) - D.years[0];
+      out.textContent = String(D.years[i]);
+      set("deep", money(D.deep[i]));
+      set("market", money(D.market[i]));
+      set("cagrDeep", pctText(D.cagrDeep[i]));
+      set("cagrMarket", pctText(D.cagrMarket[i]));
+      const lead = D.deep[i] > D.market[i] ? "the network" : "the market";
+      say.textContent = `Invested in January ${D.years[i]} and left to the rules until ${end}: ${lead} ended ahead, ` +
+        `${pctText(D.cagrDeep[i])} a year for the network against ${pctText(D.cagrMarket[i])} for the market.`;
     };
-    radioGroup(modes, (radio) => {
-      mode = radio.dataset.mode;
-      boxes.forEach((b) => { b.disabled = mode === "naive"; b.closest(".switch").classList.toggle("is-off", mode === "naive"); });
-      update();
-    });
-    boxes.forEach((b) => b.addEventListener("change", update));
-    boxes.forEach((b) => b.closest(".switch").classList.toggle("is-off", b.disabled));
+    slider.addEventListener("input", update);
+    update();
+  });
+
+  /* ---- Try it: why the network is trained on growth, not average return. ------------------------- */
+  document.querySelectorAll("[data-growth-toy]").forEach((fig) => {
+    const D = JSON.parse(fig.querySelector("[data-toy-data]").textContent);
+    const [m1, m2] = D.mu; const [s1, s2] = D.sigma; const r = D.rho; const years = D.years;
+    const slider = fig.querySelector("[data-toy-x]");
+    const out = fig.querySelector("[data-toy-out]");
+    const say = fig.querySelector("[data-toy-say]");
+    const dotMean = fig.querySelector(".toy-dot-mean");
+    const dotGrowth = fig.querySelector(".toy-dot-growth");
+    const svgPath = fig.querySelector(".toy-growth");
+    const tset = (key, text) => { fig.querySelector(`[data-t="${key}"]`).textContent = text; };
+    const at = (x) => {
+      const mean = (1 - x) * m1 + x * m2;
+      const v = (1 - x) ** 2 * s1 ** 2 + x ** 2 * s2 ** 2 + 2 * x * (1 - x) * r * s1 * s2;
+      return [mean, Math.sqrt(v), mean - v / 2];
+    };
+    const a = s1 ** 2 + s2 ** 2 - 2 * r * s1 * s2;
+    const best = Math.min(1, Math.max(0, ((m2 - m1) + s1 ** 2 - r * s1 * s2) / a));
+    /* The y-scale the build used, recovered from the drawn curve's end points. */
+    const ys = svgPath.getAttribute("d").slice(1).split(" L").map((p) => Number(p.split(" ")[1]));
+    const g0 = at(0)[2]; const g1 = at(1)[2];
+    const pxPerUnit = (ys[0] - ys[ys.length - 1]) / (g1 - g0);
+    const y0 = ys[0] + g0 * pxPerUnit;   /* svg y of the value 0 */
+    const top = (v) => `${(y0 - v * pxPerUnit) / 3}%`;
+    const money = (g) => `$${Math.round(Math.exp(years * g)).toLocaleString("en-US")}`;
+    const update = () => {
+      const x = Number(slider.value) / 100;
+      const [mean, vol, g] = at(x);
+      const gb = at(best)[2];
+      out.textContent = `${Math.round(100 * x)}%`;
+      dotMean.style.left = `${100 * x}%`; dotMean.style.top = top(mean);
+      dotGrowth.style.left = `${100 * x}%`; dotGrowth.style.top = top(g);
+      tset("mean", `${(100 * mean).toFixed(1)}%`); tset("vol", `${(100 * vol).toFixed(1)}%`);
+      tset("growth", `${(100 * g).toFixed(1)}%`); tset("wealth", money(g));
+      const pct = Math.round(100 * x); const pb = Math.round(100 * best);
+      if (Math.abs(x - best) <= 0.02) say.textContent = `${pct}% risky is the growth-optimal mix: ${money(g)} after ${years} years. Any more risk raises the average return and lowers the wealth.`;
+      else if (x > best) say.textContent = `${pct}% risky has the higher average return (${(100 * mean).toFixed(1)}%) but volatility drags growth down to ${(100 * g).toFixed(1)}%: ${money(g)} after ${years} years, against ${money(gb)} at ${pb}%.`;
+      else say.textContent = `${pct}% risky is too timid: growth ${(100 * g).toFixed(1)}% a year, ${money(g)} after ${years} years, against ${money(gb)} at ${pb}%.`;
+    };
+    slider.addEventListener("input", update);
     update();
   });
 

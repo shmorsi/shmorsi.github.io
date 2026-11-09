@@ -502,6 +502,7 @@ html:not(.motion) .hero-viz { visibility: hidden; } /* the illustration is drawn
 .prose a { color: var(--ink); }
 .prose h3 { color: var(--ink); font-size: clamp(18px, 2vw, 24px); letter-spacing: 0.08em; line-height: 1.25; margin-top: 8px; }
 .wide { grid-column: 1 / -1; }
+.cs-section > .prose { grid-column: -2 / -1; }   /* text after a full-width piece stays in the text column */
 .table-wrap { overflow-x: auto; border-top: 1px solid var(--line-strong); max-width: 100%; min-width: 0; -webkit-overflow-scrolling: touch; }
 table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 520px; font-variant-numeric: tabular-nums; }
 caption {
@@ -684,18 +685,10 @@ html:not(.motion) .lab-plot .ln-focus { display: none; }
 .lab-stats div + div, .toy-stats div + div { padding-left: 14px; border-left: 1px solid var(--line); }
 .lab-stats dt, .toy-stats dt { color: var(--dim); font-size: 12px; line-height: 1.35; }
 .lab-stats dd, .toy-stats dd { margin: 4px 0 0; font-size: clamp(22px, 2.2vw, 30px); font-weight: 500; line-height: 1.1; font-variant-numeric: tabular-nums; }
-.riskbar-block { display: grid; gap: 8px; }
-.riskbar { display: flex; height: 14px; overflow: hidden; background: color-mix(in srgb, var(--ink) 6%, transparent); }
-.riskbar i { display: block; height: 100%; transition: width 0.8s var(--ease); }
-.r-spec { background: var(--accent); }
-.r-style { background: var(--warm); }
-.r-sector { background: var(--dim); }
-.riskbar-key { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: 13px; }
-.riskbar-key span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 7px; vertical-align: -1px; }
-.k-spec::before { background: var(--accent); }
-.k-style::before { background: var(--warm); }
-.k-sector::before { background: var(--dim); }
-.riskbar-key b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.lab-plot .ln.is-ref { stroke-dasharray: 5 4; stroke-opacity: 0.5; }
+.lab-vs { color: var(--muted); font-size: 15px; line-height: 1.5; }
+.lab-vs b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.step.is-ref .step-track .fill { background: var(--dim); opacity: 0.7; }
 .lab-notes { display: grid; gap: 10px; }
 .lab-take { color: var(--muted); font-size: 15.5px; line-height: 1.55; max-width: 72ch; }
 .lab-take b { color: var(--ink); font-weight: 600; }
@@ -733,19 +726,30 @@ html:not(.motion) .lab-plot .ln-focus { display: none; }
 .attack.is-off .attack-readout b { color: var(--warm); }
 .attack-desc { min-height: 3em; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
 
-/* Try it: the neutralisation toy */
+/* Try it: why growth, not average return */
 .toy, .book { margin: 0; display: grid; gap: 18px; padding: clamp(18px, 3vw, 28px); border: 1px solid var(--line); background: var(--surface); min-width: 0; }
 .toy-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; }
-.toy-bars { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
-.toy-bars li { display: grid; justify-items: center; gap: 3px; min-width: 0; text-align: center; }
-.toy-track { position: relative; display: block; width: 100%; height: 170px; background: linear-gradient(var(--line-strong), var(--line-strong)) 0 50% / 100% 1px no-repeat; }
-.toy-bars li.energy .toy-track { background-color: color-mix(in srgb, var(--ink) 4%, transparent); }
-.toy-track i { position: absolute; left: 20%; right: 20%; background: var(--accent); transition: top 0.5s var(--ease), height 0.5s var(--ease), background-color 0.3s; }
-.toy-bars li.is-short .toy-track i { background: color-mix(in srgb, var(--ink) 55%, transparent); }
-.toy-bars b { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; line-height: 1.3; }
-.toy-bars small { color: var(--dim); font-size: 12px; }
-.toy-w { font-size: 13px; font-variant-numeric: tabular-nums; }
+.toy-plot { position: relative; height: clamp(180px, 20vw, 240px); }
+.toy-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.toy-mean { fill: none; stroke: var(--warm); stroke-width: 2; stroke-dasharray: 6 5; vector-effect: non-scaling-stroke; }
+.toy-growth { fill: none; stroke: var(--accent); stroke-width: 2.6; vector-effect: non-scaling-stroke; }
+.toy-best { stroke: var(--line-strong); stroke-width: 1; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
+.toy-dot { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; box-shadow: 0 0 0 3px var(--surface); transition: left 0.15s, top 0.15s; }
+.toy-dot-mean { background: var(--warm); }
+.toy-dot-growth { background: var(--accent); }
+.toy-tag { position: absolute; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; pointer-events: none; }
+.toy-tag-mean { right: 0; top: 2%; color: var(--warm); }
+.toy-tag-growth { left: 0; bottom: 4%; color: var(--accent); }
+.toy-tag-best { top: -18px; transform: translateX(-50%); color: var(--muted); }
+.toy-x { margin-top: 2px; }
 .toy-say { min-height: 3em; color: var(--ink); font-size: 16px; line-height: 1.5; }
+
+/* Inside the portfolio: the network's holdings against the market */
+.holdings .book-plot rect.mkt { fill: none; stroke: var(--ink); stroke-opacity: 0.45; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.holdings .book-plot rect.long { fill: var(--accent); transition: y 0.12s linear, height 0.12s linear; }
+.holdings .book-plot rect.hot { fill: var(--warm); }
+.holdings-labels span { font-size: 10px; }
+.holdings .book-stats { grid-template-columns: repeat(4, auto); }
 
 /* Inside the book */
 .book-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 14px 24px; }
@@ -892,4 +896,10 @@ html:not(.motion) .lab-plot .ln-focus { display: none; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
   a.screen:hover img { transform: none; }
+}
+
+@media (max-width: 700px) {
+  .holdings-labels { display: none; }             /* 30 names do not fit a phone; a tap on a bar names it */
+  .holdings .book-stats { grid-template-columns: repeat(2, auto); }
+  .toy-tag-best { font-size: 10px; }
 }

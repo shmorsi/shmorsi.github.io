@@ -296,12 +296,21 @@ else:
     for key, stat in dpc["stats"].items():
         if not stat["source"].startswith("deep-portfolio-constructor reports/"):
             errors.append(f"deep-portfolio-constructor.stats.{key} must cite the project's committed reports/ file")
-    caveat = dpc.get("caveat", "").lower()
-    for needle in ("survivorship", "not significant", "beta", "one seed"):
+    verdict = dpc["stats"].get("vsMktVerdictDeep", {}).get("display")
+    if verdict not in ("better", "worse", "no detectable difference"):
+        errors.append("the network's verdict against the market must be one of the protocol's three")
+    caveat = dpc.get("caveat", "")
+    for needle in ("pre-registered", "long-only", "survivorship", "not funds", "found later", "US data only", f"the verdict is {verdict}"):
         if needle not in caveat:
             errors.append(f"deep-portfolio-constructor caveat must state {needle!r}")
-    if re.search(r"significant(?! at)|significantly", dpc.get("proves", "").replace("not statistically significant", "")):
-        errors.append("deep-portfolio-constructor proves line must not claim significance")
+    proves = dpc.get("proves", "")
+    reading = {"better": "better by the pre-registered test", "worse": "worse by the pre-registered test"}.get(verdict, "cannot tell from luck")
+    if reading not in proves:
+        errors.append(f"deep-portfolio-constructor proves line must state the pre-registered verdict ({reading!r})")
+    if verdict != "better" and re.search(r"\bbetter\b|significan|\bbeats?\b", proves):
+        errors.append("deep-portfolio-constructor proves line must not claim an edge the pre-registered test did not find")
+    if re.search(r"\bshort(?:s|ing|ed)?\b|long-short|market-neutral", " ".join([dpc["purpose"], dpc["summary"], proves])):
+        errors.append("deep-portfolio-constructor is a long-only study: no shorting language in its purpose, summary or proves line")
 
 # Project marks exist for every project, and no page links to a repository visitors cannot open.
 for project in DATA["projects"]:
@@ -350,53 +359,41 @@ if "prefers-reduced-motion" not in site_js:
 if "Illustration, not data" not in home:
     errors.append("the hero illustration must say it is an illustration, not data")
 
-# The portfolio lab and the book are exports of the project's committed results; they must agree with its table.
-lab_path, book_path = ROOT / "data" / "dpc_lab.json", ROOT / "data" / "dpc_book.json"
+# The wealth lab and the holdings view are exports of the project's committed results; they must agree with its table.
+wealth_path = ROOT / "data" / "dpc_wealth.json"
 dpc_stats = projects["deep-portfolio-constructor"]["stats"]
-if not lab_path.exists() or not book_path.exists():
-    errors.append("data/dpc_lab.json and data/dpc_book.json are missing (run scripts/export_dpc_lab.py)")
+if not wealth_path.exists():
+    errors.append("data/dpc_wealth.json is missing (run scripts/sync_dpc.py)")
 else:
-    lab_data = json.loads(lab_path.read_text())
-    book = json.loads(book_path.read_text())
-    if not lab_data["source"].startswith("deep-portfolio-constructor ") or not book["source"].startswith("deep-portfolio-constructor "):
-        errors.append("the lab and book exports must cite the deep-portfolio-constructor repository and commit")
+    wealth = json.loads(wealth_path.read_text())
+    if not wealth["source"].startswith("deep-portfolio-constructor "):
+        errors.append("data/dpc_wealth.json must cite the deep-portfolio-constructor repository and commit")
     months = int(dpc_stats["months"]["display"])
-    if len(lab_data["dates"]) != months + 1 or len(book["dates"]) != months:
-        errors.append(f"the lab should cover {months} months (+ its starting point) and the book {months} rebalances")
+    if len(wealth["dates"]) != months:
+        errors.append(f"data/dpc_wealth.json should cover {months} months")
     perf = projects["deep-portfolio-constructor"]["tables"]["performance"]
-    prefixes = {"ls_naive": "Naive", "ls_classical": "Classical", "ls_deep_twostage": "Deep risk", "ls_deep_alpha": "Deep views",
-                "e2e": "End-to-end", "e2e_deep": "Fully deep"}
-    for strat in lab_data["strategies"]:
-        row = next((r for r in perf["rows"] if r[0].startswith(prefixes.get(strat["id"], "?"))), None)
+    for sid, label in wealth["labels"].items():
+        series = wealth["growth"][sid]
+        row = next((r for r in perf["rows"] if r[0] == label), None)
+        if len(series) != months + 1:
+            errors.append(f"growth of $1 for {sid} should have {months} months plus its starting point")
         if row is None:
-            errors.append(f"lab strategy {strat['id']} has no row in the performance table")
-            continue
-        if len(strat["growth"]) != len(lab_data["dates"]):
-            errors.append(f"lab strategy {strat['id']} growth series does not match its dates")
-        if f"{100 * strat['risk']['specific']:.0f}%" != row[7]:
-            errors.append(f"lab risk split for {strat['id']} ({strat['risk']['specific']}) does not match the table's {row[7]}")
-        if f"−{abs(100 * strat['maxDrawdown']):.0f}%" != row[4]:
-            errors.append(f"lab max drawdown for {strat['id']} ({strat['maxDrawdown']}) does not match the table's {row[4]}")
-        if abs(sum(strat["risk"].values()) - 1) > 0.002:
-            errors.append(f"lab risk split for {strat['id']} does not add up to 100%")
-    for t, row in enumerate(book["weightsBp"]):
-        # Weights are whole basis points rounded so the net stays exact: each is within 1 bp of the optimiser's.
-        if len(row) != len(book["tickers"]) or sum(row) != 0 or max(abs(w) for w in row) > 501:
-            errors.append(f"book {book['dates'][t]} is not dollar-neutral within 5% positions")
-            break
-        nets, sizes = {}, {}
-        for w, sector in zip(row, book["sectors"]):
-            nets[sector] = nets.get(sector, 0) + w
-            sizes[sector] = sizes.get(sector, 0) + 1
-        if any(abs(v) > 500 + sizes[k] for k, v in nets.items()):
-            errors.append(f"book {book['dates'][t]} has a sector net beyond the ±5% limit")
+            errors.append(f"lab strategy {sid} has no row in the performance table")
+        elif (f"${series[-1]:,.0f}" if series[-1] >= 10 else f"${series[-1]:,.2f}") != row[1]:
+            errors.append(f"lab growth of $1 for {sid} ends at {series[-1]} but the table says {row[1]}")
+    h = wealth["holdings"]
+    for t, (row, mrow) in enumerate(zip(h["deepBp"], h["marketBp"])):
+        # Whole basis points, rounded so each month adds to exactly 100%: long-only and fully invested.
+        if len(row) != len(h["industries"]) or sum(row) != 10000 or min(row) < 0 or sum(mrow) != 10000 or min(mrow) < 0:
+            errors.append(f"holdings {h['dates'][t]} must be long-only and fully invested")
             break
 
 # Every interactive piece is on its page, every dotted word has a definition, and the toy says it is made up.
 dpc_page = (ROOT / "projects" / "deep-portfolio-constructor.html").read_text(encoding="utf-8")
 for hook, where, text in (("data-lab=", "index.html", home), ("data-shock", "index.html", home), ("data-attack", "index.html", home),
                           ("data-market-pause", "index.html", home), ("data-lab=", "the portfolio page", dpc_page),
-                          ("data-toy", "the portfolio page", dpc_page), ("data-book=", "the portfolio page", dpc_page)):
+                          ("data-growth-toy", "the portfolio page", dpc_page), ("data-holdings=", "the portfolio page", dpc_page),
+                          ("data-start-toy", "the portfolio page", dpc_page)):
     if hook not in text:
         errors.append(f"{where} is missing its interactive piece {hook}")
 glossary = set(re.findall(r'^\s+"([a-z-]+)": \[', site_js, re.M))
@@ -404,8 +401,16 @@ for path in html_files:
     for key in set(re.findall(r'class="term" data-term="([^"]+)"', path.read_text(encoding="utf-8"))):
         if key not in glossary:
             errors.append(f"{path.relative_to(ROOT)} uses the term {key!r} but assets/site.js has no definition for it")
-if "made-up stocks" not in dpc_page or "Not data." not in dpc_page:
-    errors.append("the neutralisation toy must say it uses made-up stocks and is not data")
+if "Made-up numbers, not data" not in dpc_page:
+    errors.append("the growth toy must say its numbers are made up, not data")
+if re.search(r"long-short|market-neutral|dollar-neutral|\bshorts?\b(?! of)", re.sub(r"never shorts?|no shorting|never short", "", main_of(dpc_page))):
+    errors.append("the portfolio page must not describe short positions: the study is long-only")
+spec_dpc = importlib.util.spec_from_file_location("build_dpc_page", ROOT / "scripts" / "build_dpc_page.py")
+build_dpc = importlib.util.module_from_spec(spec_dpc)
+spec_dpc.loader.exec_module(build_dpc)
+body_of = lambda text: re.search(r'<div class="cs-body wrap">.*?<nav class="project-switch"', text, re.S).group(0)  # noqa: E731
+if body_of(build_dpc.page()) != body_of(dpc_page):
+    errors.append("projects/deep-portfolio-constructor.html is out of date with data/projects.json (run scripts/build_dpc_page.py, then scripts/sync_chrome.py)")
 
 if errors:
     print("\n".join(errors))

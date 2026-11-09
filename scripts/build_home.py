@@ -26,7 +26,7 @@ P = {p["id"]: p for p in DATA["projects"]}
 FEATURED = "deep-portfolio-constructor"
 ORDER = [p["id"] for p in DATA["projects"]]  # display order is the order in the data file
 CARDS = [pid for pid in ORDER if pid != FEATURED]
-STATUS = {"deep-portfolio-constructor": "Walk-forward", "tsfm": "Test scored", "world-shock-lab": "Live", "aurvane": "Simulated"}
+STATUS = {"deep-portfolio-constructor": "Pre-registered", "tsfm": "Test scored", "world-shock-lab": "Live", "aurvane": "Simulated"}
 SHORT = {"deep-portfolio-constructor": "Portfolio", "tsfm": "TSFM", "world-shock-lab": "Shock Lab", "aurvane": "Aurvane"}
 LIVE = {"world-shock-lab"}
 GITHUB = "https://github.com/shmorsi"
@@ -180,10 +180,10 @@ def feature() -> str:
     p = P[pid]
     href = page_href(p)
     key = p["headline"]["stat"]
-    stack = [("AlphaFormer", "Transformer return views", f'{bind(pid, "stats.paramsAlpha.display")} parameters per member'),
-             ("Deep risk model", "Transformer covariance", f'{bind(pid, "stats.paramsRisk.display")} parameters'),
-             ("Differentiable optimiser", "Neutral to sectors, beta, size, value", "cvxpylayers"),
-             ("Long-short portfolio", "Scored on next month's return", f'{bind(pid, "stats.stocks.display")} large caps')]
+    stack = [("Point-in-time features", "13 per industry, 7 for the market", f'{bind(pid, "stats.industries.display")} US industries'),
+             ("Transformer", "Every industry attends to every other", f'{bind(pid, "stats.params.display")} parameters'),
+             ("Long-only tilt", "Each market weight tilted up to 3× either way", "Never short, never levered"),
+             ("Learned patience", "Trades only part of the way to its target", f'{bind(pid, "stats.tradedDeep.display")} traded a year')]
     steps = "".join(f'<li><span class="step-num">{i:02d}</span><b>{e(a)}</b><span>{e(b)}</span><small>{c}</small></li>'
                     for i, (a, b, c) in enumerate(stack, 1))
     return f"""
@@ -207,9 +207,9 @@ def feature() -> str:
           </div>
         </div>
         <div class="feature-stack">
-          <p class="label">The deep stack · PyTorch at every layer</p>
+          <p class="label">The deep stack · PyTorch</p>
           <ol class="pipeline">{steps}</ol>
-          <p class="backprop"><span class="backprop-line" aria-hidden="true"></span><span>Trained {lab.term("end-to-end", "end to end")}: the gradient of the realised return flows back through the {lab.term("differentiable", "differentiable optimiser")} into both networks.</span></p>
+          <p class="backprop"><span class="backprop-line" aria-hidden="true"></span><span>Trained {lab.term("end-to-end", "end to end")} on the {lab.term("kelly", "growth of wealth")}: the gradient of 60 months of compounding, net of every trading cost, flows back through a {lab.term("differentiable", "differentiable simulator")} into the network.</span></p>
         </div>
       </article>"""
 
@@ -352,7 +352,7 @@ def page() -> str:
             <canvas class="hero-canvas" data-market aria-hidden="true"></canvas>
             <button type="button" class="viz-pause" data-market-pause aria-pressed="false">Pause</button>
           </div>
-          <figcaption>Illustration, not data. Prices stream into a transformer that sets long and short weights; the amber pulses are the gradient of the result flowing back. <span class="viz-hint">Point at a stock to trace it; click its price line to shock it and watch the book rebalance.</span></figcaption>
+          <figcaption>Illustration, not data. Prices stream into a transformer that sets the portfolio's weights; the amber pulses are the gradient of the result flowing back. <span class="viz-hint">Point at a stock to trace it; click its price line to shock it and watch the portfolio rebalance.</span></figcaption>
         </figure>
       </div>
       <div class="telemetry-band">

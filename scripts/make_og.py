@@ -52,11 +52,11 @@ CARDS = {
       <p class="dim">{COUNT} projects, each with its own page, every figure traced to a result file.</p>
       <p class="foot">{"".join(f"<span>{t}</span>" for t in TITLES)}</p>""",
     ROOT / "assets" / "og-dpc.png": f"""
-      <div class="rule"></div><p class="label accent">Deep Portfolio Constructor · deep learning and quant</p>
-      <p class="fig">{dpc["intendedShift"]["display"]}</p>
-      <p class="lede">Share of risk from intended stock bets, naive to optimised.</p>
-      <p class="dim">PyTorch at every layer, trained through a differentiable optimiser. Best net Sharpe {dpc["sharpeE2E"]["display"]}, not significant.</p>
-      <p class="foot"><span>Walk-forward from 2008</span><span>99 large caps</span><span>Every figure traced</span></p>""",
+      <div class="rule"></div><p class="label accent">Deep Portfolio Constructor · deep learning for long-term wealth</p>
+      <p class="fig">$1 &rarr; {dpc["wealthDeep"]["display"]}</p>
+      <p class="lede">A neural network's long-only portfolio, January 1960 to today. The market: {dpc["wealthMarket"]["display"]}.</p>
+      <p class="dim">Trained on the growth of wealth after costs. Against the market, {dpc["vsMktDeep"]["display"]} a year: {dpc["vsMktVerdictDeep"]["display"]}, by the pre-registered test.</p>
+      <p class="foot"><span>Out of sample from 1960</span><span>{dpc["industries"]["display"]} US industries</span><span>Every figure traced</span></p>""",
     ROOT / "aurvane" / "media" / "og-aurvane.png": f"""
       <div class="rule"></div><p class="label accent">Aurvane · agent security</p>
       <p class="fig">{aurvane["attacksWith"]["display"]}</p>

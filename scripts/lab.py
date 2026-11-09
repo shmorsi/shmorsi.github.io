@@ -2,7 +2,7 @@
 
 Each piece is rendered here as complete static HTML, so it reads correctly without
 JavaScript and scripts/check_site.py can verify it; assets/site.js then makes it
-interactive. Every number comes from data/projects.json, data/dpc_lab.json or a
+interactive. Every number comes from data/projects.json, data/dpc_wealth.json or a
 copied measurement file, never typed here.
 """
 
@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "projects.json").read_text())
 P = {p["id"]: p for p in DATA["projects"]}
-LAB = json.loads((ROOT / "data" / "dpc_lab.json").read_text())
+WEALTH = json.loads((ROOT / "data" / "dpc_wealth.json").read_text())
 AURVANE = json.loads((ROOT / "data" / "measurements" / "aurvane" / "worst-case_summary.json").read_text())
 DPC = "deep-portfolio-constructor"
 e = html.escape
@@ -65,101 +65,78 @@ def number(text: str) -> float:
     return float(re.search(r"[−-]?\d+(?:\.\d+)?", text.replace(",", "")).group(0).replace("−", "-"))
 
 
-# ---------------------------------------------------------------- the portfolio lab
 
-STEPS = [  # strategy id in dpc_lab.json, short name, Sharpe stat, start of its row label in tables.performance
-    ("ls_naive", "Naive signal", "sharpeNaive", "Naive"),
-    ("ls_classical", "Classical optimiser", "sharpeClassical", "Classical"),
-    ("ls_deep_twostage", "Deep risk model", "sharpeDeepRisk", "Deep risk"),
-    ("ls_deep_alpha", "Deep views (AlphaFormer)", "sharpeAlpha", "Deep views"),
-    ("e2e", "End-to-end (primary)", "sharpeE2E", "End-to-end"),
-    ("e2e_deep", "Fully deep", "sharpeDeep", "Fully deep"),
+# ---------------------------------------------------------------- the wealth lab: $1 in 1960, seven ways
+
+STRATEGIES = [  # id in dpc_wealth.json, short name, stat suffix in data/projects.json
+    ("market", "Market (hold the index)", "Market"),
+    ("equal_weight", "Equal weight", "Equal"),
+    ("min_variance", "Minimum variance", "MinVar"),
+    ("risk_parity", "Risk parity", "RiskParity"),
+    ("growth_classical", "Classical growth optimiser", "Growth"),
+    ("momentum_tilt", "Momentum tilt", "Momentum"),
+    ("deep", "Deep Growth Network", "Deep"),
 ]
-PRIMARY = "e2e"
-CRISIS_NAMES = {2008: "the 2008 financial crisis", 2020: "the 2020 pandemic crash", 2022: "the 2022 rate shock"}
+PRIMARY = "deep"
 
 
-def perf_rows() -> dict[str, list[str]]:
-    """The performance table's row for each step, matched by its label so a reorder cannot misalign them."""
-    rows = P[DPC]["tables"]["performance"]["rows"]
-    headers = P[DPC]["tables"]["performance"]["headers"]
-    assert headers == ["Strategy", "Net Sharpe", "Return", "Volatility", "Max drawdown", "FF6 alpha t", "Market beta", "Risk from intended bets"], headers
-    out = {}
-    for sid, _, key, prefix in STEPS:
-        row = next(r for r in rows if r[0].startswith(prefix))
-        assert row[1] == P[DPC]["stats"][key]["display"], (sid, row[1])
-        out[sid] = row
-    return out
+def stat_text(key: str) -> str:
+    return str(P[DPC]["stats"][key]["display"])
 
 
-def takeaways() -> dict[str, str]:
-    r = perf_rows()
-    return {
-        "ls_naive": (f"<b>Naive signal.</b> Buy the top and short the bottom of three textbook signals, with no risk model. "
-                     f"Only {r['ls_naive'][7]} of the risk came from the stock bets it meant to make; the rest was "
-                     f"{term('factor', 'style and sector bets')} nobody chose, and at its worst it lost {r['ls_naive'][4]}."),
-        "ls_classical": (f"<b>Classical optimiser.</b> Same signals, but a convex optimiser keeps the book "
-                         f"{term('market-neutral', 'neutral')} to sectors, beta, size and value. "
-                         f"{term('intended-risk', 'Risk from intended bets')} rose to {r['ls_classical'][7]} and the worst loss shrank to "
-                         f"{r['ls_classical'][4]}. Return stayed near zero: the signals had no edge ({term('rank-ic', 'rank IC')} {stat('icComposite')})."),
-        "ls_deep_twostage": (f"<b>Deep risk model.</b> A transformer forecasts the covariance instead of Ledoit-Wolf shrinkage. "
-                             f"It predicts risk better ({term('likelihood', 'likelihood')} {stat('nllDeep')} vs {stat('nllLW')}) but hedges worse: "
-                             f"the intended share fell to {r['ls_deep_twostage'][7]}."),
-        "ls_deep_alpha": (f"<b>Deep views.</b> AlphaFormer, a {term('transformer', 'transformer')} that compares stocks with each other, "
-                          f"replaces the classical signals: rank IC {stat('icDeep')} instead of {stat('icComposite')}, and net Sharpe rose to "
-                          f"{stat('sharpeAlpha')}."),
-        "e2e": (f"<b>End-to-end, the primary model.</b> The risk model and a correction to the views are "
-                f"{term('end-to-end', 'trained through the optimiser')} on the portfolio's own net return. Best net "
-                f"{term('sharpe', 'Sharpe')}, {stat('sharpeE2E')}, but the edge over classical has {term('t-stat', 't')} = {stat('diffT')}, not "
-                f"significant, and its realised {term('beta', 'beta')} was {stat('betaE2E')}: part of the gain is market exposure."),
-        "e2e_deep": (f"<b>Fully deep.</b> Training AlphaFormer end to end as well made it worse: Sharpe {stat('sharpeDeep')}, "
-                     f"FF6 alpha t {stat('alphaTDeep')}. Each yearly refit has at most about 250 monthly decisions to learn from, "
-                     f"too few for the extra parameters."),
-    }
+def sampled(values: list[float], dates: list[str]) -> tuple[list[float], list[str]]:
+    """The starting point, then every quarter-end: enough for a 66-year chart, a third of the bytes."""
+    keep = [0] + [i + 1 for i, d in enumerate(dates) if d[5:7] in ("03", "06", "09", "12") or i == len(dates) - 1]
+    labels = [WEALTH["start"]] + dates
+    return [values[i] for i in keep], [labels[i] for i in keep]
+
+
+def market_stress(values: list[float], depth: float = 0.2) -> list[tuple[int, int]]:
+    """Runs of months in which the market was at least ``depth`` below its previous peak (from the data itself)."""
+    runs, peak, start = [], values[0], None
+    for i, v in enumerate(values):
+        peak = max(peak, v)
+        down = v <= (1 - depth) * peak
+        if down and start is None:
+            start = i
+        if not down and start is not None:
+            runs.append((start, i))
+            start = None
+    if start is not None:
+        runs.append((start, len(values) - 1))
+    return runs
 
 
 def _path(values: list[float], lo: float, hi: float) -> str:
     n = len(values)
-    pts = []
-    for i, v in enumerate(values):
-        x = 1000 * i / (n - 1)
-        y = 300 * (math.log(hi) - math.log(v)) / (math.log(hi) - math.log(lo))
-        pts.append(f"{x:.1f} {y:.1f}")
-    return "M" + " L".join(pts)
+    return "M" + " L".join(f"{1000 * i / (n - 1):.1f} {300 * (math.log(hi) - math.log(v)) / (math.log(hi) - math.log(lo)):.1f}"
+                           for i, v in enumerate(values))
 
 
 def growth_chart(uid: str) -> str:
-    """Growth of $1, log scale, every strategy at once. SVG for the lines, HTML for every label."""
-    dates = LAB["dates"]
-    series = {s["id"]: s for s in LAB["strategies"]}
-    allv = [v for s in LAB["strategies"] for v in s["growth"]]
-    lo, hi = min(allv) * 0.88, max(allv) * 1.12
+    dates = WEALTH["dates"]
+    full_market = WEALTH["growth"]["market"]
+    series, labels = {}, None
+    for sid, *_ in STRATEGIES:
+        series[sid], labels = sampled(WEALTH["growth"][sid], dates)
+    allv = [v for vals in series.values() for v in vals]
+    lo, hi = min(allv) * 0.8, max(allv) * 1.25
     ypos = lambda v: 100 * (math.log(hi) - math.log(v)) / (math.log(hi) - math.log(lo))  # noqa: E731
-    xpos = lambda i: 100 * i / (len(dates) - 1)  # noqa: E731
-    ticks = [t for t in (0.125, 0.25, 0.5, 1, 2, 4) if lo < t < hi]
+    xfull = lambda i: 100 * i / (len(full_market) - 1)  # noqa: E731
+    ticks = [t for t in (1, 10, 100, 1000, 10000) if lo < t < hi]
     grid = "".join(f'<line class="grid{" one" if t == 1 else ""}" x1="0" x2="1000" y1="{3 * ypos(t):.1f}" y2="{3 * ypos(t):.1f}"/>' for t in ticks)
-    ylabels = "".join(f'<span style="top:{ypos(t):.2f}%">{"$" + (f"{t:g}" if t >= 1 else f"{t:.2f}")}</span>' for t in ticks)
-    bands, blabels = [], []
-    for year in LAB["crisisYears"]:
-        idx = [i for i, d in enumerate(dates) if d.startswith(str(year))]
-        if not idx:
-            continue
-        a, b = max(idx[0] - 1, 0), idx[-1]
-        bands.append(f'<rect class="crisis" x="{10 * xpos(a):.1f}" y="0" width="{10 * (xpos(b) - xpos(a)):.1f}" height="300"/>')
-        blabels.append(f'<span style="left:{xpos(a):.2f}%">{year}</span>')
-    lines = []
-    for sid, name, _, _ in STEPS:
-        on = " is-on" if sid == PRIMARY else ""
-        lines.append(f'<path class="ln{on}" data-s="{sid}" d="{_path(series[sid]["growth"], lo, hi)}"><title>{e(name)}</title></path>')
-    years = sorted({int(d[:4]) for d in dates})
-    xt = [y for y in years if (y - years[0]) % 3 == 0 and y < years[-1]] + [years[-1]]
-    xlabels = "".join(f'<span style="left:{xpos(next(i for i, d in enumerate(dates) if d.startswith(str(y)))):.2f}%">{y}</span>' for y in xt)
-    payload = {"dates": [d[:7] for d in dates], "lo": lo, "hi": hi,
-               "series": {sid: series[sid]["growth"] for sid, *_ in STEPS}}
+    ylabels = "".join(f'<span style="top:{ypos(t):.2f}%">${t:,}</span>' for t in ticks)
+    bands = "".join(f'<rect class="crisis" x="{10 * xfull(a):.1f}" y="0" width="{max(10 * (xfull(b) - xfull(a)), 2):.1f}" height="300"/>'
+                    for a, b in market_stress(full_market))
+    lines = "".join(f'<path class="ln{" is-on" if sid == PRIMARY else ""}{" is-ref" if sid == "market" else ""}" data-s="{sid}" '
+                    f'd="{_path(series[sid], lo, hi)}"><title>{e(name)}</title></path>' for sid, name, _ in STRATEGIES)
+    years = sorted({int(d[:4]) for d in labels})
+    xt = [y for y in years if y % 10 == 0] + ([years[-1]] if years[-1] % 10 else [])
+    xlabels = "".join(f'<span style="left:{100 * next(i for i, d in enumerate(labels) if d.startswith(str(y))) / (len(labels) - 1):.2f}%">{y}</span>' for y in xt)
+    payload = {"dates": labels, "lo": lo, "hi": hi, "series": series}
     return f"""<div class="lab-plot" data-lab-plot>
-              <svg viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">{"".join(bands)}{grid}{"".join(lines)}<path class="ln-focus" d=""/></svg>
+              <svg viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">{bands}{grid}{lines}<path class="ln-focus" d=""/></svg>
               <div class="lab-y" aria-hidden="true">{ylabels}</div>
-              <div class="lab-crisis" aria-hidden="true">{"".join(blabels)}</div>
               <div class="lab-cursor" aria-hidden="true"><i class="lab-line"></i><i class="lab-dot"></i></div>
               <p class="lab-read" aria-live="off"></p>
             </div>
@@ -167,59 +144,84 @@ def growth_chart(uid: str) -> str:
             <script type="application/json" data-lab-data="{uid}">{json.dumps(payload, separators=(",", ":"))}</script>"""
 
 
+def versus_market(sfx: str) -> str:
+    """'+0.59% a year against the market (t = 0.87): no detectable difference', every part bound."""
+    return (f"{stat('vsMkt' + sfx)} a year against the market ({term('t-stat', 't')} = {stat('vsMktT' + sfx)}): "
+            f"{stat('vsMktVerdict' + sfx)}")
+
+
+def takeaways() -> dict[str, str]:
+    st = stat
+    return {
+        "market": (f"<b>Market.</b> Buy every industry at its market weight and hold it: the index fund most professional "
+                   f"managers fail to beat. $1 in 1960 became {st('wealthMarket')}, {st('cagrMarket')} a year, trading only "
+                   f"{st('tradedMarket')} of the portfolio a year as the index itself changes."),
+        "equal_weight": (f"<b>Equal weight.</b> Put 1/30 in every industry each January and sit: a bet on the smaller "
+                         f"industries. {versus_market('Equal')}."),
+        "min_variance": (f"<b>Minimum variance.</b> The lowest-risk long-only mix and the smoothest ride (worst fall "
+                         f"{st('mddMinVar')} against the market's {st('mddMarket')}), but it lags whenever the largest "
+                         f"industries lead. {versus_market('MinVar')}."),
+        "risk_parity": (f"<b>Risk parity.</b> Equal risk from every industry, rebalanced each January. "
+                        f"{versus_market('RiskParity')}."),
+        "growth_classical": (f"<b>Classical growth optimiser.</b> The textbook version of the network's own goal: maximise "
+                             f"{term('kelly', 'long-run growth')} from estimated returns and risks, inside the same bounds. "
+                             f"$1 became {st('wealthGrowth')}, {versus_market('Growth')}."),
+        "momentum_tilt": (f"<b>Momentum tilt.</b> Overweight the industries that rose most over the past year. "
+                          f"{versus_market('Momentum')}. The price: it trades {st('tradedMomentum')} of the portfolio a year."),
+        "deep": deep_takeaway(),
+    }
+
+
+def deep_takeaway() -> str:
+    """The network's note. The sentence follows the pre-registered verdict; every number is bound."""
+    st = stat
+    verdict = stat_text("vsMktVerdictDeep")
+    reading = {"better": "better by the pre-registered test",
+               "worse": "worse by the pre-registered test"}.get(verdict, "too small to tell from luck by the pre-registered test")
+    return (f"<b>Deep Growth Network.</b> A {term('transformer', 'transformer')} trained on the growth of wealth itself, through a "
+            f"{term('differentiable', 'simulator')} that charges for every trade. $1 became {st('wealthDeep')}: {st('vsMktDeep')} a year "
+            f"against the market ({term('t-stat', 't')} = {st('vsMktTDeep')}), {reading}. It trades {st('tradedDeep')} of the portfolio "
+            f"a year and moves a median {st('kappaDeep')} of the way from its holdings to its target each month.")
+
+
 def portfolio_lab(uid: str) -> str:
-    """The ablation, one click per step: Sharpe bars, growth of $1, the risk split and what changed."""
-    rows = perf_rows()
-    series = {s["id"]: s for s in LAB["strategies"]}
-    sharpes = [number(P[DPC]["stats"][k]["display"]) for _, _, k, _ in STEPS]
-    m = math.ceil(max(abs(v) for v in sharpes) * 10) / 10
+    """Seven ways to invest $1 in 1960: pick one to see its path, its risk and what it did differently."""
+    wealth = {sid: WEALTH["growth"][sid][-1] for sid, *_ in STRATEGIES}
+    top = max(wealth.values())
     steps = []
-    for i, ((sid, name, key, _), v) in enumerate(zip(STEPS, sharpes), 1):
-        left, right = sorted((v, 0.0))
-        pos = lambda x: f"{100 * (x + m) / (2 * m):.2f}%"  # noqa: E731
-        rpos = lambda x: f"{100 * (m - x) / (2 * m):.2f}%"  # noqa: E731
-        s = series[sid]
-        row = rows[sid]
-        attrs = (f'data-step="{sid}" data-sharpe="{e(row[1])}" data-ret="{e(row[2])}" data-dd="{e(row[4])}" data-beta="{e(row[6])}" '
-                 f'data-final="${s["growth"][-1]:.2f}" data-spec="{s["risk"]["specific"]}" data-style="{s["risk"]["style"]}" '
-                 f'data-sector="{s["risk"]["sector"]}"')
+    for i, (sid, name, suffix) in enumerate(STRATEGIES, 1):
         pressed = "true" if sid == PRIMARY else "false"
-        tone = " is-best" if sid == PRIMARY else (" is-neg" if v < 0 else "")
+        tone = " is-best" if sid == PRIMARY else (" is-ref" if sid == "market" else "")
+        vs = "" if sid == "market" else f'data-vs="{e(stat_text("vsMkt" + suffix))}" data-vst="{e(stat_text("vsMktT" + suffix))}" data-verdict="{e(stat_text("vsMktVerdict" + suffix))}"'
+        attrs = (f'data-step="{sid}" data-wealth="{e(stat_text("wealth" + suffix))}" data-cagr="{e(stat_text("cagr" + suffix))}" '
+                 f'data-dd="{e(stat_text("mdd" + suffix))}" data-traded="{e(stat_text("traded" + suffix))}" {vs}')
         steps.append(
             f'<li><button type="button" class="step{tone}" {attrs} aria-pressed="{pressed}" aria-controls="{uid}-panel">'
             f'<span class="step-top"><span class="step-n">{i:02d}</span><span class="step-name">{e(name)}</span>'
-            f'<span class="step-val">{stat(key)}</span></span>'
-            f'<span class="step-track"><i class="ref"></i><i class="fill" style="left:{pos(left)};right:{rpos(right)}"></i></span>'
+            f'<span class="step-val">{stat("wealth" + suffix)}</span></span>'
+            f'<span class="step-track"><i class="fill" style="left:0;right:{100 * (1 - wealth[sid] / top):.2f}%"></i></span>'
             f'</button></li>')
-    first = series[PRIMARY]
-    row = rows[PRIMARY]
-    risk = first["risk"]
-    notes = "".join(f'<p class="lab-take{" is-active" if sid == PRIMARY else ""}" data-take="{sid}">{text}</p>'
-                    for sid, text in takeaways().items())
+    first = dict((sid, suffix) for sid, _, suffix in STRATEGIES)[PRIMARY]
+    notes = "".join(f'<p class="lab-take{" is-active" if sid == PRIMARY else ""}" data-take="{sid}">{text}</p>' for sid, text in takeaways().items())
     return f"""
         <div class="lab" id="{uid}" data-lab="{uid}">
           <div class="lab-steps">
-            <p class="label">The ablation · net {term('sharpe', 'Sharpe')} · pick a step</p>
+            <p class="label">$1 invested in January 1960 · pick a strategy</p>
             <ol>{"".join(steps)}</ol>
-            <p class="lab-scale" aria-hidden="true"><span>−{m:.1f}</span><span>0</span><span>{m:.1f}</span></p>
-            <button type="button" class="text-link lab-next" data-lab-next>Next step</button>
+            <button type="button" class="text-link lab-next" data-lab-next>Next strategy</button>
           </div>
-          <div class="lab-panel" id="{uid}-panel" role="region" aria-label="Selected step">
-            <p class="label lab-title">Growth of $1 since January 2008 · <span data-lab-name>{e(dict((s, n) for s, n, *_ in STEPS)[PRIMARY])}</span></p>
+          <div class="lab-panel" id="{uid}-panel" role="region" aria-label="Selected strategy">
+            <p class="label lab-title">Growth of $1 since 1960, log scale · <span data-lab-name>{e(dict((s, n) for s, n, _ in STRATEGIES)[PRIMARY])}</span></p>
             {growth_chart(uid)}
             <dl class="lab-stats">
-              <div><dt>Net Sharpe</dt><dd data-k="sharpe">{e(row[1])}</dd></div>
-              <div><dt>$1 became</dt><dd data-k="final">${first["growth"][-1]:.2f}</dd></div>
-              <div><dt>Worst {term('drawdown', 'drawdown')}</dt><dd data-k="dd">{e(row[4])}</dd></div>
-              <div><dt>Market {term('beta', 'beta')}</dt><dd data-k="beta">{e(row[6])}</dd></div>
+              <div><dt>$1 became</dt><dd data-k="wealth">{stat_text("wealth" + first)}</dd></div>
+              <div><dt>Per year ({term('cagr', 'CAGR')})</dt><dd data-k="cagr">{stat_text("cagr" + first)}</dd></div>
+              <div><dt>Worst {term('drawdown', 'fall')}</dt><dd data-k="dd">{stat_text("mdd" + first)}</dd></div>
+              <div><dt>Traded per year</dt><dd data-k="traded">{stat_text("traded" + first)}</dd></div>
             </dl>
-            <div class="riskbar-block">
-              <p class="label">Where the risk comes from</p>
-              <div class="riskbar" aria-hidden="true"><i class="r-spec" style="width:{pct(risk["specific"])}"></i><i class="r-style" style="width:{pct(risk["style"])}"></i><i class="r-sector" style="width:{pct(risk["sector"])}"></i></div>
-              <p class="riskbar-key"><span class="k-spec">Intended stock bets <b data-k="spec">{pct(risk["specific"])}</b></span><span class="k-style">Style factors <b data-k="style">{pct(risk["style"])}</b></span><span class="k-sector">Sectors <b data-k="sector">{pct(risk["sector"])}</b></span></p>
-            </div>
+            <p class="lab-vs" data-lab-vs>Against the market: <b data-k="vs">{stat_text("vsMkt" + first)}</b> a year of growth, {term('t-stat', 't')} = <b data-k="vst">{stat_text("vsMktT" + first)}</b>: <b data-k="verdict">{stat_text("vsMktVerdict" + first)}</b>.</p>
             <div class="lab-notes" aria-live="polite">{notes}</div>
-            <p class="chart-note">Shaded: the crisis years the project tests on their own, {", ".join(CRISIS_NAMES.get(y, str(y)) for y in LAB["crisisYears"])}. Out of sample from January 2008, {term('walk-forward', 'walk-forward')}, monthly rebalancing, net of 10 bps costs, 99 large caps. Ex-ante risk split from an independent Barra-style model, averaged over rebalances. Read from the project's {source_link(LAB["commit"], "reports/results", "committed results")} ({e(LAB["commit"])}).</p>
+            <p class="chart-note">Shaded: months when the market was 20% or more below its previous peak. Long-only, fully invested, every trade costs 10 bps, out of sample from January 1960 to {e(WEALTH["dates"][-1][:4])}. Kenneth French's 30 US industry portfolios, which include the firms that later failed. Read from the project's {source_link(WEALTH["commit"], "reports/results/wealth", "committed results")} ({e(WEALTH["commit"])}).</p>
           </div>
         </div>"""
 
@@ -325,99 +327,156 @@ def attack_board() -> str:
             </figure>"""
 
 
-# ---------------------------------------------------------------- try it: why neutralise a long-short book
+# ---------------------------------------------------------------- try it: why growth, not average return
 
-TOY = {  # eight made-up stocks. The signal is mostly a market bet with a Tech tilt, like the textbook signals in the project.
-    "names": ["Tech A", "Tech B", "Tech C", "Tech D", "Energy A", "Energy B", "Energy C", "Energy D"],
-    "beta": [1.5, 1.3, 1.1, 0.9, 1.4, 1.2, 0.8, 0.6],
-    "tech": [1, 1, 1, 1, 0, 0, 0, 0],
-    "alpha": [0.009, 0.006, 0.005, 0.0012, 0.005, -0.002, -0.006, -0.008],
-    "marketVol": 0.05, "sectorVol": 0.03, "specificVol": 0.05,
+GROWTH_TOY = {  # two made-up assets: the steady market and a riskier industry with a higher average return
+    "mu": [0.10, 0.13], "sigma": [0.16, 0.30], "rho": 0.6, "years": 66,
 }
 
 
-def _toy_state_naive() -> tuple[list[float], float, tuple[float, float, float]]:
-    """The toy's opening state: weights proportional to the demeaned signal, 100% long and 100% short."""
-    a = TOY["alpha"]
-    mean = sum(a) / len(a)
-    w = [x - mean for x in a]
-    gross = sum(abs(x) for x in w)
-    w = [2 * x / gross for x in w]
-    beta = sum(b * x for b, x in zip(TOY["beta"], w))
-    tech = sum(t * x for t, x in zip(TOY["tech"], w))
-    vm = TOY["marketVol"] ** 2 * beta ** 2
-    vs = TOY["sectorVol"] ** 2 * (tech ** 2 + (-tech + sum(w)) ** 2)
-    vi = TOY["specificVol"] ** 2 * sum(x * x for x in w)
-    t = vm + vs + vi
-    return w, beta, (vi / t, vm / t, vs / t)
+def toy_growth(x: float) -> tuple[float, float, float]:
+    """(average return, volatility, growth rate) with a share x in the riskier asset; growth = mean - variance / 2."""
+    (m1, m2), (s1, s2), r = GROWTH_TOY["mu"], GROWTH_TOY["sigma"], GROWTH_TOY["rho"]
+    mean = (1 - x) * m1 + x * m2
+    var = (1 - x) ** 2 * s1 ** 2 + x ** 2 * s2 ** 2 + 2 * x * (1 - x) * r * s1 * s2
+    return mean, math.sqrt(var), mean - var / 2
 
 
-def toy_text(beta: float, split: tuple[float, float, float]) -> str:
-    """The sentence under the toy for its opening state (site.js writes the others the same way)."""
-    pi, pm, ps = split
-    return (f"Following the signal: beta {signed(beta)}, and only {pct(pi)} of the risk is the stock picks. "
-            f"{pct(pm)} is the market and {pct(ps)} a sector bet nobody chose.")
+def growth_optimum() -> float:
+    (m1, m2), (s1, s2), r = GROWTH_TOY["mu"], GROWTH_TOY["sigma"], GROWTH_TOY["rho"]
+    a = s1 ** 2 + s2 ** 2 - 2 * r * s1 * s2
+    return min(1.0, max(0.0, ((m2 - m1) + s1 ** 2 - r * s1 * s2) / a))
 
 
-def neutral_toy() -> str:
-    w, beta, split = _toy_state_naive()
-    scale = 0.8  # the bars' full height is 80% of capital in every state
-    bars = []
-    for name, b, x in zip(TOY["names"], TOY["beta"], w):
-        h = min(abs(x) / scale, 1) * 50
-        sector = "tech" if name.startswith("Tech") else "energy"
-        style = f"top:{50 - h:.2f}%;height:{h:.2f}%" if x >= 0 else f"top:50%;height:{h:.2f}%"
-        bars.append(f'<li class="{sector}{" is-short" if x < 0 else ""}"><span class="toy-track"><i style="{style}"></i></span>'
-                    f'<b>{name}</b><small>β {b:.1f}</small><span class="toy-w">{signed(100 * x, 0)}%</span></li>')
-    pi, pm, ps = split
-    real = P[DPC]["stats"]["intendedShift"]["display"]
-    return f"""<figure class="toy" data-toy data-real="{e(real)}">
+def growth_toy() -> str:
+    xs = [i / 100 for i in range(101)]
+    gs = [toy_growth(x)[2] for x in xs]
+    ms = [toy_growth(x)[0] for x in xs]
+    lo, hi = min(min(gs), min(ms)) - 0.005, max(max(gs), max(ms)) + 0.005
+    y = lambda v: 300 * (hi - v) / (hi - lo)  # noqa: E731
+    gpath = "M" + " L".join(f"{1000 * x:.1f} {y(g):.1f}" for x, g in zip(xs, gs))
+    mpath = "M" + " L".join(f"{1000 * x:.1f} {y(m):.1f}" for x, m in zip(xs, ms))
+    best = growth_optimum()
+    x0 = 1.0
+    mean, vol, g = toy_growth(x0)
+    years = GROWTH_TOY["years"]
+    say = toy_say(x0)
+    return f"""<figure class="toy growth-toy" data-growth-toy data-years="{years}">
             <div class="toy-controls">
-              <div class="seg" role="radiogroup" aria-label="How the book is built">
-                <button type="button" role="radio" aria-checked="true" data-mode="naive">Follow the signal</button>
-                <button type="button" role="radio" aria-checked="false" data-mode="opt">Optimiser</button>
-              </div>
-              <label class="switch"><input type="checkbox" data-con="beta" disabled> Beta-neutral</label>
-              <label class="switch"><input type="checkbox" data-con="sector" disabled> Sector-neutral</label>
+              <label class="shock-size"><span>Share in the risky industry</span><input type="range" min="0" max="100" step="1" value="{round(100 * x0)}" data-toy-x aria-label="Share in the risky industry, percent"><output data-toy-out>{round(100 * x0)}%</output></label>
             </div>
-            <ol class="toy-bars" aria-label="Weights">{"".join(bars)}</ol>
+            <div class="toy-plot">
+              <svg viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                <path class="toy-mean" d="{mpath}"/><path class="toy-growth" d="{gpath}"/>
+                <line class="toy-best" x1="{1000 * best:.1f}" x2="{1000 * best:.1f}" y1="0" y2="300"/>
+              </svg>
+              <i class="toy-dot toy-dot-mean" style="left:{100 * x0:.1f}%;top:{y(mean) / 3:.2f}%"></i>
+              <i class="toy-dot toy-dot-growth" style="left:{100 * x0:.1f}%;top:{y(g) / 3:.2f}%"></i>
+              <span class="toy-tag toy-tag-mean">Average return</span><span class="toy-tag toy-tag-growth">Growth of wealth</span>
+              <span class="toy-tag toy-tag-best" style="left:{100 * best:.1f}%">Most growth: {round(100 * best)}%</span>
+            </div>
+            <p class="lab-x toy-x" aria-hidden="true"><span style="left:0">0% risky</span><span style="left:50%">50%</span><span style="left:100%">100% risky</span></p>
             <dl class="toy-stats">
-              <div><dt>Portfolio {term('beta', 'beta')}</dt><dd data-t="beta">{signed(beta)}</dd></div>
-              <div><dt>Risk from the stock picks</dt><dd data-t="picks">{pct(pi)}</dd></div>
-              <div><dt>From the market</dt><dd data-t="market">{pct(pm)}</dd></div>
-              <div><dt>From the sector bet</dt><dd data-t="sector">{pct(ps)}</dd></div>
+              <div><dt>Average return</dt><dd data-t="mean">{100 * mean:.1f}%</dd></div>
+              <div><dt>Volatility</dt><dd data-t="vol">{100 * vol:.1f}%</dd></div>
+              <div><dt>Growth per year</dt><dd data-t="growth">{100 * g:.1f}%</dd></div>
+              <div><dt>$1 after {years} years</dt><dd data-t="wealth">${math.exp(years * g):,.0f}</dd></div>
             </dl>
-            <div class="riskbar" aria-hidden="true"><i class="r-spec" style="width:{pct(pi)}"></i><i class="r-style" style="width:{pct(pm)}"></i><i class="r-sector" style="width:{pct(ps)}"></i></div>
-            <p class="toy-say" aria-live="polite" data-toy-say>{e(toy_text(beta, split))}</p>
-            <figcaption class="chart-note">A toy with eight made-up stocks, solved in your browser: mean-variance with the constraints you pick, then scaled to 100% long and 100% short. Not data. The real project solves the same kind of problem for 99 stocks every month, with a learned risk model.</figcaption>
-            <script type="application/json" data-toy-data>{json.dumps(TOY, separators=(",", ":"))}</script>
+            <p class="toy-say" aria-live="polite" data-toy-say>{e(say)}</p>
+            <figcaption class="chart-note">Made-up numbers, not data: a steady market (10% average return, 16% volatility) and a riskier industry (13%, 30%), correlation 0.6. Growth of wealth is the average return minus half the variance, which is why the network is trained on growth, not on return. <script type="application/json" data-toy-data>{json.dumps(GROWTH_TOY, separators=(",", ":"))}</script></figcaption>
           </figure>"""
 
 
-# ---------------------------------------------------------------- inside the book: 225 rebalances of the real portfolio
+def toy_say(x: float) -> str:
+    """The sentence under the toy; site.js writes the same sentence as the slider moves."""
+    best = growth_optimum()
+    years = GROWTH_TOY["years"]
+    mean, vol, g = toy_growth(x)
+    _, _, gb = toy_growth(best)
+    if abs(x - best) <= 0.02:
+        return f"{round(100 * x)}% risky is the growth-optimal mix: ${math.exp(years * g):,.0f} after {years} years. Any more risk raises the average return and lowers the wealth."
+    if x > best:
+        return (f"{round(100 * x)}% risky has the higher average return ({100 * mean:.1f}%) but volatility drags growth down to "
+                f"{100 * g:.1f}%: ${math.exp(years * g):,.0f} after {years} years, against ${math.exp(years * gb):,.0f} at {round(100 * best)}%.")
+    return (f"{round(100 * x)}% risky is too timid: growth {100 * g:.1f}% a year, ${math.exp(years * g):,.0f} after {years} years, "
+            f"against ${math.exp(years * gb):,.0f} at {round(100 * best)}%.")
 
-def book_view(src: str) -> str:
-    book = json.loads((ROOT / "data" / "dpc_book.json").read_text())
-    n = len(book["dates"])
-    start = max(i for i in range(n) if book["nextMonthNet"][i] is not None and book["shareSpecific"][i] is not None)
-    return f"""<figure class="book" data-book="{e(src)}">
+
+# ---------------------------------------------------------------- inside the portfolio: the network's holdings, 1960 to today
+
+def holdings_view(src: str) -> str:
+    h = WEALTH["holdings"]
+    n = len(h["dates"])
+    return f"""<figure class="book holdings" data-holdings="{e(src)}">
             <div class="book-head">
-              <p class="book-date"><span class="label">Rebalance</span><b data-book-date>{e(book["dates"][start])}</b></p>
+              <p class="book-date"><span class="label">Month</span><b data-h-date>{e(h["dates"][-1])}</b></p>
               <dl class="book-stats">
-                <div><dt>Longs</dt><dd data-b="longs">–</dd></div>
-                <div><dt>Shorts</dt><dd data-b="shorts">–</dd></div>
-                <div><dt>Gross</dt><dd data-b="gross">–</dd></div>
-                <div><dt>Net</dt><dd data-b="net">–</dd></div>
-                <div><dt>Intended risk</dt><dd data-b="spec">–</dd></div>
-                <div><dt>Next month</dt><dd data-b="next">–</dd></div>
+                <div><dt>Biggest overweight</dt><dd data-h="over">–</dd></div>
+                <div><dt>Biggest underweight</dt><dd data-h="under">–</dd></div>
+                <div><dt>Differs from the index</dt><dd data-h="active">–</dd></div>
+                <div><dt>Traded this month</dt><dd data-h="kappa">–</dd></div>
               </dl>
             </div>
-            <div class="book-plot" data-book-plot></div>
+            <div class="book-plot" data-h-plot></div>
             <div class="book-controls">
-              <button type="button" class="button" data-book-play aria-pressed="false">Play</button>
-              <input type="range" min="0" max="{n - 1}" step="1" value="{start}" data-book-range aria-label="Rebalance date">
+              <button type="button" class="button" data-h-play aria-pressed="false">Play</button>
+              <input type="range" min="0" max="{n - 1}" step="1" value="{n - 1}" data-h-range aria-label="Month">
             </div>
-            <p class="book-read" aria-live="polite" data-book-read>Point at a bar to see the stock and its weight.</p>
-            <figcaption class="chart-note">The end-to-end model's actual book at each of its {n} monthly rebalances: {len(book["tickers"])} stocks grouped by sector, longs up and shorts down, as a share of capital. The amber line is each sector's net position, which the optimiser keeps within ±5%. "Next month" is what the book earned before the next rebalance, net of costs. From the project's {source_link(book["commit"], "reports/results", "committed results")} ({e(book["commit"])}).</figcaption>
-            <noscript><p class="caveat">The book view needs JavaScript. The numbers behind it are in <a href="{e(src)}">{e(src.split("/")[-1])}</a>.</p></noscript>
+            <p class="book-read" aria-live="polite" data-h-read>Point at an industry to see its weight.</p>
+            <figcaption class="chart-note">Each pair is one of the 30 industries: the outline is its weight in the market, the bar what the network held, sampled each quarter from 1960. The network scales each industry's market weight by a factor between a third and three, then rescales the portfolio to 100%; it never shorts. From the project's {source_link(WEALTH["commit"], "reports/results/wealth", "committed results")} ({e(WEALTH["commit"])}).</figcaption>
+            <noscript><p class="caveat">The holdings view needs JavaScript. The numbers behind it are in <a href="{e(src)}">{e(src.split("/")[-1])}</a>.</p></noscript>
+          </figure>"""
+
+
+# ---------------------------------------------------------------- your start year: $1 from any January to today
+
+MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def start_years() -> dict:
+    """For every start year with at least ten years to run: what $1 became, network and market (from dpc_wealth.json)."""
+    dates, g = WEALTH["dates"], WEALTH["growth"]
+    out: dict = {"years": [], "end": dates[-1], "deep": [], "market": [], "cagrDeep": [], "cagrMarket": []}
+    for year in sorted({int(d[:4]) for d in dates}):
+        i = next(k for k, d in enumerate(dates) if int(d[:4]) == year)  # growth[i] is the value at the end of the month before
+        months = len(dates) - i
+        if months < 120:
+            break
+        for sid, ckey in (("deep", "cagrDeep"), ("market", "cagrMarket")):
+            mult = g[sid][-1] / g[sid][i]
+            out[sid].append(round(mult, 4))
+            out[ckey].append(round(mult ** (12 / months) - 1, 6))
+        out["years"].append(year)
+    return out
+
+
+def _money(x: float) -> str:
+    """Cents below $100, so two amounts side by side are written the same way (site.js matches)."""
+    return f"${x:,.0f}" if x >= 100 else f"${x:,.2f}"
+
+
+def start_say(s: dict, i: int) -> str:
+    """The sentence under the start-year slider; site.js writes the same sentence as it moves."""
+    end = f"{MONTH_NAMES[int(s['end'][5:7]) - 1]} {s['end'][:4]}"
+    lead = "the network" if s["deep"][i] > s["market"][i] else "the market"
+    return (f"Invested in January {s['years'][i]} and left to the rules until {end}: {lead} ended ahead, "
+            f"{100 * s['cagrDeep'][i]:.2f}% a year for the network against {100 * s['cagrMarket'][i]:.2f}% for the market.")
+
+
+def start_toy() -> str:
+    s = start_years()
+    ahead = sum(d > m for d, m in zip(s["deep"], s["market"]))
+    i = 0
+    return f"""<figure class="toy start-toy" data-start-toy>
+            <div class="toy-controls">
+              <label class="shock-size"><span>Start investing in January</span><input type="range" min="{s["years"][0]}" max="{s["years"][-1]}" step="1" value="{s["years"][i]}" data-start-year aria-label="Start year"><output data-start-out>{s["years"][i]}</output></label>
+            </div>
+            <dl class="toy-stats">
+              <div><dt>$1 became, network</dt><dd data-s="deep">{_money(s["deep"][i])}</dd></div>
+              <div><dt>$1 became, market</dt><dd data-s="market">{_money(s["market"][i])}</dd></div>
+              <div><dt>Per year, network</dt><dd data-s="cagrDeep">{100 * s["cagrDeep"][i]:.2f}%</dd></div>
+              <div><dt>Per year, market</dt><dd data-s="cagrMarket">{100 * s["cagrMarket"][i]:.2f}%</dd></div>
+            </dl>
+            <p class="toy-say" aria-live="polite" data-start-say>{e(start_say(s, i))}</p>
+            <figcaption class="chart-note">The same out-of-sample run, read from a later start: nothing is refit. Of the {len(s["years"])} start years from {s["years"][0]} to {s["years"][-1]}, each with at least ten years to run, the network ended ahead in {ahead}. Net of costs, from <a href="../data/dpc_wealth.json">data/dpc_wealth.json</a>. <script type="application/json" data-start-data>{json.dumps(s, separators=(",", ":"))}</script></figcaption>
           </figure>"""

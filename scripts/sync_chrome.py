@@ -32,7 +32,7 @@ PATH_OF = {  # each project's own page, from the site root
     "aurvane": "aurvane/",
 }
 SHORT = {"deep-portfolio-constructor": "Portfolio", "tsfm": "TSFM", "world-shock-lab": "Shock Lab", "aurvane": "Aurvane"}
-STATUS = {"deep-portfolio-constructor": "Walk-forward", "tsfm": "Test scored", "world-shock-lab": "Live", "aurvane": "Simulated"}
+STATUS = {"deep-portfolio-constructor": "Pre-registered", "tsfm": "Test scored", "world-shock-lab": "Live", "aurvane": "Simulated"}
 HOME_NAV = [("Work", "#work"), ("Approach", "#approach"), ("Experience", "#experience"), ("Contact", "#contact")]
 RESUME = "resume/Sherif_Morsi_Resume.pdf"
 TOGGLE = ('<button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><svg viewBox="0 0 20 20" aria-hidden="true">'
