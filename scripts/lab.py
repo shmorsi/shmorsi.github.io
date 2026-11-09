@@ -132,7 +132,8 @@ def growth_chart(uid: str) -> str:
                     f'd="{_path(series[sid], lo, hi)}"><title>{e(name)}</title></path>' for sid, name, _ in STRATEGIES)
     years = sorted({int(d[:4]) for d in labels})
     xt = [y for y in years if y % 10 == 0] + ([years[-1]] if years[-1] % 10 else [])
-    xlabels = "".join(f'<span style="left:{100 * next(i for i, d in enumerate(labels) if d.startswith(str(y))) / (len(labels) - 1):.2f}%">{y}</span>' for y in xt)
+    # The final, partial decade's year is dropped on phones (CSS), where it would collide with the decade before it.
+    xlabels = "".join(f'<span{" class=\"is-end\"" if y % 10 else ""} style="left:{100 * next(i for i, d in enumerate(labels) if d.startswith(str(y))) / (len(labels) - 1):.2f}%">{y}</span>' for y in xt)
     payload = {"dates": labels, "lo": lo, "hi": hi, "series": series}
     return f"""<div class="lab-plot" data-lab-plot>
               <svg viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">{bands}{grid}{lines}<path class="ln-focus" d=""/></svg>

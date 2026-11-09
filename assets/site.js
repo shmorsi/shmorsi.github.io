@@ -187,7 +187,10 @@
     const head = table.headers.map((cell) => `<th scope="col">${esc(cell)}</th>`).join("");
     const body = table.rows.map((row, r) => `<tr${table.highlightRow === r ? ` class="is-best"` : ""}>${row
       .map((cell, i) => (i === 0 ? `<th scope="row">${esc(cell)}</th>` : `<td>${esc(cell)}</td>`)).join("")}</tr>`).join("");
-    return `<table><caption>${esc(table.caption)}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+    /* The visible caption sits outside the table, pinned to the visible width, so a phone never cuts it off
+       when the table scrolls sideways; screen readers still get the real <caption>. */
+    return `<p class="table-caption" aria-hidden="true">${esc(table.caption)}</p>` +
+      `<table><caption class="visually-hidden">${esc(table.caption)}</caption><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
   };
   const lookup = (byId, path) => {
     const [id, ...rest] = path.split(".");
@@ -734,7 +737,7 @@
     Hshld: "Consumer goods", Clths: "Apparel", Hlth: "Healthcare", Chems: "Chemicals", Txtls: "Textiles",
     Cnstr: "Construction", Steel: "Steel", FabPr: "Fabricated products and machinery", ElcEq: "Electrical equipment",
     Autos: "Autos", Carry: "Aircraft, ships and rail", Mines: "Mining", Coal: "Coal", Oil: "Oil and gas",
-    Util: "Utilities", Telcm: "Communication", Servs: "Business services", BusEq: "Business equipment (tech)",
+    Util: "Utilities", Telcm: "Communication", Servs: "Business services", BusEq: "Business equipment and technology",
     Paper: "Business supplies and packaging", Trans: "Transportation", Whlsl: "Wholesale", Rtail: "Retail",
     Meals: "Restaurants and hotels", Fin: "Finance", Other: "Other"
   };
