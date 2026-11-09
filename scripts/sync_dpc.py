@@ -51,6 +51,12 @@ def num(x: float, digits: int = 2) -> str:
     return (MINUS if x < 0 and float(text) != 0 else "") + text
 
 
+def month_name(ym: str) -> str:
+    """'2026-09' -> 'September 2026'."""
+    months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    return f"{months[int(ym[5:7]) - 1]} {ym[:4]}"
+
+
 def png_size(path: Path) -> tuple[int, int]:
     with path.open("rb") as f:
         head = f.read(24)
@@ -118,6 +124,9 @@ def main(src: str) -> None:
         key = f"deep@{c}bps"
         put(f"costDeep{c}", f"Growth per year above the market at {c} bps per trade, same decisions re-priced",
             pct(site["costs"][key]["vs_market_log_growth"], 2, sign=True), f"costs.{key}.vs_market_log_growth")
+    put("kappaStart", "Trade fraction the network starts training from", pct(site["init_trade"], 0), "init_trade, from config.yaml")
+    put("hmlDeep", "Loading on the Fama-French value factor, Deep Growth Network", num(d["beta_hml"]), "performance.deep.beta_hml")
+    put("hmlMarket", "Loading on the Fama-French value factor, the market", num(m["beta_hml"]), "performance.market.beta_hml")
     if site.get("trade_fraction"):
         put("kappaDeep", "Median share of the gap to its target the network trades each month", pct(site["trade_fraction"]["median"], 0),
             "trade_fraction.median")
@@ -155,7 +164,7 @@ def main(src: str) -> None:
     drows = [[labels[sid]] + [pct(site["decades"][c][sid], 1) for c in cols] for sid in MAIN]
     tables = {
         "performance": {
-            "caption": (f"$1 invested in January 1960, long-only and fully invested, out of sample to {site['oos']['end']}, every trade costs "
+            "caption": (f"$1 invested in January 1960, long-only and fully invested, out of sample to {month_name(site['oos']['end'])}, every trade costs "
                         f"{site['cost_bps']:g} bps. Growth vs market is the yearly difference in log growth, with its Newey-West t."),
             "headers": ["Strategy", "$1 became", "Per year", "Sharpe", "Worst fall", "Traded per year", "Growth vs market"],
             "rows": rows, "highlightRow": MAIN.index("deep"),
@@ -182,7 +191,7 @@ def main(src: str) -> None:
         proves = (f"Trained only on the growth of wealth, the network turned $1 in 1960 into {wd}, against {wm} for the market: "
                   f"{diff} a year, a gap the pre-registered test cannot tell from luck (t = {t}).")
     mom = comps["momentum_tilt - market"]
-    caveat = (f"Out of sample from January 1960 to {site['oos']['end']} ({site['oos']['months']} months), long-only, fully invested, every trade "
+    caveat = (f"Out of sample from January 1960 to {month_name(site['oos']['end'])} ({site['oos']['months']} months), long-only, fully invested, every trade "
               f"costs {site['cost_bps']:g} bps. The test, the comparisons and the decision rule were pre-registered in git before the network "
               f"was run out of sample; against the market the verdict is {verdict} (Newey-West t {t}, 95% interval "
               f"{pct(c['ci_low'], 2, sign=True)} to {pct(c['ci_high'], 2, sign=True)} a year). Kenneth French's 30 US industry portfolios hold "
@@ -199,8 +208,7 @@ def main(src: str) -> None:
         "badge": f"1960 to {end_year}",
         "kicker": "Deep learning and long-term investing",
         "title": "Deep Portfolio Constructor",
-        "purpose": ("A neural network that builds a long-only portfolio for long-term wealth: it buys, holds, and trades only when "
-                    "the expected growth is worth the cost."),
+        "purpose": "A neural network that builds a long-only portfolio for long-term wealth, trained on the growth of wealth after every trading cost.",
         "proves": proves,
         "summary": (f"A transformer that allocates across Kenneth French's {len(site['holdings']['industries'])} US industries, trained in "
                     f"PyTorch on the growth of wealth itself through a differentiable simulator of buying, holding and paying to trade, "

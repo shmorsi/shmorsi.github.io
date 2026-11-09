@@ -123,7 +123,7 @@
 % EDIT: summary text only (keep it to 2 lines, max 3-4 bold terms)
 \section{Summary}
 \small{
-Computer Science student building deep learning for finance: \textbf{PyTorch} models trained from scratch, \textbf{portfolio construction} through a differentiable optimizer, and \textbf{LLM agents} that act inside signed bounds, each tested out of sample.
+Computer Science student building deep learning for finance: \textbf{PyTorch} models trained from scratch, \textbf{long-only portfolios} trained on the growth of wealth, and \textbf{LLM agents} that act inside signed bounds, each tested out of sample.
 }
 
 %-----------EDUCATION-----------
@@ -180,12 +180,12 @@ Computer Science student building deep learning for finance: \textbf{PyTorch} mo
 
 % EDIT: {\textbf{Name} $|$ \emph{Tools} $|$ \githubLink{repo url}}{Year}
 \resumeProjectHeading
-{\textbf{Deep Portfolio Constructor (Deep Learning, Quant)} $|$ \emph{Python, PyTorch, cvxpylayers} $|$ \githubLink{https://github.com/shmorsi/deep-portfolio-constructor} $|$ \href{https://shmorsi.github.io/projects/deep-portfolio-constructor.html}{\textbf{\underline{Project Page}}}}{2026}
+{\textbf{Deep Portfolio Constructor (Deep Learning, Investing)} $|$ \emph{Python, PyTorch, pandas} $|$ \githubLink{https://github.com/shmorsi/deep-portfolio-constructor} $|$ \href{https://shmorsi.github.io/projects/deep-portfolio-constructor.html}{\textbf{\underline{Project Page}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Market-neutral long-short portfolio of 99 large caps with \textbf{PyTorch at every layer}: a cross-sectional \textbf{transformer} return model, a transformer covariance model, and \textbf{end-to-end training through a differentiable optimizer}}\vspace{-1pt}
-\resumeItem{Neutrality constraints raised the share of risk from intended stock bets from \textbf{17\% to 61\%}; end-to-end training gave the best net Sharpe (\textbf{0.58 vs $-$0.03}, 225-month walk-forward from 2008, t = 1.70, not significant)}\vspace{-1pt}
-\resumeItem{Diagnosed a \textbf{beta leak} (realized beta 0.19 vs a 0.05 limit; hedging it cut Sharpe from 0.64 to 0.40) and a negative result (the fully deep model scored 0.15); \textbf{89 tests}, incl. gradient checks through the optimizer}
+\resumeItem{Long-only portfolio for \textbf{long-term wealth}: a \textbf{transformer} allocates across 30 US industries and learns how much to trade, trained in PyTorch on the \textbf{growth of wealth after costs} through a \textbf{differentiable simulator}}\vspace{-1pt}
+\resumeItem{Out of sample 1960--2026 (walk-forward, \textbf{pre-registered}): \$1 grew to \textbf{\$1,368} vs \$929 for the market (+0.58\% a year, t~=~1.40, not significant); 5 classical baselines incl. a Kelly optimizer}\vspace{-1pt}
+\resumeItem{Ablations, 5 seeds, cost repricing and factor alpha: without its market anchor the network fell to \$387 (\textbf{$-$81\%} drawdown); \textbf{102 tests}, incl. a PyTorch simulator matching the NumPy engine}
 \resumeItemListEnd
 \vspace{1pt}
 
@@ -226,7 +226,7 @@ Computer Science student building deep learning for finance: \textbf{PyTorch} mo
 \vspace{-4pt}
 \begin{itemize}[leftmargin=0.15in, label={}]
 \small{\item{
-\skillLine{Machine Learning}{\textbf{PyTorch}, \textbf{Transformers}, Differentiable Optimization, Time-Series Forecasting, \textbf{scikit-learn}, TensorFlow}
+\skillLine{Machine Learning}{\textbf{PyTorch}, \textbf{Transformers}, Differentiable Simulation, Time-Series Forecasting, \textbf{scikit-learn}, TensorFlow}
 \skillLine{Quant / Finance}{\textbf{Portfolio Optimization} (cvxpy), Factor and Risk Models, \textbf{Walk-Forward Backtesting}, Econometrics}
 \skillLine{AI Agents}{\textbf{LLM Agents}, \textbf{Multi-Agent Systems}, \textbf{Tool Calling}, \textbf{MCP}, Prompt-Injection Defense, \textbf{QLoRA}, LLM Evals}
 \skillLine{Languages}{\textbf{Python}, \textbf{SQL}, TypeScript, JavaScript, C++, Java, C, R, Bash}

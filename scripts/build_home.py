@@ -182,8 +182,8 @@ def feature() -> str:
     key = p["headline"]["stat"]
     stack = [("Point-in-time features", "13 per industry, 7 for the market", f'{bind(pid, "stats.industries.display")} US industries'),
              ("Transformer", "Every industry attends to every other", f'{bind(pid, "stats.params.display")} parameters'),
-             ("Long-only tilt", "Each market weight tilted up to 3× either way", "Never short, never levered"),
-             ("Learned patience", "Trades only part of the way to its target", f'{bind(pid, "stats.tradedDeep.display")} traded a year')]
+             ("Long-only tilt", "Scales each market weight by ⅓× to 3×", "Never short, never levered"),
+             ("Learned trade fraction", "How much of the gap to its target to trade", f'{bind(pid, "stats.tradedDeep.display")} traded a year')]
     steps = "".join(f'<li><span class="step-num">{i:02d}</span><b>{e(a)}</b><span>{e(b)}</span><small>{c}</small></li>'
                     for i, (a, b, c) in enumerate(stack, 1))
     return f"""

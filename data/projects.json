@@ -7,27 +7,27 @@
       "number": "01",
       "code": "DPC",
       "role": "featured",
-      "badge": "Walk-forward",
-      "kicker": "Deep learning and quant",
+      "badge": "1960 to 2026",
+      "kicker": "Deep learning and long-term investing",
       "title": "Deep Portfolio Constructor",
-      "summary": "A market-neutral long-short equity portfolio built as a five-step ablation, with PyTorch at every layer: a transformer return model (AlphaFormer), a transformer covariance model, and end-to-end training through a differentiable constrained optimiser (cvxpylayers). Walk-forward from January 2008, net of 10 bps costs, 99 US and Canadian large caps.",
-      "purpose": "A long-short portfolio that keeps the intended stock bets and removes unintended sector and factor risk, with PyTorch models for the views, the risk, and the decision itself.",
-      "proves": "Making the optimiser neutral to sectors, beta, size and value raised the share of risk from intended stock bets from 17% to 61%. Training through the optimiser gave the best net Sharpe, 0.58 against −0.03 for the classical optimiser; the gap is not statistically significant, and adding the deep return model on top did not help.",
-      "caveat": "Walk-forward, out of sample from January 2008, 225 months, net of 10 bps costs, monthly rebalancing. The universe is today's 99 large caps, so survivorship bias inflates long-only results. The end-to-end model's edge over the classical optimiser has a Newey-West t of 1.70, not significant. Its realised market beta was 0.19 despite an ex-ante limit of 0.05; hedging its own trailing beta takes its Sharpe from 0.64 to 0.40 on the same window. The fully deep model, which adds the AlphaFormer, scored 0.15 with an FF6 alpha t of 0.04, one seed. The deep covariance model wins on likelihood but loses to Ledoit-Wolf on minimum-variance volatility.",
+      "purpose": "A neural network that builds a long-only portfolio for long-term wealth, trained on the growth of wealth after every trading cost.",
+      "proves": "Trained only on the growth of wealth, the network turned $1 in 1960 into $1,368, against $929 for the market: +0.58% a year, a gap the pre-registered test cannot tell from luck (t = 1.40).",
+      "summary": "A transformer that allocates across Kenneth French's 30 US industries, trained in PyTorch on the growth of wealth itself through a differentiable simulator of buying, holding and paying to trade, walk-forward from 1960 and tested out of sample against the market and five classical long-only strategies.",
+      "caveat": "Out of sample from January 1960 to September 2026 (801 months), long-only, fully invested, every trade costs 10 bps. The test, the comparisons and the decision rule were pre-registered in git before the network was run out of sample; against the market the verdict is no detectable difference (Newey-West t 1.40, 95% interval −0.07% to +1.50% a year). Kenneth French's 30 US industry portfolios hold every listed firm at each date, so there is no survivorship bias among firms, but they are industries, not funds an investor could buy in 1960, and the features are ones finance research found later. A simple momentum tilt grew +0.96% a year above the market (t 2.93). US data only: one country's century is still one history.",
       "image": {
-        "src": "assets/img/dpc-risk.png",
-        "alt": "Bar chart: share of predicted portfolio variance from stock-specific bets, style factors and sectors for each strategy.",
+        "src": "assets/img/dpc-growth.png",
+        "alt": "Growth of $1 invested in January 1960 for seven long-only strategies, on a log scale.",
         "width": 1600,
-        "height": 900
+        "height": 832
       },
       "tags": [
         "Python",
         "PyTorch",
-        "cvxpylayers",
-        "cvxpy",
         "pandas",
-        "pytest",
-        "Streamlit"
+        "NumPy",
+        "cvxpy",
+        "statsmodels",
+        "pytest"
       ],
       "links": [
         {
@@ -43,289 +43,793 @@
         }
       ],
       "glanceIds": [
-        "sharpeE2E",
-        "specificE2E",
-        "icDeep",
+        "wealthDeep",
+        "vsMktDeep",
+        "tradedDeep",
         "tests"
       ],
       "factIds": [
-        "sharpeE2E",
-        "icDeep",
-        "diffT"
+        "wealthDeep",
+        "vsMktDeep",
+        "tradedDeep"
       ],
       "headline": {
-        "stat": "intendedShift",
-        "qualifier": "Ex-ante share of portfolio variance from stock-specific bets, independent Barra-style model, out of sample from January 2008. The end-to-end model keeps 47%."
+        "stat": "wealthDeep",
+        "qualifier": "Long-only, out of sample from January 1960, net of 10 bps per trade. Holding the market grew to $929; the difference is +0.58% a year: no detectable difference, by the pre-registered test."
       },
       "stats": {
-        "intendedShift": {
-          "label": "Share of risk from intended stock bets, naive to optimised",
-          "display": "17% → 61%",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ls_naive.exante_share_specific], from reports/stage6_risk_decomposition.csv [L/S naive signal, exante_share_specific]; deep-portfolio-constructor reports/site_figures.json [ls_classical.exante_share_specific], from reports/stage6_risk_decomposition.csv [L/S classical (LW + optimiser), exante_share_specific]"
+        "wealthMarket": {
+          "label": "$1 invested in January 1960, Market (hold the index)",
+          "display": "$929",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.market.terminal_wealth], from reports/results/wealth/*.parquet"
         },
-        "specificE2E": {
-          "label": "Share of risk from intended bets, end-to-end model",
-          "display": "47%",
-          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.exante_share_specific], from reports/stage6_risk_decomposition.csv [L/S end-to-end (classical views), exante_share_specific]"
+        "cagrMarket": {
+          "label": "Compound growth per year, Market (hold the index)",
+          "display": "10.78%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.market.cagr], from reports/results/wealth/*.parquet"
         },
-        "specificDeep": {
-          "label": "Share of risk from intended bets, fully deep model",
-          "display": "48%",
-          "source": "deep-portfolio-constructor reports/site_figures.json [e2e_deep.exante_share_specific], from reports/stage6_risk_decomposition.csv [L/S end-to-end, fully deep, exante_share_specific]"
+        "mddMarket": {
+          "label": "Worst fall from a peak, Market (hold the index)",
+          "display": "−50%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.market.max_drawdown], from reports/results/wealth/*.parquet"
         },
-        "sharpeE2E": {
-          "label": "Net Sharpe, end-to-end model (deep risk, trained through the optimiser)",
-          "display": "0.58",
-          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.sharpe], from reports/stage6_performance.csv [L/S end-to-end (classical views), sharpe]"
+        "sharpeMarket": {
+          "label": "Sharpe ratio, Market (hold the index)",
+          "display": "0.47",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.market.sharpe], from reports/results/wealth/*.parquet"
+        },
+        "tradedMarket": {
+          "label": "Share of the portfolio traded per year, Market (hold the index)",
+          "display": "4%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.market.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "wealthEqual": {
+          "label": "$1 invested in January 1960, Equal weight",
+          "display": "$1,377",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.equal_weight.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "cagrEqual": {
+          "label": "Compound growth per year, Equal weight",
+          "display": "11.44%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.equal_weight.cagr], from reports/results/wealth/*.parquet"
+        },
+        "mddEqual": {
+          "label": "Worst fall from a peak, Equal weight",
+          "display": "−53%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.equal_weight.max_drawdown], from reports/results/wealth/*.parquet"
+        },
+        "sharpeEqual": {
+          "label": "Sharpe ratio, Equal weight",
+          "display": "0.49",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.equal_weight.sharpe], from reports/results/wealth/*.parquet"
+        },
+        "tradedEqual": {
+          "label": "Share of the portfolio traded per year, Equal weight",
+          "display": "6%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.equal_weight.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "beatEqual": {
+          "label": "Share of rolling 10-year windows in which it grew faster than the market, Equal weight",
+          "display": "73%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.equal_weight.beat_market_rolling], from reports/results/wealth/*.parquet"
+        },
+        "vsMktEqual": {
+          "label": "Growth per year above the market (log), Equal weight",
+          "display": "+0.59%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.equal_weight - market.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsMktTEqual": {
+          "label": "Newey-West t of that difference, Equal weight",
+          "display": "0.87",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.equal_weight - market.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsMktCiEqual": {
+          "label": "95% block-bootstrap interval of that difference, Equal weight",
+          "display": "−0.65% to +2.04%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.equal_weight - market.ci_low, ci_high], from reports/results/wealth/*.parquet"
+        },
+        "vsMktVerdictEqual": {
+          "label": "Pre-registered verdict against the market, Equal weight",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.equal_weight - market.verdict], from reports/results/wealth/*.parquet"
+        },
+        "wealthMinVar": {
+          "label": "$1 invested in January 1960, Minimum variance",
+          "display": "$1,180",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.min_variance.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "cagrMinVar": {
+          "label": "Compound growth per year, Minimum variance",
+          "display": "11.18%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.min_variance.cagr], from reports/results/wealth/*.parquet"
+        },
+        "mddMinVar": {
+          "label": "Worst fall from a peak, Minimum variance",
+          "display": "−41%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.min_variance.max_drawdown], from reports/results/wealth/*.parquet"
+        },
+        "sharpeMinVar": {
+          "label": "Sharpe ratio, Minimum variance",
+          "display": "0.56",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.min_variance.sharpe], from reports/results/wealth/*.parquet"
+        },
+        "tradedMinVar": {
+          "label": "Share of the portfolio traded per year, Minimum variance",
+          "display": "20%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.min_variance.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "beatMinVar": {
+          "label": "Share of rolling 10-year windows in which it grew faster than the market, Minimum variance",
+          "display": "67%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.min_variance.beat_market_rolling], from reports/results/wealth/*.parquet"
+        },
+        "vsMktMinVar": {
+          "label": "Growth per year above the market (log), Minimum variance",
+          "display": "+0.36%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.min_variance - market.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsMktTMinVar": {
+          "label": "Newey-West t of that difference, Minimum variance",
+          "display": "0.33",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.min_variance - market.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsMktCiMinVar": {
+          "label": "95% block-bootstrap interval of that difference, Minimum variance",
+          "display": "−1.73% to +2.35%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.min_variance - market.ci_low, ci_high], from reports/results/wealth/*.parquet"
+        },
+        "vsMktVerdictMinVar": {
+          "label": "Pre-registered verdict against the market, Minimum variance",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.min_variance - market.verdict], from reports/results/wealth/*.parquet"
+        },
+        "wealthRiskParity": {
+          "label": "$1 invested in January 1960, Risk parity",
+          "display": "$1,418",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.risk_parity.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "cagrRiskParity": {
+          "label": "Compound growth per year, Risk parity",
+          "display": "11.49%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.risk_parity.cagr], from reports/results/wealth/*.parquet"
+        },
+        "mddRiskParity": {
+          "label": "Worst fall from a peak, Risk parity",
+          "display": "−49%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.risk_parity.max_drawdown], from reports/results/wealth/*.parquet"
+        },
+        "sharpeRiskParity": {
+          "label": "Sharpe ratio, Risk parity",
+          "display": "0.51",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.risk_parity.sharpe], from reports/results/wealth/*.parquet"
+        },
+        "tradedRiskParity": {
+          "label": "Share of the portfolio traded per year, Risk parity",
+          "display": "7%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.risk_parity.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "beatRiskParity": {
+          "label": "Share of rolling 10-year windows in which it grew faster than the market, Risk parity",
+          "display": "72%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.risk_parity.beat_market_rolling], from reports/results/wealth/*.parquet"
+        },
+        "vsMktRiskParity": {
+          "label": "Growth per year above the market (log), Risk parity",
+          "display": "+0.63%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.risk_parity - market.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsMktTRiskParity": {
+          "label": "Newey-West t of that difference, Risk parity",
+          "display": "0.94",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.risk_parity - market.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsMktCiRiskParity": {
+          "label": "95% block-bootstrap interval of that difference, Risk parity",
+          "display": "−0.59% to +2.04%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.risk_parity - market.ci_low, ci_high], from reports/results/wealth/*.parquet"
+        },
+        "vsMktVerdictRiskParity": {
+          "label": "Pre-registered verdict against the market, Risk parity",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.risk_parity - market.verdict], from reports/results/wealth/*.parquet"
+        },
+        "wealthGrowth": {
+          "label": "$1 invested in January 1960, Classical growth optimiser",
+          "display": "$905",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.growth_classical.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "cagrGrowth": {
+          "label": "Compound growth per year, Classical growth optimiser",
+          "display": "10.74%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.growth_classical.cagr], from reports/results/wealth/*.parquet"
+        },
+        "mddGrowth": {
+          "label": "Worst fall from a peak, Classical growth optimiser",
+          "display": "−48%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.growth_classical.max_drawdown], from reports/results/wealth/*.parquet"
+        },
+        "sharpeGrowth": {
+          "label": "Sharpe ratio, Classical growth optimiser",
+          "display": "0.47",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.growth_classical.sharpe], from reports/results/wealth/*.parquet"
+        },
+        "tradedGrowth": {
+          "label": "Share of the portfolio traded per year, Classical growth optimiser",
+          "display": "9%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.growth_classical.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "beatGrowth": {
+          "label": "Share of rolling 10-year windows in which it grew faster than the market, Classical growth optimiser",
+          "display": "53%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.growth_classical.beat_market_rolling], from reports/results/wealth/*.parquet"
+        },
+        "vsMktGrowth": {
+          "label": "Growth per year above the market (log), Classical growth optimiser",
+          "display": "−0.04%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.growth_classical - market.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsMktTGrowth": {
+          "label": "Newey-West t of that difference, Classical growth optimiser",
+          "display": "−0.09",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.growth_classical - market.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsMktCiGrowth": {
+          "label": "95% block-bootstrap interval of that difference, Classical growth optimiser",
+          "display": "−0.81% to +0.85%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.growth_classical - market.ci_low, ci_high], from reports/results/wealth/*.parquet"
+        },
+        "vsMktVerdictGrowth": {
+          "label": "Pre-registered verdict against the market, Classical growth optimiser",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.growth_classical - market.verdict], from reports/results/wealth/*.parquet"
+        },
+        "wealthMomentum": {
+          "label": "$1 invested in January 1960, Momentum tilt",
+          "display": "$1,764",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.momentum_tilt.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "cagrMomentum": {
+          "label": "Compound growth per year, Momentum tilt",
+          "display": "11.85%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.momentum_tilt.cagr], from reports/results/wealth/*.parquet"
+        },
+        "mddMomentum": {
+          "label": "Worst fall from a peak, Momentum tilt",
+          "display": "−46%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.momentum_tilt.max_drawdown], from reports/results/wealth/*.parquet"
+        },
+        "sharpeMomentum": {
+          "label": "Sharpe ratio, Momentum tilt",
+          "display": "0.53",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.momentum_tilt.sharpe], from reports/results/wealth/*.parquet"
+        },
+        "tradedMomentum": {
+          "label": "Share of the portfolio traded per year, Momentum tilt",
+          "display": "110%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.momentum_tilt.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "beatMomentum": {
+          "label": "Share of rolling 10-year windows in which it grew faster than the market, Momentum tilt",
+          "display": "99%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.momentum_tilt.beat_market_rolling], from reports/results/wealth/*.parquet"
+        },
+        "vsMktMomentum": {
+          "label": "Growth per year above the market (log), Momentum tilt",
+          "display": "+0.96%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.momentum_tilt - market.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsMktTMomentum": {
+          "label": "Newey-West t of that difference, Momentum tilt",
+          "display": "2.93",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.momentum_tilt - market.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsMktCiMomentum": {
+          "label": "95% block-bootstrap interval of that difference, Momentum tilt",
+          "display": "+0.28% to +1.56%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.momentum_tilt - market.ci_low, ci_high], from reports/results/wealth/*.parquet"
+        },
+        "vsMktVerdictMomentum": {
+          "label": "Pre-registered verdict against the market, Momentum tilt",
+          "display": "better",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.momentum_tilt - market.verdict], from reports/results/wealth/*.parquet"
+        },
+        "wealthDeep": {
+          "label": "$1 invested in January 1960, Deep Growth Network",
+          "display": "$1,368",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "cagrDeep": {
+          "label": "Compound growth per year, Deep Growth Network",
+          "display": "11.43%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.cagr], from reports/results/wealth/*.parquet"
+        },
+        "mddDeep": {
+          "label": "Worst fall from a peak, Deep Growth Network",
+          "display": "−52%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.max_drawdown], from reports/results/wealth/*.parquet"
         },
         "sharpeDeep": {
-          "label": "Net Sharpe, fully deep model (adds the AlphaFormer)",
-          "display": "0.15",
-          "source": "deep-portfolio-constructor reports/site_figures.json [e2e_deep.sharpe], from reports/stage6_performance.csv [L/S end-to-end, fully deep, sharpe]"
+          "label": "Sharpe ratio, Deep Growth Network",
+          "display": "0.51",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.sharpe], from reports/results/wealth/*.parquet"
         },
-        "sharpeAlpha": {
-          "label": "Net Sharpe, deep views and deep risk, two-stage",
-          "display": "0.33",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ls_deep_alpha.sharpe], from reports/stage6_performance.csv [L/S deep views + deep risk + optimiser, sharpe]"
+        "tradedDeep": {
+          "label": "Share of the portfolio traded per year, Deep Growth Network",
+          "display": "155%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.turnover_per_year], from reports/results/wealth/*.parquet"
         },
-        "sharpeDeepRisk": {
-          "label": "Net Sharpe, deep risk model only",
-          "display": "−0.05",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ls_deep_twostage.sharpe], from reports/stage6_performance.csv [L/S deep risk + optimiser, sharpe]"
+        "beatDeep": {
+          "label": "Share of rolling 10-year windows in which it grew faster than the market, Deep Growth Network",
+          "display": "79%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.beat_market_rolling], from reports/results/wealth/*.parquet"
         },
-        "sharpeClassical": {
-          "label": "Net Sharpe, classical optimiser",
-          "display": "−0.03",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ls_classical.sharpe], from reports/stage6_performance.csv [L/S classical (LW + optimiser), sharpe]"
+        "vsMktDeep": {
+          "label": "Growth per year above the market (log), Deep Growth Network",
+          "display": "+0.58%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - market.diff_log_growth], from reports/results/wealth/*.parquet"
         },
-        "sharpeNaive": {
-          "label": "Net Sharpe, naive signal portfolio",
-          "display": "−0.40",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ls_naive.sharpe], from reports/stage6_performance.csv [L/S naive signal, sharpe]"
+        "vsMktTDeep": {
+          "label": "Newey-West t of that difference, Deep Growth Network",
+          "display": "1.40",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - market.t_nw], from reports/results/wealth/*.parquet"
         },
-        "diffT": {
-          "label": "End-to-end minus classical, Newey-West t",
-          "display": "1.70",
-          "source": "deep-portfolio-constructor reports/site_figures.json [diff.e2e - ls_classical.t_stat], from reports/stage6_difference_tests.csv [e2e - ls_classical, t_stat]"
+        "vsMktCiDeep": {
+          "label": "95% block-bootstrap interval of that difference, Deep Growth Network",
+          "display": "−0.07% to +1.50%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - market.ci_low, ci_high], from reports/results/wealth/*.parquet"
         },
-        "diffMonthly": {
-          "label": "End-to-end minus classical, monthly return",
-          "display": "+0.43%",
-          "source": "deep-portfolio-constructor reports/site_figures.json [diff.e2e - ls_classical.mean_monthly_diff], from reports/stage6_difference_tests.csv [e2e - ls_classical, mean_monthly_diff]"
+        "vsMktVerdictDeep": {
+          "label": "Pre-registered verdict against the market, Deep Growth Network",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - market.verdict], from reports/results/wealth/*.parquet"
         },
-        "diffDeepT": {
-          "label": "Fully deep minus classical, Newey-West t",
-          "display": "0.59",
-          "source": "deep-portfolio-constructor reports/site_figures.json [diff.e2e_deep - ls_classical.t_stat], from reports/stage6_difference_tests.csv [e2e_deep - ls_classical, t_stat]"
+        "deepVsMomentum": {
+          "label": "Growth per year (log), Deep Growth Network minus Momentum tilt",
+          "display": "−0.38%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - momentum_tilt.diff_log_growth], from reports/results/wealth/*.parquet"
         },
-        "betaE2E": {
-          "label": "Realised market beta, end-to-end model",
-          "display": "0.19",
-          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.beta_mkt], from reports/stage6_performance.csv [L/S end-to-end (classical views), beta_mkt]"
+        "deepVsMomentumT": {
+          "label": "Newey-West t, Deep Growth Network minus Momentum tilt",
+          "display": "−0.69",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - momentum_tilt.t_nw], from reports/results/wealth/*.parquet"
         },
-        "betaDeep": {
-          "label": "Realised market beta, fully deep model",
-          "display": "0.17",
-          "source": "deep-portfolio-constructor reports/site_figures.json [e2e_deep.beta_mkt], from reports/stage6_performance.csv [L/S end-to-end, fully deep, beta_mkt]"
+        "deepVsMomentumCi": {
+          "label": "95% block-bootstrap interval, Deep Growth Network minus Momentum tilt",
+          "display": "−1.28% to +0.85%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - momentum_tilt.ci_low, ci_high], from reports/results/wealth/*.parquet"
         },
-        "hedgedE2E": {
-          "label": "Net Sharpe after hedging its own trailing beta, end-to-end model",
-          "display": "0.40",
-          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.sharpe_beta_hedged], from reports/stage6_beta_hedged.csv [L/S end-to-end (classical views), sharpe_beta_hedged]"
+        "deepVsMomentumVerdict": {
+          "label": "Pre-registered verdict, Deep Growth Network minus Momentum tilt",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - momentum_tilt.verdict], from reports/results/wealth/*.parquet"
         },
-        "unhedgedE2E": {
-          "label": "Same window, before the hedge",
-          "display": "0.64",
-          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.sharpe_unhedged], from reports/stage6_beta_hedged.csv [L/S end-to-end (classical views), sharpe_unhedged]"
+        "deepVsEqual": {
+          "label": "Growth per year (log), Deep Growth Network minus Equal weight",
+          "display": "−0.01%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - equal_weight.diff_log_growth], from reports/results/wealth/*.parquet"
         },
-        "alphaTE2E": {
-          "label": "FF6 alpha t-stat, end-to-end model",
-          "display": "1.48",
-          "source": "deep-portfolio-constructor reports/site_figures.json [e2e.alpha_t_ff6], from reports/stage6_performance.csv [L/S end-to-end (classical views), alpha_t_ff6]"
+        "deepVsEqualT": {
+          "label": "Newey-West t, Deep Growth Network minus Equal weight",
+          "display": "−0.01",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - equal_weight.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "deepVsEqualCi": {
+          "label": "95% block-bootstrap interval, Deep Growth Network minus Equal weight",
+          "display": "−1.21% to +1.23%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - equal_weight.ci_low, ci_high], from reports/results/wealth/*.parquet"
+        },
+        "deepVsEqualVerdict": {
+          "label": "Pre-registered verdict, Deep Growth Network minus Equal weight",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - equal_weight.verdict], from reports/results/wealth/*.parquet"
+        },
+        "deepVsGrowth": {
+          "label": "Growth per year (log), Deep Growth Network minus Classical growth optimiser",
+          "display": "+0.62%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - growth_classical.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "deepVsGrowthT": {
+          "label": "Newey-West t, Deep Growth Network minus Classical growth optimiser",
+          "display": "1.05",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - growth_classical.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "deepVsGrowthCi": {
+          "label": "95% block-bootstrap interval, Deep Growth Network minus Classical growth optimiser",
+          "display": "−0.46% to +1.88%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - growth_classical.ci_low, ci_high], from reports/results/wealth/*.parquet"
+        },
+        "deepVsGrowthVerdict": {
+          "label": "Pre-registered verdict, Deep Growth Network minus Classical growth optimiser",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep - growth_classical.verdict], from reports/results/wealth/*.parquet"
+        },
+        "holdDeep": {
+          "label": "Average holding period, Deep Growth Network",
+          "display": "0.6 years",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.holding_years], from reports/results/wealth/*.parquet"
+        },
+        "activeDeep": {
+          "label": "How far its weights sit from the index on average (active share), Deep Growth Network",
+          "display": "32%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.active_share], from reports/results/wealth/*.parquet"
+        },
+        "alphaDeep": {
+          "label": "Fama-French three-factor alpha per year, Deep Growth Network",
+          "display": "+0.15%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.alpha_annual], from reports/results/wealth/*.parquet"
         },
         "alphaTDeep": {
-          "label": "FF6 alpha t-stat, fully deep model",
-          "display": "0.04",
-          "source": "deep-portfolio-constructor reports/site_figures.json [e2e_deep.alpha_t_ff6], from reports/stage6_performance.csv [L/S end-to-end, fully deep, alpha_t_ff6]"
+          "label": "Newey-West t of that alpha",
+          "display": "0.38",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.alpha_t], from reports/results/wealth/*.parquet"
         },
-        "icDeep": {
-          "label": "Out-of-sample rank IC, AlphaFormer",
-          "display": "0.0165",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ic.deep_alpha.mean_IC], from reports/stage4b_alpha_ic.csv [deep_alpha, mean_IC]"
+        "betaDeep": {
+          "label": "Market beta (three-factor regression), Deep Growth Network",
+          "display": "0.98",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.beta_mkt], from reports/results/wealth/*.parquet"
         },
-        "icDeepT": {
-          "label": "AlphaFormer IC, Newey-West t",
-          "display": "1.25",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ic.deep_alpha.IC_t_stat_NW], from reports/stage4b_alpha_ic.csv [deep_alpha, IC_t_stat_NW]"
+        "volDeep": {
+          "label": "Volatility per year, Deep Growth Network",
+          "display": "15.1%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.volatility], from reports/results/wealth/*.parquet"
         },
-        "icMomentum": {
-          "label": "Out-of-sample rank IC, momentum alone",
-          "display": "0.0161",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ic.momentum.mean_IC], from reports/stage4b_alpha_ic.csv [momentum, mean_IC]"
+        "volMarket": {
+          "label": "Volatility per year, the market",
+          "display": "15.3%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.market.volatility], from reports/results/wealth/*.parquet"
         },
-        "spreadMomentum": {
-          "label": "Top minus bottom quintile, momentum alone, per month",
-          "display": "+0.24%",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ic.momentum.Q5_minus_Q1_monthly], from reports/stage4b_alpha_ic.csv [momentum, Q5_minus_Q1_monthly]"
+        "worstYearDeep": {
+          "label": "Worst calendar year, Deep Growth Network",
+          "display": "−39%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.worst_year], from reports/results/wealth/*.parquet"
         },
-        "icComposite": {
-          "label": "Out-of-sample rank IC, classical composite",
-          "display": "−0.0039",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ic.combined.mean_IC], from reports/stage4b_alpha_ic.csv [combined, mean_IC]"
+        "worstYearMarket": {
+          "label": "Worst calendar year, the market",
+          "display": "−36%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.market.worst_year], from reports/results/wealth/*.parquet"
         },
-        "spreadDeep": {
-          "label": "Top minus bottom quintile, AlphaFormer, per month",
-          "display": "+0.47%",
-          "source": "deep-portfolio-constructor reports/site_figures.json [ic.deep_alpha.Q5_minus_Q1_monthly], from reports/stage4b_alpha_ic.csv [deep_alpha, Q5_minus_Q1_monthly]"
+        "seedsDeep": {
+          "label": "$1 in 1960 for each seed's network on its own (seeds 42 to 46)",
+          "display": "$1,794, $574, $1,731, $1,091, $1,066",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [seeds.*.terminal_wealth], from reports/results/wealth/*.parquet"
         },
-        "nllDeep": {
-          "label": "Out-of-sample covariance NLL, deep model (lower is better)",
-          "display": "−2.941",
-          "source": "deep-portfolio-constructor reports/site_figures.json [risk.deep.mean_oos_nll], from reports/stage4_risk_model.csv [deep, mean_oos_nll]"
+        "seedsBeatDeep": {
+          "label": "Seeds whose network on its own ended above the market",
+          "display": "4 of 5",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [seeds.*.terminal_wealth against performance.market.terminal_wealth], from reports/results/wealth/*.parquet"
         },
-        "nllLW": {
-          "label": "Out-of-sample covariance NLL, Ledoit-Wolf",
-          "display": "−2.899",
-          "source": "deep-portfolio-constructor reports/site_figures.json [risk.ledoit_wolf.mean_oos_nll], from reports/stage4_risk_model.csv [ledoit_wolf, mean_oos_nll]"
+        "costDeep0": {
+          "label": "Growth per year above the market at 0 bps per trade, same decisions re-priced",
+          "display": "+0.88%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [costs.deep@0bps.vs_market_log_growth], from reports/results/wealth/*.parquet"
         },
-        "gmvDeep": {
-          "label": "Minimum-variance realised vol, deep covariance",
-          "display": "14.0%",
-          "source": "deep-portfolio-constructor reports/site_figures.json [risk.deep.gmv_realised_vol_ann], from reports/stage4_risk_model.csv [deep, gmv_realised_vol_ann]"
+        "costDeep25": {
+          "label": "Growth per year above the market at 25 bps per trade, same decisions re-priced",
+          "display": "+0.13%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [costs.deep@25bps.vs_market_log_growth], from reports/results/wealth/*.parquet"
         },
-        "gmvLW": {
-          "label": "Minimum-variance realised vol, Ledoit-Wolf",
-          "display": "13.3%",
-          "source": "deep-portfolio-constructor reports/site_figures.json [risk.ledoit_wolf.gmv_realised_vol_ann], from reports/stage4_risk_model.csv [ledoit_wolf, gmv_realised_vol_ann]"
+        "costDeep50": {
+          "label": "Growth per year above the market at 50 bps per trade, same decisions re-priced",
+          "display": "−0.63%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [costs.deep@50bps.vs_market_log_growth], from reports/results/wealth/*.parquet"
         },
-        "seedsE2E": {
-          "label": "Net Sharpe of the end-to-end model across seeds 42 / 43 / 44",
-          "display": "0.58 / 0.46 / 0.49",
-          "source": "deep-portfolio-constructor reports/site_figures.json [seeds.seed=42.sharpe], from reports/stage6_seeds.csv [seed=42, sharpe]; deep-portfolio-constructor reports/site_figures.json [seeds.seed=43.sharpe], from reports/stage6_seeds.csv [seed=43, sharpe]; deep-portfolio-constructor reports/site_figures.json [seeds.seed=44.sharpe], from reports/stage6_seeds.csv [seed=44, sharpe]"
+        "kappaStart": {
+          "label": "Trade fraction the network starts training from",
+          "display": "25%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [init_trade, from config.yaml], from reports/results/wealth/*.parquet"
+        },
+        "hmlDeep": {
+          "label": "Loading on the Fama-French value factor, Deep Growth Network",
+          "display": "0.17",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep.beta_hml], from reports/results/wealth/*.parquet"
+        },
+        "hmlMarket": {
+          "label": "Loading on the Fama-French value factor, the market",
+          "display": "0.01",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.market.beta_hml], from reports/results/wealth/*.parquet"
+        },
+        "kappaDeep": {
+          "label": "Median share of the gap to its target the network trades each month",
+          "display": "81%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [trade_fraction.median], from reports/results/wealth/*.parquet"
+        },
+        "wealthDeepPair": {
+          "label": "$1 invested in January 1960, Deep Growth Network, seeds 42 and 43",
+          "display": "$1,026",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep_pair.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "wealthDeepTradeAll": {
+          "label": "$1 invested in January 1960, Deep, no learned holding",
+          "display": "$1,775",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep_trade_all.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "tradedDeepTradeAll": {
+          "label": "Share of the portfolio traded per year, Deep, no learned holding",
+          "display": "252%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep_trade_all.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepTradeAll": {
+          "label": "Growth per year (log), Deep, no learned holding minus the full network with the same seeds",
+          "display": "+0.82%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_trade_all - deep_pair.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepTradeAllT": {
+          "label": "Newey-West t, Deep, no learned holding minus the full network with the same seeds",
+          "display": "1.83",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_trade_all - deep_pair.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepTradeAllCi": {
+          "label": "95% block-bootstrap interval, Deep, no learned holding minus the full network with the same seeds",
+          "display": "−0.11% to +1.55%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_trade_all - deep_pair.ci_low, ci_high], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepTradeAllVerdict": {
+          "label": "Pre-registered verdict, Deep, no learned holding minus the full network with the same seeds",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_trade_all - deep_pair.verdict], from reports/results/wealth/*.parquet"
+        },
+        "wealthDeepMlp": {
+          "label": "$1 invested in January 1960, Deep, no attention",
+          "display": "$701",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep_mlp.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "tradedDeepMlp": {
+          "label": "Share of the portfolio traded per year, Deep, no attention",
+          "display": "91%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep_mlp.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepMlp": {
+          "label": "Growth per year (log), Deep, no attention minus the full network with the same seeds",
+          "display": "−0.57%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_mlp - deep_pair.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepMlpT": {
+          "label": "Newey-West t, Deep, no attention minus the full network with the same seeds",
+          "display": "−1.57",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_mlp - deep_pair.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepMlpCi": {
+          "label": "95% block-bootstrap interval, Deep, no attention minus the full network with the same seeds",
+          "display": "−1.24% to +0.15%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_mlp - deep_pair.ci_low, ci_high], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepMlpVerdict": {
+          "label": "Pre-registered verdict, Deep, no attention minus the full network with the same seeds",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_mlp - deep_pair.verdict], from reports/results/wealth/*.parquet"
+        },
+        "wealthDeepUnanchored": {
+          "label": "$1 invested in January 1960, Deep, no market anchor",
+          "display": "$387",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep_unanchored.terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "tradedDeepUnanchored": {
+          "label": "Share of the portfolio traded per year, Deep, no market anchor",
+          "display": "354%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [performance.deep_unanchored.turnover_per_year], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepUnanchored": {
+          "label": "Growth per year (log), Deep, no market anchor minus the full network with the same seeds",
+          "display": "−1.46%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_unanchored - deep_pair.diff_log_growth], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepUnanchoredT": {
+          "label": "Newey-West t, Deep, no market anchor minus the full network with the same seeds",
+          "display": "−0.55",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_unanchored - deep_pair.t_nw], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepUnanchoredCi": {
+          "label": "95% block-bootstrap interval, Deep, no market anchor minus the full network with the same seeds",
+          "display": "−6.69% to +3.79%",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_unanchored - deep_pair.ci_low, ci_high], from reports/results/wealth/*.parquet"
+        },
+        "vsPairDeepUnanchoredVerdict": {
+          "label": "Pre-registered verdict, Deep, no market anchor minus the full network with the same seeds",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [comparisons.deep_unanchored - deep_pair.verdict], from reports/results/wealth/*.parquet"
+        },
+        "oracle": {
+          "label": "$1 in 1960 for a deliberately cheating policy that sees next month's returns (calibration)",
+          "display": "$729 million",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [oracle_terminal_wealth], from reports/results/wealth/*.parquet"
+        },
+        "months": {
+          "label": "Out-of-sample months",
+          "display": "801",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [oos.months], from reports/results/wealth/*.parquet"
+        },
+        "years": {
+          "label": "Whole years out of sample",
+          "display": "66",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [oos.months // 12], from reports/results/wealth/*.parquet"
+        },
+        "industries": {
+          "label": "US industry portfolios",
+          "display": "30",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [holdings.industries], from reports/results/wealth/*.parquet"
+        },
+        "params": {
+          "label": "Parameters in one Deep Growth Network",
+          "display": "20,066",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [params], from reports/results/wealth/*.parquet"
         },
         "tests": {
           "label": "Automated tests",
-          "display": "89",
-          "source": "deep-portfolio-constructor reports/site_figures.json [tests], from pytest --collect-only, deep-portfolio-constructor main"
+          "display": "102",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [tests], from reports/results/wealth/*.parquet"
         },
-        "oracleSharpe": {
-          "label": "Sharpe of a deliberately cheating oracle (look-ahead calibration)",
-          "display": "10.6",
-          "source": "deep-portfolio-constructor reports/site_figures.json [oracle_sharpe], from reports/stage6_lookahead_checks.json [oracle_sharpe]"
-        },
-        "costE2E20": {
-          "label": "End-to-end model Sharpe at 20 bps costs",
-          "display": "0.45",
-          "source": "deep-portfolio-constructor reports/site_figures.json [cost.e2e.sharpe@20bps], from reports/stage6_cost_sensitivity.csv [L/S end-to-end (classical views), sharpe@20bps]"
-        },
-        "costE2E40": {
-          "label": "End-to-end model Sharpe at 40 bps costs",
-          "display": "0.19",
-          "source": "deep-portfolio-constructor reports/site_figures.json [cost.e2e.sharpe@40bps], from reports/stage6_cost_sensitivity.csv [L/S end-to-end (classical views), sharpe@40bps]"
-        },
-        "constraintRange": {
-          "label": "End-to-end model Sharpe across position caps 3-10% and sector limits 2.5-10%",
-          "display": "0.54 to 0.67",
-          "source": "deep-portfolio-constructor reports/site_figures.json [constraints.e2e.sharpe_min], from reports/stage6_constraint_sensitivity.csv [e2e rows, min sharpe]; deep-portfolio-constructor reports/site_figures.json [constraints.e2e.sharpe_max], from reports/stage6_constraint_sensitivity.csv [e2e rows, max sharpe]"
-        },
-        "paramsAlpha": {
-          "label": "AlphaFormer parameters, per ensemble member",
-          "display": "28,033",
-          "source": "deep-portfolio-constructor reports/site_figures.json [params.alpha_former], from src/dpc/deep/alpha_model.py with config.yaml alpha_model, 3-seed ensemble has 3x"
-        },
-        "paramsRisk": {
-          "label": "Deep risk model parameters",
-          "display": "29,033",
-          "source": "deep-portfolio-constructor reports/site_figures.json [params.risk_model], from src/dpc/deep/risk_model.py with config.yaml risk_model"
-        },
-        "stocks": {
-          "label": "Stocks, US and Canadian large caps",
-          "display": "99",
-          "source": "deep-portfolio-constructor reports/site_figures.json [universe.n_stocks], from reports/data_quality_summary.csv [passed]"
-        },
-        "months": {
-          "label": "Out-of-sample months, walk-forward",
-          "display": "225",
-          "source": "deep-portfolio-constructor reports/site_figures.json [diff.e2e - ls_classical.n_months], from reports/stage6_difference_tests.csv [e2e - ls_classical, n_months]"
+        "dataCorr": {
+          "label": "Correlation of the rebuilt market portfolio with French's market return",
+          "display": "0.9998",
+          "source": "deep-portfolio-constructor reports/site_wealth.json [data_check.correlation, from reports/wealth/data_summary.json], from reports/results/wealth/*.parquet"
         }
       },
       "tables": {
         "performance": {
-          "caption": "Market-neutral strategies, out of sample January 2008 to September 2026, monthly rebalancing, net of 10 bps costs.",
+          "caption": "$1 invested in January 1960, long-only and fully invested, out of sample to September 2026, every trade costs 10 bps. Growth vs market is the yearly difference in log growth, with its Newey-West t.",
           "headers": [
             "Strategy",
-            "Net Sharpe",
-            "Return",
-            "Volatility",
-            "Max drawdown",
-            "FF6 alpha t",
-            "Market beta",
-            "Risk from intended bets"
+            "$1 became",
+            "Per year",
+            "Sharpe",
+            "Worst fall",
+            "Traded per year",
+            "Growth vs market"
           ],
           "rows": [
             [
-              "Naive signal, no risk model",
-              "−0.40",
-              "−8.7%",
-              "18.4%",
-              "−88%",
-              "−3.47",
-              "−0.16",
-              "17%"
+              "Market (hold the index)",
+              "$929",
+              "10.78%",
+              "0.47",
+              "−50%",
+              "4%",
+              "benchmark"
             ],
             [
-              "Classical: Ledoit-Wolf + optimiser",
-              "−0.03",
-              "−0.6%",
-              "8.0%",
-              "−32%",
-              "−0.69",
-              "0.02",
-              "61%"
+              "Equal weight",
+              "$1,377",
+              "11.44%",
+              "0.49",
+              "−53%",
+              "6%",
+              "+0.59% (t 0.87)"
             ],
             [
-              "Deep risk model + optimiser",
-              "−0.05",
-              "−0.9%",
-              "9.5%",
-              "−36%",
-              "−1.24",
-              "0.05",
-              "41%"
+              "Minimum variance",
+              "$1,180",
+              "11.18%",
+              "0.56",
+              "−41%",
+              "20%",
+              "+0.36% (t 0.33)"
             ],
             [
-              "Deep views + deep risk + optimiser",
-              "0.33",
-              "2.5%",
-              "8.5%",
-              "−26%",
-              "0.80",
-              "0.15",
-              "50%"
+              "Risk parity",
+              "$1,418",
+              "11.49%",
+              "0.51",
+              "−49%",
+              "7%",
+              "+0.63% (t 0.94)"
             ],
             [
-              "End-to-end through the optimiser (primary)",
-              "0.58",
-              "4.7%",
-              "8.6%",
-              "−28%",
-              "1.48",
-              "0.19",
-              "47%"
+              "Classical growth optimiser",
+              "$905",
+              "10.74%",
+              "0.47",
+              "−48%",
+              "9%",
+              "−0.04% (t −0.09)"
             ],
             [
-              "Fully deep: adds AlphaFormer to end-to-end",
-              "0.15",
-              "1.0%",
-              "9.3%",
-              "−31%",
-              "0.04",
-              "0.17",
-              "48%"
+              "Momentum tilt",
+              "$1,764",
+              "11.85%",
+              "0.53",
+              "−46%",
+              "110%",
+              "+0.96% (t 2.93)"
+            ],
+            [
+              "Deep Growth Network",
+              "$1,368",
+              "11.43%",
+              "0.51",
+              "−52%",
+              "155%",
+              "+0.58% (t 1.40)"
             ]
           ],
-          "highlightRow": 4,
-          "source": "deep-portfolio-constructor reports/stage6_performance.csv and reports/stage6_risk_decomposition.csv via reports/site_figures.json"
+          "highlightRow": 6,
+          "source": "deep-portfolio-constructor reports/wealth/performance.csv and reports/wealth/comparisons.csv via reports/site_wealth.json"
+        },
+        "decades": {
+          "caption": "Compound growth per year in each decade, net of costs.",
+          "headers": [
+            "Strategy",
+            "1960s",
+            "1970s",
+            "1980s",
+            "1990s",
+            "2000s",
+            "2010s",
+            "2020s (to 2026)"
+          ],
+          "rows": [
+            [
+              "Market (hold the index)",
+              "8.3%",
+              "6.3%",
+              "16.9%",
+              "17.9%",
+              "−0.1%",
+              "13.6%",
+              "15.1%"
+            ],
+            [
+              "Equal weight",
+              "10.8%",
+              "7.3%",
+              "18.1%",
+              "14.2%",
+              "5.3%",
+              "12.0%",
+              "13.4%"
+            ],
+            [
+              "Minimum variance",
+              "11.1%",
+              "9.2%",
+              "24.4%",
+              "8.9%",
+              "4.4%",
+              "13.7%",
+              "6.1%"
+            ],
+            [
+              "Risk parity",
+              "11.2%",
+              "7.6%",
+              "19.2%",
+              "13.4%",
+              "5.3%",
+              "12.6%",
+              "11.8%"
+            ],
+            [
+              "Classical growth optimiser",
+              "8.1%",
+              "5.4%",
+              "16.2%",
+              "18.0%",
+              "0.9%",
+              "15.5%",
+              "12.9%"
+            ],
+            [
+              "Momentum tilt",
+              "9.9%",
+              "7.1%",
+              "17.8%",
+              "20.2%",
+              "0.7%",
+              "13.9%",
+              "15.9%"
+            ],
+            [
+              "Deep Growth Network",
+              "7.7%",
+              "7.5%",
+              "19.2%",
+              "18.7%",
+              "1.2%",
+              "13.5%",
+              "14.2%"
+            ]
+          ],
+          "highlightRow": 6,
+          "source": "deep-portfolio-constructor reports/wealth/decades.csv via reports/site_wealth.json"
         }
       }
     },

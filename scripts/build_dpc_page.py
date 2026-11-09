@@ -75,6 +75,20 @@ def results_lead() -> str:
     }.get(verdict("vsMktVerdictDeep"), "Out of sample from 1960, the network's edge over simply holding the market is too small to tell from luck.")
 
 
+def learned() -> str:
+    """What the network chose to do, in a sentence that follows the data (every number bound)."""
+    start, median = lab.number(D["stats"]["kappaStart"]["display"]), lab.number(D["stats"]["kappaDeep"]["display"])
+    if median > 2 * start:
+        trade = (f"It did not learn to sit still: its trade fraction started training at {s('kappaStart')} and settled at a median of "
+                 f"{s('kappaDeep')}, chasing a target that moved every month.")
+    elif median < start / 2:
+        trade = f"It learned to hold: its trade fraction fell from {s('kappaStart')} at the start of training to a median of {s('kappaDeep')}."
+    else:
+        trade = f"Its trade fraction started training at {s('kappaStart')} and had a median of {s('kappaDeep')} out of sample."
+    return (f"{trade} It leaned toward value, with a value-factor loading of {s('hmlDeep')} against the market's {s('hmlMarket')}; after "
+            f"adjusting for market, size and value, its alpha is {s('alphaDeep')} a year ({term('t-stat', 't')} = {s('alphaTDeep')}).")
+
+
 def ablation_item(sfx: str, name: str, what: str) -> str:
     if not has(f"wealth{sfx}"):
         return ""
@@ -88,7 +102,7 @@ def page() -> str:
     desc = ("A long-only portfolio for long-term wealth, built by a neural network in PyTorch: a transformer trained on the growth "
             "of wealth itself through a differentiable simulator of buying, holding and paying to trade, tested out of sample from 1960.")
     ablations = "".join([
-        ablation_item("DeepTradeAll", "No learned patience", "it trades all the way to its target every month"),
+        ablation_item("DeepTradeAll", "No learned trade fraction", "it trades all the way to its target every month"),
         ablation_item("DeepMlp", "No attention", "each industry is judged on its own features and the market's, never against its peers"),
         ablation_item("DeepUnanchored", "No market anchor", "it allocates from scratch with no bounds; untrained, it holds equal weights"),
     ])
@@ -178,7 +192,7 @@ def page() -> str:
             <li><strong>Inputs known at each month-end.</strong> For every industry, 13 features: returns over 1, 3, 12 (skipping the last month), 36 and 60 months, volatility over 1 and 5 years, downside risk, drawdown, beta and correlation with the market, book-to-market and its weight in the index, plus where the current holding sits against the market. For the market as a whole, 7 more: its trend over 1 and 5 years, volatility, drawdown, valuation, the spread between industries and the T-bill rate.</li>
             <li><strong>Attention across industries.</strong> Each industry is a token, with one more for the market; two {term("transformer", "transformer")} blocks let every industry weigh every other before the network decides. {s("params")} parameters.</li>
             <li><strong>Long-only by construction.</strong> The network tilts the market's weights: each industry's weight is multiplied by a factor between a third and three, then the portfolio is rescaled to 100%. Always fully invested, never short, never levered. The tilt starts at zero, so an untrained network holds exactly the market and has to earn every deviation from it.</li>
-            <li><strong>Learned patience.</strong> A second head reads the market token and decides how much of the gap between today's holdings and the target to trade this month: none of it is buy and hold, all of it a full rebalance. Holding still is a decision the network can learn.</li>
+            <li><strong>A learned trade fraction.</strong> A second head reads the market token and decides how much of the gap between today's holdings and the target to trade this month: none of it is buy and hold, all of it a full rebalance. How much to trade is learned, not set by hand.</li>
             <li><strong>Trained on the outcome.</strong> A {term("differentiable", "differentiable simulator")} plays the investing rules forward: holdings drift with prices, every trade costs 10 bps, and the loss is minus the log growth of wealth over five-year episodes. Gradients flow back through 60 months of compounding, so a trade today is judged by the years after it.</li>
             <li><strong>Walk-forward, pre-registered.</strong> The network is refit every five years on past data only ({term("walk-forward", "walk-forward")}), with the last ten years of each window held out to decide when to stop training. Five seeds; the deployed policy averages them. The protocol, the comparisons and the decision rule were {term("pre-registered", "pre-registered")} in git before the network was run out of sample.</li>
           </ul>
@@ -190,6 +204,7 @@ def page() -> str:
         <div class="prose">
           <p class="big">{e(results_lead())}</p>
           <p>$1 invested in January 1960 became {s("wealthDeep")} with the network and {s("wealthMarket")} in the market: {s("cagrDeep")} a year against {s("cagrMarket")}. The yearly difference in log growth is {s("vsMktDeep")}, with a Newey-West {term("t-stat", "t")} of {s("vsMktTDeep")} and a 95% block-bootstrap interval of {s("vsMktCiDeep")}: {s("vsMktVerdictDeep")}. It traded {s("tradedDeep")} of the portfolio a year, an average holding period of {s("holdDeep")}, and its weights differed from the index's by {s("activeDeep")} on average ({term("active-share", "active share")}).</p>
+          <p>{learned()}</p>
           <p>The strongest classical rival is a simple momentum tilt, {s("vsMktMomentum")} a year above the market. Against it the network's difference is {s("deepVsMomentum")} (t = {s("deepVsMomentumT")}): {s("deepVsMomentumVerdict")}. Against the classical growth optimiser, which chases the same goal with estimated returns and risks: {s("deepVsGrowth")} (t = {s("deepVsGrowthT")}): {s("deepVsGrowthVerdict")}.</p>
           <p>Pick a strategy to see its path and what it did differently. The full table is under the chart.</p>
         </div>
