@@ -10,15 +10,18 @@ It does three things, in order, and stops at the first failure:
 
 1. Copy what is generated upstream (nothing is typed by hand):
    * deep-portfolio-constructor  reports/site_wealth.json -> scripts/sync_dpc.py
+                                 reports/pension/site_pension.json -> scripts/sync_pension.py (the Pension Lab)
    * aurvane                     ui/index.html -> aurvane/index.html,
                                  bench/results/*_summary.json -> data/measurements/aurvane/
+   * world-shock-lab             web/dist/ (its built app) -> shock-lab/, so the lab is served
+                                 from this repository as one section of the site
 2. Check what is hand-written against the files it cites, so a changed result
    upstream cannot leave a stale figure on the site:
    * every stat whose source names a JSON file in a project repository and quotes
      its raw numbers: each quoted number must still be in that file;
    * world-shock-lab: once live/scores/ holds a score, the page must stop saying
      "pending" (the check fails and says which page to update).
-3. Rebuild (build_home, build_dpc_page, sync_chrome) and run check_site.py.
+3. Rebuild (build_home, build_dpc_page, build_pension_page, sync_chrome) and run check_site.py.
 
 Exit 0: the site matches every project. Exit 1: something needs a hand edit; the
 messages say what and where. The output is also written to $GITHUB_STEP_SUMMARY
@@ -119,6 +122,11 @@ def sync_dpc(repo: Path) -> None:
         fail(f"{export} is missing: run `python -m dpc.cli wealth-site` in deep-portfolio-constructor and commit it")
         return
     run("sync_dpc.py", str(export))
+    pension = repo / "reports" / "pension" / "site_pension.json"   # the Pension Lab lives in the same repository
+    if not pension.is_file():
+        fail(f"{pension} is missing: run `python -m dpc.cli pension-site` in deep-portfolio-constructor and commit it")
+        return
+    run("sync_pension.py", str(pension))
 
 
 def sync_aurvane(repo: Path) -> None:
@@ -137,6 +145,22 @@ def sync_aurvane(repo: Path) -> None:
         if copy_if_changed(src, ROOT / "data" / "measurements" / "aurvane" / name):
             changed.append(f"data/measurements/aurvane/{name}")
     say(f"- aurvane: {'copied ' + ', '.join(changed) if changed else 'no change'}")
+
+
+def sync_wsl_app(repo: Path) -> None:
+    """The lab's interactive app is part of this site: its build is copied here, file for file."""
+    build = repo / "web" / "dist"
+    if not (build / "index.html").is_file():
+        fail(f"{build} is missing: run `npm ci && npm run build` in world-shock-lab/web first")
+        return
+    dest = ROOT / "shock-lab"
+    new = {f.relative_to(build): f for f in build.rglob("*") if f.is_file()}
+    old = {f.relative_to(dest) for f in dest.rglob("*") if f.is_file()} if dest.is_dir() else set()
+    changed = [str(rel) for rel, f in new.items() if copy_if_changed(f, dest / rel)]
+    for rel in old - set(new):                                   # a renamed (re-hashed) asset leaves nothing behind
+        (dest / rel).unlink()
+        changed.append(f"removed {rel}")
+    say(f"- world-shock-lab app: {f'{len(changed)} file(s) changed' if changed else 'no change'}")
 
 
 def check_cited_numbers(project: dict, repo: Path) -> None:
@@ -193,6 +217,7 @@ def main() -> int:
     say("\n## Copy generated results")
     sync_dpc(repos["deep-portfolio-constructor"])
     sync_aurvane(repos["aurvane"])
+    sync_wsl_app(repos["world-shock-lab"])
 
     say("\n## Check hand-written figures against their sources")
     for pid in ("tsfm", "world-shock-lab"):
@@ -201,7 +226,7 @@ def main() -> int:
 
     if not problems:
         say("\n## Build and check")
-        for script in ("build_home.py", "build_dpc_page.py", "sync_chrome.py", "check_site.py"):
+        for script in ("build_home.py", "build_dpc_page.py", "build_pension_page.py", "sync_chrome.py", "check_site.py"):
             if not run(script):
                 break
     return finish()

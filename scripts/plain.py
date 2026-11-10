@@ -32,6 +32,25 @@ PLAIN = {
              "I wrote the pass mark down before running the test, and this gap is too small to rule out luck. The site says so."),
         ],
     },
+    "pension-lab": {
+        "title": "Keeping a pension promise funded",
+        "lead": "A pension plan owes its retirees payments for decades. What does it cost to keep that promise, and can an AI manage the money better than the rule most plans follow?",
+        "steps": [
+            ("The promise",
+             "A pension plan has promised to pay its retirees every month for the next 60 years, and every payment rises with prices. "
+             "Today it holds {fundedStart} of what those promises are worth. Whoever stands behind the plan has to make up the rest."),
+            ("The risk",
+             "Stocks can close that gap, or blow it open in a crash. Bonds built to match the promise keep the gap where it is. "
+             "Prices rising faster than anyone expected widen it, whatever the plan holds."),
+            ("Two ways to decide",
+             "Most plans follow a rule called a glide path: hold more stocks while the plan is short, fewer as it fills up. "
+             "I trained a small neural network that starts as that rule and learns where to leave it, by living through thousands of simulated futures."),
+            ("The honest result",
+             "Across {scenarios} simulated futures the learned policy cost {costLearned} for every $100 promised, against {costGlide} for the glide path. "
+             "Across {starts} real 20-year periods it cost {histLearned} against {histGlide}: the test written in advance calls that {histVerdict}. "
+             "So I took the policy apart to find out why, and {edgeSource}."),
+        ],
+    },
     "tsfm": {
         "title": "A forecasting AI, built from scratch",
         "lead": "A model that predicts what comes next in any series of numbers, from store sales to electricity demand, with an honest range instead of a single guess.",
@@ -93,7 +112,9 @@ def render(pid: str, text: str, stats: dict) -> str:
 
     def repl(m: re.Match) -> str:
         key = m.group(1)
-        return f'<span class="fig-inline" data-bind="{pid}.stats.{key}.display">{html.escape(stats[key]["display"], quote=False)}</span>'
+        shown = stats[key]["display"]
+        cls = "fig-inline is-words" if len(shown) > 24 else "fig-inline"      # a figure never breaks across lines; a phrase may
+        return f'<span class="{cls}" data-bind="{pid}.stats.{key}.display">{html.escape(shown, quote=False)}</span>'
 
     return re.sub(r"\{(\w+)\}", repl, out)
 

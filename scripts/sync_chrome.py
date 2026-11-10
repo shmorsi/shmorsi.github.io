@@ -30,12 +30,13 @@ ORDER = [p["id"] for p in DATA["projects"]]
 
 PATH_OF = {  # each project's own page, from the site root
     "deep-portfolio-constructor": "projects/deep-portfolio-constructor.html",
+    "pension-lab": "projects/pension-lab.html",
     "tsfm": "projects/tsfm.html",
     "world-shock-lab": "projects/world-shock-lab.html",
     "aurvane": "aurvane/",
 }
-SHORT = {"deep-portfolio-constructor": "Portfolio", "tsfm": "TSFM", "world-shock-lab": "Shock Lab", "aurvane": "Aurvane"}
-STATUS = {"deep-portfolio-constructor": "Pre-registered", "tsfm": "Test scored", "world-shock-lab": "Live", "aurvane": "Simulated"}
+SHORT = {"deep-portfolio-constructor": "Portfolio", "pension-lab": "Pension", "tsfm": "TSFM", "world-shock-lab": "Shock Lab", "aurvane": "Aurvane"}
+STATUS = {"deep-portfolio-constructor": "Pre-registered", "pension-lab": "Pre-registered", "tsfm": "Test scored", "world-shock-lab": "Live", "aurvane": "Simulated"}
 HOME_NAV = [("Work", "#work"), ("Approach", "#approach"), ("Experience", "#experience"), ("Contact", "#contact")]
 RESUME = "resume/Sherif_Morsi_Resume.pdf"
 TOGGLE = ('<button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><svg viewBox="0 0 20 20" aria-hidden="true">'

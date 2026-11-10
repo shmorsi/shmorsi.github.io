@@ -42,8 +42,9 @@ FORBIDDEN = [
 
 errors: list[str] = []
 
-if (ROOT / "world-shock-lab").exists():
-    errors.append("world-shock-lab/ must not exist in this repo; the live site is served from the other repository")
+# The lab's app lives at shock-lab/. world-shock-lab/ is its old address: only a page that forwards there.
+if sorted(f.name for f in (ROOT / "world-shock-lab").glob("*")) != ["index.html"] or "../shock-lab/" not in (ROOT / "world-shock-lab" / "index.html").read_text():
+    errors.append("world-shock-lab/ must hold only index.html, forwarding to ../shock-lab/")
 
 projects = {project["id"]: project for project in DATA["projects"]}
 if "macro-analyst-agent" in projects:
@@ -163,7 +164,7 @@ for path in html_files:
         if shown and cursor is not None and shown != str(cursor):
             errors.append(f"{path.relative_to(ROOT)} bind {raw} shows {shown!r} but data says {cursor!r}")
 sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
-for loc in ("projects/deep-portfolio-constructor.html", "projects/tsfm.html", "projects/world-shock-lab.html", "aurvane/"):
+for loc in ("projects/deep-portfolio-constructor.html", "projects/pension-lab.html", "projects/tsfm.html", "projects/world-shock-lab.html", "shock-lab/", "aurvane/"):
     if f"https://shmorsi.github.io/{loc}</loc>" not in sitemap:
         errors.append(f"sitemap.xml is missing {loc}")
 
@@ -425,6 +426,57 @@ spec_dpc.loader.exec_module(build_dpc)
 body_of = lambda text: re.search(r'<div class="cs-body wrap">.*?<nav class="project-switch"', text, re.S).group(0)  # noqa: E731
 if body_of(build_dpc.page()) != body_of(dpc_page):
     errors.append("projects/deep-portfolio-constructor.html is out of date with data/projects.json (run scripts/build_dpc_page.py, then scripts/sync_chrome.py)")
+
+# One website: World Shock Lab's app is served from this repository (scripts/sync_all.py copies its build) under the site's own header.
+lab_app = ROOT / "shock-lab" / "index.html"
+if not lab_app.is_file():
+    errors.append("shock-lab/index.html is missing: build the app in the world-shock-lab repository and run scripts/sync_all.py")
+else:
+    bundle = "".join(f.read_text(encoding="utf-8") for f in (ROOT / "shock-lab" / "assets").glob("index-*.js"))
+    for needle in ("../projects/pension-lab.html", "../resume/Sherif_Morsi_Resume.pdf", "Sherif Morsi"):
+        if needle not in bundle:
+            errors.append(f"shock-lab/ app does not carry the site header ({needle!r} not found in its bundle)")
+
+# The Pension Lab: its page, its pictures and its sentences all come from one export of the study, and none may claim
+# more than the pre-registered verdicts in that export.
+pension = projects.get("pension-lab")
+pension_path = ROOT / "data" / "pension.json"
+if pension is None:
+    errors.append("data/projects.json has no pension-lab project (run scripts/sync_pension.py)")
+elif not pension_path.exists():
+    errors.append("data/pension.json is missing (run scripts/sync_pension.py)")
+else:
+    pdata = json.loads(pension_path.read_text())
+    pstats = pension["stats"]
+    if not pdata["source"].startswith("deep-portfolio-constructor "):
+        errors.append("data/pension.json must cite the deep-portfolio-constructor repository and commit")
+    for where, key in (("simulated", "vsGlideVerdict"), ("model_risk", "walkVerdict"), ("history", "histVerdict")):
+        verdict = pstats[key]["display"]
+        if verdict not in ("better", "worse", "no detectable difference"):
+            errors.append(f"pension-lab.stats.{key} must be one of the three pre-registered verdicts, not {verdict!r}")
+        if pdata["verdicts"][where] != verdict:
+            errors.append(f"pension-lab.stats.{key} says {verdict!r} but data/pension.json says {pdata['verdicts'][where]!r}")
+        for field in ("caveat", "proves"):
+            said = {"better": "better", "worse": "worse", "no detectable difference": "detect"}[verdict]
+            if said not in pension[field]:
+                errors.append(f"pension-lab.{field} must state the {where} verdict ({verdict})")
+    # The protocol: if the learned policy is not better than the glide path, the page says so in its first line.
+    for where in ("simulated", "history"):
+        v = pdata["verdicts"][where]
+        if v != "better" and {"worse": "worse than", "no detectable difference": "not detectably different from"}[v] not in pension["purpose"]:
+            errors.append(f"pension-lab.purpose (the page's first line) must say the learned policy is not better than the glide path ({where}: {v})")
+    if "Pre-registered" not in pension["caveat"] or "about three independent" not in pension["caveat"]:
+        errors.append("pension-lab caveat must say the test was pre-registered and that the historical periods amount to about three independent ones")
+    for name in ("60/40", "Glide path", "Learned policy"):
+        paths = pdata["fans"]["paths"].get(name) or []
+        if len(paths) < 60 or any(len(path) != 21 for path in paths):
+            errors.append(f"data/pension.json needs at least 60 twenty-year paths for {name}")
+    spec_pen = importlib.util.spec_from_file_location("build_pension_page", ROOT / "scripts" / "build_pension_page.py")
+    build_pen = importlib.util.module_from_spec(spec_pen)
+    spec_pen.loader.exec_module(build_pen)
+    pension_page = (ROOT / "projects" / "pension-lab.html").read_text(encoding="utf-8") if (ROOT / "projects" / "pension-lab.html").exists() else ""
+    if not pension_page or body_of(build_pen.page()) != body_of(pension_page):
+        errors.append("projects/pension-lab.html is out of date with data/projects.json (run scripts/build_pension_page.py, then scripts/sync_chrome.py)")
 
 if errors:
     print("\n".join(errors))

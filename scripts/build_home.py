@@ -27,8 +27,8 @@ P = {p["id"]: p for p in DATA["projects"]}
 FEATURED = "deep-portfolio-constructor"
 ORDER = [p["id"] for p in DATA["projects"]]  # display order is the order in the data file
 CARDS = [pid for pid in ORDER if pid != FEATURED]
-STATUS = {"deep-portfolio-constructor": "Pre-registered", "tsfm": "Test scored", "world-shock-lab": "Live", "aurvane": "Simulated"}
-SHORT = {"deep-portfolio-constructor": "Portfolio", "tsfm": "TSFM", "world-shock-lab": "Shock Lab", "aurvane": "Aurvane"}
+STATUS = {"deep-portfolio-constructor": "Pre-registered", "pension-lab": "Pre-registered", "tsfm": "Test scored", "world-shock-lab": "Live", "aurvane": "Simulated"}
+SHORT = {"deep-portfolio-constructor": "Portfolio", "pension-lab": "Pension", "tsfm": "TSFM", "world-shock-lab": "Shock Lab", "aurvane": "Aurvane"}
 LIVE = {"world-shock-lab"}
 GITHUB = "https://github.com/shmorsi"
 LINKEDIN = "https://www.linkedin.com/in/sherif-morsi-a17628295/"
@@ -163,7 +163,27 @@ def tsfm_chart() -> str:
             {scale}"""
 
 
-CHARTS = {"tsfm": tsfm_chart, "world-shock-lab": lab.shock_widget, "aurvane": lab.attack_board}
+def pension_chart() -> str:
+    """What each policy costs the plan's sponsor: on average, then in the worst 5% of simulated futures."""
+    rows = P["pension-lab"]["tables"]["simulated"]["rows"]   # policy, average cost, worst 5%, funded share, stocks
+    hi_avg = max(number(r[1]) for r in rows) * 1.08
+    hi_tail = max(number(r[2]) for r in rows) * 1.08
+    best_avg, best_tail = min(number(r[1]) for r in rows), min(number(r[2]) for r in rows)
+    avg = [bar_row(r[0], e(r[1]), number(r[1]), 0, hi_avg, 0, "best" if number(r[1]) == best_avg else "") for r in rows]
+    tail = [bar_row(r[0], e(r[2]), number(r[2]), 0, hi_tail, 0, "best" if number(r[2]) == best_tail else "") for r in rows]
+    n = P["pension-lab"]["stats"]["scenarios"]["display"]
+    first = chart(avg, axis([(0, "$0"), (hi_avg / 2, f"${hi_avg / 2:.0f}"), (hi_avg, f"${hi_avg:.0f}")], 0, hi_avg),
+                  f"Average cost to the plan's sponsor over 20 years, per $100 promised, across {n} simulated futures. Shorter is better.",
+                  "Average cost to the sponsor by policy")
+    second = chart(tail, axis([(0, "$0"), (hi_tail / 2, f"${hi_tail / 2:.0f}"), (hi_tail, f"${hi_tail:.0f}")], 0, hi_tail),
+                   "The same cost in the worst 5% of those futures: how bad it gets.",
+                   "Cost to the sponsor in the worst 5% of futures, by policy")
+    return f"""{first}
+            <p class="label card-sub">When it goes badly</p>
+            {second}"""
+
+
+CHARTS = {"pension-lab": pension_chart, "tsfm": tsfm_chart, "world-shock-lab": lab.shock_widget, "aurvane": lab.attack_board}
 
 
 # ---------------------------------------------------------------- sections
@@ -228,7 +248,10 @@ def card(pid: str) -> str:
     href = page_href(p)
     site = site_link(p)
     extra = ""
-    if site.get("external"):
+    app = next((link for link in p["links"] if link["kind"] == "app"), None)   # an interactive app served from this site
+    if app:
+        extra = f'<a class="text-link" href="{e(app["href"])}">{e(app["label"])}</a>'
+    elif site.get("external"):
         extra = f'<a class="text-link" href="{e(site["href"])}" target="_blank" rel="noopener noreferrer">{e(site["label"])}</a>'
     tags = "".join(f"<li>{e(t)}</li>" for t in p.get("tags", []))
     return f"""
@@ -413,7 +436,7 @@ def page() -> str:
         <div class="section-head" data-reveal>
           <p class="label">The voyage</p>
           <h2 id="work-title">{words} projects, in plain English</h2>
-          <p>Investing for decades is a long voyage. It needs an engine to grow the money, a navigator to see what is coming, a weather station to measure the storms, and a shield to keep the crew safe. These {words.lower()} projects are those {words.lower()} machines. Keep scrolling: each picture is built from the project's real results.</p>
+          <p>Investing for decades is a long voyage with a promise at the end of it: pensions to pay. It needs an engine to grow the money, a navigator to see what is coming, a weather station to measure the storms, and a shield to keep the crew safe. These {words.lower()} projects are that promise and those four machines. Keep scrolling: each picture is built from the project's real results.</p>
         </div>
       </div>
       {"".join(stories.story(P, pid, page_href(P[pid])) for pid in ORDER)}
@@ -427,7 +450,7 @@ def page() -> str:
           <p>The same {words.lower()} projects, hands-on. Pick an investing strategy, size a central-bank surprise, or switch the AI guard on and off. Every underlined word has a one-tap definition.</p>
         </div>
         {feature()}
-        <ol class="cards">{"".join(card(i) for i in CARDS)}
+        <ol class="cards{" is-even" if len(CARDS) % 2 == 0 else ""}">{"".join(card(i) for i in CARDS)}
         </ol>
         <p class="file-note">Every figure and chart on this site is read from <a href="data/projects.json"><code>data/projects.json</code></a>, and each figure names the committed result file it came from.</p>
       </div>

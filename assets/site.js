@@ -582,7 +582,15 @@
     "prompt-injection": ["Prompt injection", "Instructions hidden in a web page, email or file that try to make an AI agent do something its user never asked for."],
     "crps": ["CRPS", "Continuous ranked probability score: how far a whole forecast distribution lands from what happened. Lower is better; 0.688× means 31% lower than the baseline."],
     "ci": ["Confidence interval", "The range the true value plausibly lies in. When it excludes the baseline, the difference is unlikely to be chance."],
-    "pre-registered": ["Pre-registered", "The test, the metrics and the rule for reading a disappointing answer were fixed in git before the result was computed, so the answer cannot steer the question."]
+    "pre-registered": ["Pre-registered", "The test, the metrics and the rule for reading a disappointing answer were fixed in git before the result was computed, so the answer cannot steer the question."],
+    "funded-ratio": ["Funded ratio", "What a pension plan holds divided by what its promises are worth today. At 100% it could pay everything it owes; at 90% it is 10 cents short on every dollar."],
+    "liability": ["Liability", "What the plan owes: every pension payment it has promised, added up in today's money. It rises when interest rates fall, because money set aside today then earns less on the way to each payment."],
+    "sponsor": ["Sponsor", "Whoever stands behind the plan, usually the employer or a government. When the plan is short, the sponsor pays in the difference."],
+    "glide-path": ["Glide path", "A rule for de-risking: hold more stocks while the plan is short of its promises, and move into safer bonds as it fills up."],
+    "duration": ["Duration", "How much a value moves when interest rates move. A duration of 14 years means a one-point rise in rates cuts the value by about 14%."],
+    "matching-bonds": ["Matching bonds", "Bonds chosen so that their payments line up with the pensions owed. When interest rates move, they rise and fall together with the promise, so the gap between them stays put."],
+    "expected-shortfall": ["Worst 5% (expected shortfall)", "The average result across the worst one in twenty cases. It answers how bad it gets when it goes badly, which an average hides."],
+    "scenario": ["Simulated future", "One possible path for stocks, interest rates and prices over the next 20 years, built by rearranging what has actually happened since 1953."],
   };
   const terms = [...document.querySelectorAll(".term[data-term]")].filter((t) => GLOSSARY[t.dataset.term]);
   if (terms.length) {
@@ -1499,6 +1507,18 @@ void main(){
         show(verdict, seg(s, 3.2, 3.5));
       };
     },
+    pension(svg) {
+      const L = (k) => svg.querySelector(`[data-layer="${k}"]`);
+      const promise = L("promise"), axes = L("axes"), f60 = L("fan60"), fGlide = L("fanGlide"), fLearned = L("fanLearned"), result = L("result");
+      return (s) => {
+        show(promise, 1 - seg(s, 0.75, 1.0));
+        show(axes, seg(s, 0.8, 1.1));
+        show(f60, seg(s, 0.85, 1.15) * (1 - seg(s, 1.85, 2.1)));
+        show(fGlide, seg(s, 1.95, 2.2) * (1 - seg(s, 2.85, 3.1)));
+        show(fLearned, seg(s, 2.95, 3.2));
+        show(result, seg(s, 3.1, 3.4));
+      };
+    },
     tsfm(svg) {
       const L = (k) => svg.querySelector(`[data-layer="${k}"]`);
       const many = L("many"), fan = L("fan"), audit = L("audit"), result = L("result");
@@ -1679,7 +1699,7 @@ void main(){
     const items = {};
     if (home) storyList.forEach((it) => { items[it.svg.dataset.scene] = it; });
     else items[pageScene.dataset.scene] = { svg: pageScene, stage: pageScene.closest("[data-cs-scene]"), n: 1, top: 0, h: 1, stageH: 1, flow: true };
-    if (home && !(items.dpc && items.tsfm && items.wsl && items.aurvane)) return;
+    if (home && !Object.keys(items).every((name) => ["dpc", "pension", "tsfm", "wsl", "aurvane"].includes(name))) return;
     const all = Object.values(items);
     const canvas = el("canvas", "fx-stage");
     canvas.setAttribute("aria-hidden", "true");
@@ -1889,6 +1909,27 @@ void main(){
           many(left(), () => { const t = r(), p = dAt(t), drop = r() * r() * 90; put(p[0] - ox + g() * 2, p[1] - oy + 3 + drop, 14 - drop * 0.45 + g() * 4, t, mixC(C.ice, C.violet, Math.min(1, drop / 60)), 1 + r() * 0.8, 0.26 * (1 - drop / 100)); });
         });
       },
+      /* $90 in the fund for $100 promised, then the same 60 futures under three policies. */
+      pension(it) {
+        const svg = it.svg, ox = 300, oy = it.vbH / 2;
+        const promised = rectOf(svg.querySelector(".sc-promise")), fund = rectOf(svg.querySelector(".sc-fund")), gap = rectOf(svg.querySelector(".sc-gap"));
+        shapes.pBars = shape(81, ({ put, r, g, many, n, left }) => {
+          many(n(0.24), () => { const [x, y] = onRect(promised, r); put(x - ox, y - oy, g() * 5, (x - promised[0]) / promised[2], C.dim, 1.3 + r() * 0.6, 0.7); });
+          many(n(0.12), () => { const [x, y] = inRect(gap, r); put(x - ox, y - oy, g() * 8, (x - promised[0]) / promised[2], mixC(C.amber, C.rose, r() * 0.5), 1.3 + r() * 0.9, 0.5); });
+          many(left(), () => { const [x, y] = inRect(fund, r); put(x - ox, y - oy, (r() - 0.5) * 26, (x - promised[0]) / promised[2], r() < 0.1 ? C.white : mixC(C.amber, C.ice, 0.75), 1.5 + r() * 1.1, 0.4); });
+        });
+        /* The same draws for each policy, so a point stays on the same future as the policy changes under it. */
+        const fanOf = (layer) => {
+          const lines = [...svg.querySelectorAll(`[data-layer="${layer}"] .sc-path`)].map((n) => ({ at: line(ptsOf(n)), short: n.classList.contains("is-short") }));
+          return shape(82, ({ put, r, g, many, left }) => many(left(), (k) => {
+            const path = lines[k % lines.length], t = Math.pow(r(), 0.85), p = path.at(t), jx = g() * 0.8, jy = g() * 0.8, z = ((k % lines.length) / lines.length - 0.5) * 70, bright = r() < 0.08;
+            put(p[0] - ox + jx, p[1] - oy + jy, z, t, bright ? C.white : path.short ? mixC(C.amber, C.rose, 0.35) : mixC(C.ice, C.teal, 0.3), 1.1 + r() * 0.9, path.short ? 0.6 : 0.42);
+          }));
+        };
+        shapes.p6040 = fanOf("fan60");
+        shapes.pGlide = fanOf("fanGlide");
+        shapes.pLearned = fanOf("fanLearned");
+      },
       /* Many series, one forecast with its range, the audit, the sealed test. */
       tsfm(it) {
         const svg = it.svg, ox = 300, oy = it.vbH / 2;
@@ -2058,10 +2099,19 @@ void main(){
       ring: (y, t) => { const g = giantAt(y); return { cx: g.x, cy: g.y, s: g.r, d: 1400, rx: 0.42 + tilt.x * 1.2, ry: tilt.y * 1.6 + Math.sin(t * 0.17) * 0.05, alpha: 1, size: wide() ? 1.05 : 0.85, depth: g.r * 2.3, back: 0.4, drift: 0.3, pulse: 0.55, oc: g.r * 0.985 }; },
       name: (y) => { const g = lay.name, s = g.w * 0.985 / nameText.aspect; return { cx: g.x + g.w / 2, cy: g.top - y + g.font * 0.41, s, d: 1400, rx: tilt.x * 0.6, ry: tilt.y * 0.6, alpha: 1, size: clamp(s / 110, 0.7, 1.3), depth: 1e5, back: 1, drift: 0.4, pulse: 0 }; },
     };
-    const OWNER = { coin: "dpc", bars: "dpc", seed: "dpc", chart: "dpc", many: "tsfm", hist: "tsfm", fan: "tsfm", gridOff: "tsfm", gridOn: "tsfm", result: "tsfm", msg: "aurvane", slip: "aurvane", idle: "aurvane", landed: "aurvane", guarded: "aurvane" };
+    const OWNER = { coin: "dpc", bars: "dpc", seed: "dpc", chart: "dpc", pBars: "pension", p6040: "pension", pGlide: "pension", pLearned: "pension", many: "tsfm", hist: "tsfm", fan: "tsfm", gridOff: "tsfm", gridOn: "tsfm", result: "tsfm", msg: "aurvane", slip: "aurvane", idle: "aurvane", landed: "aurvane", guarded: "aurvane" };
     /* The giant behind the name: it sits in the hero's free space and falls behind the page a little slower than the scroll. */
     const giantAt = (y) => { const h = lay.hero, r = Math.min(h.w * (wide() ? 0.31 : 0.22), h.h * 0.32); return { x: h.x + h.w * (wide() ? 0.54 : 0.5), y: h.top + h.h * 0.47 - y * 0.62, r }; };
     const frameOf = (name, y, t) => (FRAMES[name] ? FRAMES[name](y, t) : OWNER[name] ? svgFrame(items[OWNER[name]], y) : globeFrame(items.wsl, y, t));
+
+    /* Each chapter's shapes: the one it opens on, the one it ends on, and the changes between (in steps of its story). */
+    const CHAPTER = {
+      dpc: { first: "coin", last: "chart", steps: [[0.5, 0.98, "coin", "bars", { order: 1, w: 0.5 }], [1.72, 1.98, "bars", "seed", { swirl: 0.3 }], [2.0, 3.35, "seed", "chart", { order: 1, w: 0.05, swirl: 0.25, ease: true }]] },
+      pension: { first: "pBars", last: "pLearned", steps: [[0.6, 1.5, "pBars", "p6040", { order: 1, w: 0.08, swirl: 0.3, ease: true }], [1.82, 2.2, "p6040", "pGlide", { swirl: 0.12 }], [2.82, 3.2, "pGlide", "pLearned", { swirl: 0.12 }]] },
+      tsfm: { first: "many", last: "result", steps: [[0.45, 1.4, "many", "hist", { order: 1, w: 0.3 }], [1.4, 1.8, "hist", "fan", { order: 1, w: 0.25, swirl: 0.2 }], [1.85, 2.1, "fan", "gridOff", {}], [2.12, 2.75, "gridOff", "gridOn", { order: 1, w: 0.03, swirl: 0 }], [2.9, 3.6, "gridOn", "result", { order: 1, w: 0.3 }]] },
+      wsl: { first: "gDim", last: "gFocus", steps: [[0.95, 1.85, "gDim", "gLit", { order: 1, w: 0.07, swirl: 0.6, ease: true, front: 1 }], [2.0, 2.3, "gLit", "gFocus", { swirl: 0 }]] },
+      aurvane: { first: "msg", last: "guarded", steps: [[0.88, 1.12, "msg", "slip", { swirl: 0.3 }], [1.85, 2.08, "slip", "idle", {}], [2.1, 2.8, "idle", "landed", { order: 1, w: 0.02, swirl: 0 }], [3.0, 3.75, "landed", "guarded", { order: 1, w: 0.02, swirl: 0.5 }]] },
+    };
 
     /* The timeline: which two shapes the points are between at each scroll position, and how they travel. */
     let intro = null;
@@ -2081,8 +2131,8 @@ void main(){
       const cross = (y0, y1, a, b, o = {}) => segs.push({ y0, y1, a, b, order: 0, w: 0.6, swirl: 1, front: 0, ...o });
       if (!home) {
         const it = all[0], name = it.svg.dataset.scene;
-        const last = { dpc: "chart", tsfm: "result", wsl: "gLit" }[name];
-        intro = { dpc: { a: "seed", b: "chart", order: 1, w: 0.05, swirl: 0.25, dur: 2.4 }, tsfm: { a: "ambient", b: "result", order: 1, w: 0.4, swirl: 0.8, dur: 1.8 }, wsl: { a: "gDim", b: "gLit", order: 1, w: 0.07, swirl: 0.6, front: 1, dur: 2.6 } }[name];
+        const last = { dpc: "chart", pension: "pLearned", tsfm: "result", wsl: "gLit" }[name];
+        intro = { dpc: { a: "seed", b: "chart", order: 1, w: 0.05, swirl: 0.25, dur: 2.4 }, pension: { a: "ambient", b: "pLearned", order: 1, w: 0.12, swirl: 0.5, dur: 2.4 }, tsfm: { a: "ambient", b: "result", order: 1, w: 0.4, swirl: 0.8, dur: 1.8 }, wsl: { a: "gDim", b: "gLit", order: 1, w: 0.07, swirl: 0.6, front: 1, dur: 2.6 } }[name];
         cross(it.top + it.h * 0.3, it.top + it.h * 1.05, last, "ambient", { swirl: 0.8 });
         lay.segs = segs;
         return;
@@ -2093,30 +2143,17 @@ void main(){
       lay.name = { x: gr.left, top: gr.top + window.scrollY, w: gr.width, font: parseFloat(getComputedStyle(giant).fontSize) };
       intro = { a: "ambient", b: "ring", order: 0, w: 0.7, swirl: 0.9, dur: 1.6 };
       const at = (it, s) => it.top + (s / it.n) * (it.h - it.stageH);
-      const step = (it, s0, s1, a, b, o = {}) => segs.push({ y0: at(it, s0), y1: at(it, s1), a, b, order: 0, w: 0.6, swirl: 0.5, front: 0, ...o });
-      const [s1, s2, s3, s4] = [items.dpc, items.tsfm, items.wsl, items.aurvane];
       const heroTop = lay.hero.top, heroH = Math.max(lay.hero.h, vh * 0.6);
       cross(heroTop + heroH * 0.12, heroTop + heroH * 1.0, "ring", "ambient", { swirl: 0.7 });
-      cross(s1.top - vh * 0.8, s1.top - vh * 0.04, "ambient", "coin");
-      step(s1, 0.5, 0.98, "coin", "bars", { order: 1, w: 0.5 });
-      step(s1, 1.72, 1.98, "bars", "seed", { swirl: 0.3 });
-      step(s1, 2.0, 3.35, "seed", "chart", { order: 1, w: 0.05, swirl: 0.25, ease: true });
-      cross(s2.top - vh * 0.85, s2.top - vh * 0.08, "chart", "many");
-      step(s2, 0.45, 1.4, "many", "hist", { order: 1, w: 0.3 });
-      step(s2, 1.4, 1.8, "hist", "fan", { order: 1, w: 0.25, swirl: 0.2 });
-      step(s2, 1.85, 2.1, "fan", "gridOff");
-      step(s2, 2.12, 2.75, "gridOff", "gridOn", { order: 1, w: 0.03, swirl: 0 });
-      step(s2, 2.9, 3.6, "gridOn", "result", { order: 1, w: 0.3 });
-      cross(s3.top - vh * 0.85, s3.top - vh * 0.08, "result", "gDim");
-      step(s3, 0.95, 1.85, "gDim", "gLit", { order: 1, w: 0.07, swirl: 0.6, ease: true, front: 1 });
-      step(s3, 2.0, 2.3, "gLit", "gFocus", { swirl: 0 });
-      cross(s4.top - vh * 0.85, s4.top - vh * 0.08, "gFocus", "msg");
-      step(s4, 0.88, 1.12, "msg", "slip", { swirl: 0.3 });
-      step(s4, 1.85, 2.08, "slip", "idle");
-      step(s4, 2.1, 2.8, "idle", "landed", { order: 1, w: 0.02, swirl: 0 });
-      step(s4, 3.0, 3.75, "landed", "guarded", { order: 1, w: 0.02, swirl: 0.5 });
-      const out = s4.top + s4.h - s4.stageH;
-      cross(out + vh * 0.05, out + vh * 0.8, "guarded", "ambient");
+      const order = storyList.map((it) => it.svg.dataset.scene);
+      order.forEach((name, i) => {
+        const it = items[name], ch = CHAPTER[name], before = i ? CHAPTER[order[i - 1]].last : "ambient";
+        cross(it.top - vh * (i ? 0.85 : 0.8), it.top - vh * (i ? 0.08 : 0.04), before, ch.first);
+        ch.steps.forEach(([s0, s1, a, b, o]) => segs.push({ y0: at(it, s0), y1: at(it, s1), a, b, order: 0, w: 0.6, swirl: 0.5, front: 0, ...o }));
+      });
+      const lastIt = items[order[order.length - 1]];
+      const out = lastIt.top + lastIt.h - lastIt.stageH;
+      cross(out + vh * 0.05, out + vh * 0.8, CHAPTER[order[order.length - 1]].last, "ambient");
       const end = document.documentElement.scrollHeight - vh;
       const nameStart = Math.max(out + vh, lay.name.top - vh * 1.05);
       cross(nameStart, Math.max(nameStart + 1, end - vh * 0.08), "ambient", "name", { order: 1, w: 0.5, swirl: 0.8 });
@@ -2128,6 +2165,7 @@ void main(){
     const WORLDS = {
       giant: { ca: [0.66, 0.76, 1.0], cb: [0.13, 0.17, 0.5], bands: 1, seed: 0.3, light: [-0.55, 0.55, 0.62], axis: [0.32, 0.95] },
       dpc: { ca: [0.5, 0.76, 1.0], cb: [0.05, 0.16, 0.46], bands: 0.85, seed: 1.1, light: [-0.5, 0.45, -0.74], axis: [0.2, 0.98] },
+      pension: { ca: [1.0, 0.8, 0.46], cb: [0.42, 0.22, 0.05], bands: 0.9, seed: 1.7, light: [-0.5, 0.45, -0.74], axis: [0.3, 0.95] },
       tsfm: { ca: [0.78, 0.62, 1.0], cb: [0.2, 0.08, 0.46], bands: 1, seed: 2.3, light: [-0.5, 0.45, -0.74], axis: [-0.25, 0.97] },
       moon: { ca: [0.78, 0.8, 0.86], cb: [0.26, 0.28, 0.33], bands: 0, seed: 3.7, light: [-0.6, 0.5, 0.55], axis: [0, 1] },
       aurvane: { ca: [1.0, 0.5, 0.46], cb: [0.36, 0.08, 0.13], bands: 0.3, seed: 4.9, light: [-0.5, 0.45, -0.74], axis: [0.1, 0.99] },
@@ -2143,7 +2181,7 @@ void main(){
     const sky = (y, t) => {
       const out = [], vw = window.innerWidth;
       if (!home) {
-        const kind = { dpc: "dpc", tsfm: "tsfm", wsl: "moon" }[all[0].svg.dataset.scene], o = 1 - seg(y, vh * 0.35, vh * 0.95);
+        const kind = { dpc: "dpc", pension: "pension", tsfm: "tsfm", wsl: "moon" }[all[0].svg.dataset.scene], o = 1 - seg(y, vh * 0.35, vh * 0.95);
         if (o > 0) out.push(kind === "moon" ? { ...WORLDS.moon, x: vw * 0.9, y: vh * 0.24 - y * 0.2, r: vh * 0.05, o } : { ...WORLDS[kind], x: vw * 1.0, y: vh * 1.12 - y * 0.25, r: vh * 0.42, o: o * 0.9 });
         return out;
       }
@@ -2153,8 +2191,8 @@ void main(){
         if (wide()) out.push({ ...WORLDS.moon, x: g.x + g.r * 2.15, y: g.y - g.r * 1.5 + y * 0.25, r: g.r * 0.1, o: ease(open) });
         return out;
       }
-      [[items.dpc, "dpc"], [items.tsfm, "tsfm"], [items.aurvane, "aurvane"]].forEach(([it, kind]) => { const w = corner(it, kind, y); if (w && out.length < 2) out.push(w); });
-      const m = items.wsl, mq = (y - (m.top - vh)) / Math.max(1, m.h + vh);
+      ["dpc", "pension", "tsfm", "aurvane"].forEach((kind) => { const w = items[kind] && corner(items[kind], kind, y); if (w && out.length < 2) out.push(w); });
+      const m = items.wsl, mq = m ? (y - (m.top - vh)) / Math.max(1, m.h + vh) : -1;
       if (out.length < 2 && mq > 0 && mq < 1) out.push({ ...WORLDS.moon, x: vw * (wide() ? 0.95 : 0.86), y: vh * (0.42 - 0.3 * mq), r: vh * 0.045, o: seg(mq, 0, 0.12) * (1 - seg(mq, 0.88, 1)) });
       const end = document.documentElement.scrollHeight - vh, rise = seg(y, end - vh * 1.3, end);
       if (rise > 0 && out.length < 2) { const r = Math.max(vw * 1.15, vh * 1.2); out.push({ ...WORLDS.home, x: vw * 0.5, y: vh * (1.08 - 0.21 * inOut(rise)) + r, r, o: 1 }); }

@@ -1193,8 +1193,764 @@
       }
     },
     {
+      "id": "pension-lab",
+      "code": "PENSION",
+      "role": "featured",
+      "badge": "Pre-registered",
+      "kicker": "Pensions and long-term investing",
+      "title": "Pension Lab",
+      "purpose": "What it costs to keep a pension promise funded for 20 years, and whether a policy learned by simulation does better than the rule plans use. In simulation it does; on real history it is not detectably different from that rule.",
+      "summary": "A pension plan that is 90% funded has promised inflation-indexed payments for 60 years. Its liability is valued off the 10-year yield with expected inflation; its assets are stocks, 10-year bonds and bonds matched to the promise. Four standard policies (60/40, liability-driven, fully matched, a glide path) are compared with a policy trained in PyTorch through a differentiable simulator of the plan, on what the plan costs its sponsor over 20 years and how bad that gets.",
+      "proves": "In 10,000 simulated futures the learned policy costs the sponsor $5.0 per $100 promised against $9.9 for a glide path, and $30.2 against $69.1 in the worst 5%: better by the pre-registered test. When yields never return to an average it is better than the glide path, and over 34 real 20-year periods it is not detectably different from it.",
+      "caveat": "Pre-registered in git before the test ran. A stylised plan: one yield for all maturities, expected inflation is the last ten years' average, no inflation-linked bonds, no credit or private assets, no longevity risk. Simulated futures rearrange US history from 1953 and are the model the learned policy was trained on: against the glide path the verdict there is better (score difference −43.8, 95% interval −46.9 to −40.7). On futures in which yields never return to an average, without retraining: $7.0 against $14.1, better. On 34 real 20-year periods, which overlap and amount to about three independent ones: $6.3 against $6.3, no detectable difference. US data only.",
+      "headline": {
+        "stat": "costHeadline",
+        "qualifier": "Average of 10,000 simulated futures; a glide path costs $9.9. Against it the pre-registered verdict is better in simulation, better when yields never return to an average, and no detectable difference on real history."
+      },
+      "tags": [
+        "Python",
+        "PyTorch",
+        "NumPy",
+        "pandas",
+        "pytest"
+      ],
+      "links": [
+        {
+          "label": "Case study",
+          "href": "projects/pension-lab.html",
+          "kind": "site"
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/shmorsi/deep-portfolio-constructor/tree/main/src/dpc/pension",
+          "kind": "repo",
+          "external": true
+        },
+        {
+          "label": "Protocol",
+          "href": "https://github.com/shmorsi/deep-portfolio-constructor/blob/main/docs/pension_protocol.md",
+          "kind": "more",
+          "external": true
+        }
+      ],
+      "glanceIds": [
+        "costLearned",
+        "costGlide",
+        "tailLearned",
+        "fundedLearned"
+      ],
+      "factIds": [
+        "scenarios",
+        "starts",
+        "duration"
+      ],
+      "stats": {
+        "costLearned": {
+          "label": "Cost to the sponsor over 20 years, per $100 promised, learned policy (average of simulated futures)",
+          "display": "$5.0",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "costGlide": {
+          "label": "The same, glide path",
+          "display": "$9.9",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "cost6040": {
+          "label": "The same, 60/40",
+          "display": "$14.3",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "costLdi": {
+          "label": "The same, liability-driven 40/60",
+          "display": "$10.1",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "costMatched": {
+          "label": "The same, fully matched",
+          "display": "$18.2",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "tailLearned": {
+          "label": "Cost in the worst 5% of simulated futures, per $100 promised, learned policy",
+          "display": "$30.2",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "tailGlide": {
+          "label": "The same, glide path",
+          "display": "$69.1",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "tail6040": {
+          "label": "The same, 60/40",
+          "display": "$86.0",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "tailLdi": {
+          "label": "The same, liability-driven 40/60",
+          "display": "$58.5",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "tailMatched": {
+          "label": "The same, fully matched",
+          "display": "$62.4",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "fundedLearned": {
+          "label": "Share of simulated futures fully funded after 20 years, learned policy",
+          "display": "98%",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "fundedGlide": {
+          "label": "The same, glide path",
+          "display": "93%",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "funded6040": {
+          "label": "The same, 60/40",
+          "display": "90%",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "fundedLdi": {
+          "label": "The same, liability-driven 40/60",
+          "display": "91%",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "fundedMatched": {
+          "label": "The same, fully matched",
+          "display": "57%",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "stocksLearned": {
+          "label": "Average share in stocks, learned policy",
+          "display": "18%",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "stocksGlide": {
+          "label": "Average share in stocks, glide path",
+          "display": "31%",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "vsGlide": {
+          "label": "Score of the learned policy minus the glide path (average cost plus worst-5% cost, per $100 promised)",
+          "display": "−43.8",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "vsGlideCi": {
+          "label": "95% bootstrap interval of that difference",
+          "display": "−46.9 to −40.7",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "vsGlideVerdict": {
+          "label": "Pre-registered verdict against the glide path, simulated futures",
+          "display": "better",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "vs6040Verdict": {
+          "label": "Pre-registered verdict against 60/40, simulated futures",
+          "display": "better",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "walkLearned": {
+          "label": "Average cost when yields never come back, per $100 promised, learned policy (not retrained)",
+          "display": "$7.0",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "walkGlide": {
+          "label": "The same, glide path",
+          "display": "$14.1",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "walkTailLearned": {
+          "label": "Cost in the worst 5% when yields never come back, learned policy",
+          "display": "$49.7",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "walkTailGlide": {
+          "label": "The same, glide path",
+          "display": "$113.5",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "walkVerdict": {
+          "label": "Pre-registered verdict against the glide path when yields never come back",
+          "display": "better",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "histLearned": {
+          "label": "Average cost over the 34 real 20-year periods, per $100 promised, learned policy",
+          "display": "$6.3",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "histGlide": {
+          "label": "The same, glide path",
+          "display": "$6.3",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "hist6040": {
+          "label": "The same, 60/40",
+          "display": "$9.7",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "histVerdict": {
+          "label": "Pre-registered verdict against the glide path, real history",
+          "display": "no detectable difference",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "scenarios": {
+          "label": "Simulated 20-year futures in the test",
+          "display": "10,000",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "starts": {
+          "label": "Real 20-year periods walked through",
+          "display": "34",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "months": {
+          "label": "Months of data",
+          "display": "882",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "duration": {
+          "label": "Liability duration at a 4% yield, years",
+          "display": "14.2",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "fundedStart": {
+          "label": "Funded ratio at the start",
+          "display": "90%",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "networks": {
+          "label": "Networks trained",
+          "display": "24",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "params": {
+          "label": "Parameters in one network",
+          "display": "1,507",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "tests": {
+          "label": "Tests of the pension code",
+          "display": "29",
+          "source": "deep-portfolio-constructor tests/test_pension.py"
+        },
+        "costHeadline": {
+          "label": "Cost to the sponsor per $100 promised over 20 years, learned policy, in simulation (glide path $9.9). On 34 real 20-year periods: $6.3 against $6.3",
+          "display": "$5.0",
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "learnedStocksShort": {
+          "label": "Share in stocks while the plan is under 80% funded, learned policy (test futures)",
+          "display": "41%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "glideStocksShort": {
+          "label": "The same, glide path",
+          "display": "70%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "learnedStocksFull": {
+          "label": "Share in stocks once the plan is over 110% funded, learned policy (test futures)",
+          "display": "16%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "glideStocksFull": {
+          "label": "The same, glide path",
+          "display": "20%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "learnedBonds": {
+          "label": "Average share in 10-year bonds, learned policy",
+          "display": "3%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "learnedMatching": {
+          "label": "Average share in matching bonds, learned policy",
+          "display": "79%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "costTuned": {
+          "label": "Average cost per $100 promised, glide path tuned on the same simulations (simulated futures)",
+          "display": "$10.9",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "tailTuned": {
+          "label": "Cost in the worst 5% of simulated futures, tuned glide path",
+          "display": "$53.5",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "tunedVerdict": {
+          "label": "Learned policy against the tuned glide path, simulated futures (the protocol's rule; not pre-registered)",
+          "display": "better",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "walkCostTuned": {
+          "label": "Average cost when yields never come back, tuned glide path",
+          "display": "$14.5",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "walkTunedVerdict": {
+          "label": "Learned policy against the tuned glide path when yields never come back (not pre-registered)",
+          "display": "better",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "tunedShort": {
+          "label": "Share in stocks while the plan is short, tuned glide path",
+          "display": "32%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "tunedFunded": {
+          "label": "Share in stocks once the plan is funded, tuned glide path",
+          "display": "22%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "tunedFrom": {
+          "label": "Funded ratio where the tuned glide path starts leaving stocks",
+          "display": "63%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "tunedTo": {
+          "label": "Funded ratio where the tuned glide path has finished leaving stocks",
+          "display": "79%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "tunedShare": {
+          "label": "Share of the learned policy's improvement in the score that the tuned glide path also gets (simulated futures)",
+          "display": "33%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "tunedLead": {
+          "label": "Score of the learned policy minus the tuned glide path, simulated futures",
+          "display": "−29.2",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "stocksLowYield": {
+          "label": "Share in stocks when the yield is under 3%, learned policy (plans 85% to 100% funded)",
+          "display": "54%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "stocksHighYield": {
+          "label": "Share in stocks when the yield is over 10%, learned policy (plans 85% to 100% funded)",
+          "display": "5%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "glideStocksYield": {
+          "label": "Share in stocks at any yield, glide path (plans 85% to 100% funded)",
+          "display": "49%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "weightMove": {
+          "label": "How far the learned policy's target weights move in a year, as a share of the fund",
+          "display": "69%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "looseGlide": {
+          "label": "Average cost per $100 promised on futures drawn one month at a time, glide path",
+          "display": "$10.4",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "looseTailGlide": {
+          "label": "Cost in the worst 5% of futures drawn one month at a time, glide path",
+          "display": "$79.0",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "looseTuned": {
+          "label": "Average cost per $100 promised on futures drawn one month at a time, tuned glide path",
+          "display": "$11.7",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "looseTailTuned": {
+          "label": "Cost in the worst 5% of futures drawn one month at a time, tuned glide path",
+          "display": "$59.9",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "looseLearned": {
+          "label": "Average cost per $100 promised on futures drawn one month at a time, learned policy",
+          "display": "$10.2",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "looseTailLearned": {
+          "label": "Cost in the worst 5% of futures drawn one month at a time, learned policy",
+          "display": "$59.0",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "looseLead": {
+          "label": "Score of the learned policy minus the tuned glide path, futures drawn one month at a time",
+          "display": "−2.4",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "looseKept": {
+          "label": "Share of the learned policy's lead over the tuned glide path that is left on futures drawn one month at a time",
+          "display": "8%",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "edgeSource": {
+          "label": "Where the simulated saving came from, in a sentence",
+          "display": "most of its simulated edge came from patterns the simulator repeats, which no real plan can count on",
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        }
+      },
+      "tables": {
+        "simulated": {
+          "caption": "10,000 simulated 20-year futures that training never saw. Cost to the sponsor per $100 promised; lower is better.",
+          "headers": [
+            "Policy",
+            "Average cost",
+            "Worst 5%",
+            "Fully funded at year 20",
+            "Average in stocks"
+          ],
+          "rows": [
+            [
+              "60/40",
+              "$14.3",
+              "$86.0",
+              "90%",
+              "60%"
+            ],
+            [
+              "Liability-driven 40/60",
+              "$10.1",
+              "$58.5",
+              "91%",
+              "40%"
+            ],
+            [
+              "Fully matched",
+              "$18.2",
+              "$62.4",
+              "57%",
+              "0%"
+            ],
+            [
+              "Glide path",
+              "$9.9",
+              "$69.1",
+              "93%",
+              "31%"
+            ],
+            [
+              "Learned policy",
+              "$5.0",
+              "$30.2",
+              "98%",
+              "18%"
+            ]
+          ],
+          "highlightRow": 4,
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "modelRisk": {
+          "caption": "The same policies, not retrained, on 10,000 futures in which the yield never returns to an average.",
+          "headers": [
+            "Policy",
+            "Average cost",
+            "Worst 5%",
+            "Fully funded at year 20",
+            "Average in stocks"
+          ],
+          "rows": [
+            [
+              "60/40",
+              "$18.4",
+              "$121.1",
+              "85%",
+              "60%"
+            ],
+            [
+              "Liability-driven 40/60",
+              "$14.2",
+              "$95.9",
+              "85%",
+              "40%"
+            ],
+            [
+              "Fully matched",
+              "$20.6",
+              "$78.0",
+              "53%",
+              "0%"
+            ],
+            [
+              "Glide path",
+              "$14.1",
+              "$113.5",
+              "88%",
+              "32%"
+            ],
+            [
+              "Learned policy",
+              "$7.0",
+              "$49.7",
+              "92%",
+              "17%"
+            ]
+          ],
+          "highlightRow": 4,
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "history": {
+          "caption": "34 real 20-year periods, starting each December from 1972 to 2005. They overlap: about three are independent.",
+          "headers": [
+            "Policy",
+            "Average cost",
+            "Worst period",
+            "Fully funded at year 20",
+            "Average in stocks"
+          ],
+          "rows": [
+            [
+              "60/40",
+              "$9.7",
+              "$53.9",
+              "100%",
+              "60%"
+            ],
+            [
+              "Liability-driven 40/60",
+              "$6.8",
+              "$42.1",
+              "100%",
+              "40%"
+            ],
+            [
+              "Fully matched",
+              "$8.4",
+              "$50.6",
+              "88%",
+              "0%"
+            ],
+            [
+              "Glide path",
+              "$6.3",
+              "$46.9",
+              "100%",
+              "28%"
+            ],
+            [
+              "Learned policy",
+              "$6.3",
+              "$55.6",
+              "100%",
+              "17%"
+            ]
+          ],
+          "highlightRow": 4,
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "verdicts": {
+          "caption": "Score of the learned policy minus each rule's (average cost plus worst-5% cost, per $100 promised), simulated futures. Below zero is better.",
+          "headers": [
+            "Comparison",
+            "Difference",
+            "95% interval",
+            "Pre-registered verdict"
+          ],
+          "rows": [
+            [
+              "Learned policy against glide path",
+              "−43.8",
+              "−46.9 to −40.7",
+              "better"
+            ],
+            [
+              "Learned policy against 60/40",
+              "−65.1",
+              "−68.5 to −61.8",
+              "better"
+            ],
+            [
+              "Learned policy against liability-driven 40/60",
+              "−33.5",
+              "−35.7 to −31.4",
+              "better"
+            ],
+            [
+              "Learned policy against fully matched",
+              "−45.5",
+              "−47.3 to −43.7",
+              "better"
+            ]
+          ],
+          "source": "deep-portfolio-constructor reports/pension/summary.json"
+        },
+        "anatomy": {
+          "caption": "What the learned policy held in the test futures, by how well funded the plan was at each monthly decision, next to what the glide path holds at the same funded ratio. A description made after the test; it changes no verdict.",
+          "headers": [
+            "Funded ratio",
+            "Share of months",
+            "Glide path: stocks",
+            "Learned: stocks",
+            "Learned: 10-year bonds",
+            "Learned: matching bonds"
+          ],
+          "rows": [
+            [
+              "Under 70%",
+              "1%",
+              "70%",
+              "49%",
+              "2%",
+              "49%"
+            ],
+            [
+              "70% to 80%",
+              "2%",
+              "70%",
+              "37%",
+              "2%",
+              "61%"
+            ],
+            [
+              "80% to 90%",
+              "7%",
+              "59%",
+              "26%",
+              "2%",
+              "72%"
+            ],
+            [
+              "90% to 100%",
+              "12%",
+              "45%",
+              "21%",
+              "1%",
+              "77%"
+            ],
+            [
+              "100% to 110%",
+              "10%",
+              "28%",
+              "18%",
+              "2%",
+              "80%"
+            ],
+            [
+              "110% to 120%",
+              "9%",
+              "20%",
+              "16%",
+              "2%",
+              "82%"
+            ],
+            [
+              "120% to 150%",
+              "20%",
+              "20%",
+              "15%",
+              "3%",
+              "81%"
+            ],
+            [
+              "Over 150%",
+              "39%",
+              "20%",
+              "16%",
+              "3%",
+              "81%"
+            ]
+          ],
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "anatomyYield": {
+          "caption": "The same, by the level of the 10-year yield, for plans between 85% and 100% funded.",
+          "headers": [
+            "10-year yield",
+            "Share of those months",
+            "Glide path: stocks",
+            "Learned: stocks",
+            "Learned: 10-year bonds",
+            "Learned: matching bonds"
+          ],
+          "rows": [
+            [
+              "Under 3%",
+              "8%",
+              "49%",
+              "54%",
+              "1%",
+              "45%"
+            ],
+            [
+              "3% to 5%",
+              "18%",
+              "48%",
+              "37%",
+              "1%",
+              "62%"
+            ],
+            [
+              "5% to 7%",
+              "28%",
+              "48%",
+              "24%",
+              "2%",
+              "75%"
+            ],
+            [
+              "7% to 10%",
+              "35%",
+              "49%",
+              "12%",
+              "2%",
+              "87%"
+            ],
+            [
+              "Over 10%",
+              "11%",
+              "49%",
+              "5%",
+              "2%",
+              "94%"
+            ]
+          ],
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "loose": {
+          "caption": "The same policies, not retrained, on 10,000 futures whose months are drawn one at a time instead of in runs of history. Cost to the sponsor per $100 promised.",
+          "headers": [
+            "Policy",
+            "Average cost",
+            "Worst 5%",
+            "Fully funded at year 20",
+            "Average in stocks"
+          ],
+          "rows": [
+            [
+              "Glide path",
+              "$10.4",
+              "$79.0",
+              "95%",
+              "30%"
+            ],
+            [
+              "Tuned glide path",
+              "$11.7",
+              "$59.9",
+              "86%",
+              "23%"
+            ],
+            [
+              "Learned policy",
+              "$10.2",
+              "$59.0",
+              "90%",
+              "19%"
+            ]
+          ],
+          "highlightRow": 2,
+          "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        }
+      },
+      "learned": "It holds less in stocks than the glide path whether the plan is short or funded. Above all it follows the yield: the higher the yield, the more it puts in bonds matched to the promise.",
+      "tuned": "The network still costs less than the tuned rule in simulation, so tuning is not the whole story.",
+      "why": "Most of the simulated saving came from patterns in the last twelve months that hold inside the runs of history the simulator replays. A plan cannot rely on them: real history, where every network had seen only the past, gave the same answer.",
+      "number": "02"
+    },
+    {
       "id": "tsfm",
-      "number": "02",
+      "number": "03",
       "code": "TSFM",
       "role": "featured",
       "badge": "Test split",
@@ -1557,7 +2313,7 @@
     },
     {
       "id": "world-shock-lab",
-      "number": "03",
+      "number": "04",
       "code": "World Shock Lab",
       "role": "featured",
       "badge": "Live site",
@@ -1580,10 +2336,9 @@
       ],
       "links": [
         {
-          "label": "Live site",
-          "href": "https://shmorsi.github.io/world-shock-lab/",
-          "kind": "site",
-          "external": true
+          "label": "Case study",
+          "href": "projects/world-shock-lab.html",
+          "kind": "site"
         },
         {
           "label": "GitHub",
@@ -1592,9 +2347,9 @@
           "external": true
         },
         {
-          "label": "Case study",
-          "href": "projects/world-shock-lab.html",
-          "kind": "more"
+          "label": "Open the lab",
+          "href": "shock-lab/",
+          "kind": "app"
         }
       ],
       "glanceIds": [
@@ -1907,7 +2662,7 @@
     },
     {
       "id": "aurvane",
-      "number": "04",
+      "number": "05",
       "code": "AURVANE",
       "role": "featured",
       "badge": "Worst-case agent",

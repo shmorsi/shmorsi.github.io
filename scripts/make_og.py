@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Draw the share images (1200x630) for the home page, Aurvane and the Deep Portfolio Constructor in the site's own system.
+"""Draw the share images (1200x630) for the home page, Aurvane, the Deep Portfolio Constructor and the Pension Lab in the site's own system.
 
 Run:  python3 scripts/make_og.py      (needs Playwright's Chromium)
-Out:  assets/og.png, aurvane/media/og-aurvane.png, assets/og-dpc.png
+Out:  assets/og.png, aurvane/media/og-aurvane.png, assets/og-dpc.png, assets/og-pension.png
 
 Figures come from data/projects.json, so a share card never says something the page does not.
 """
@@ -41,6 +41,7 @@ h1 {{ font-size: 92px; font-weight: 500; letter-spacing: 0.06em; text-transform:
 
 aurvane = DATA["aurvane"]["stats"]
 dpc = DATA["deep-portfolio-constructor"]["stats"]
+pen = DATA["pension-lab"]["stats"]
 TAGLINE = json.loads((ROOT / "data" / "projects.json").read_text())["tagline"]
 TITLES = [("TSFM" if p["id"] == "tsfm" else p["title"]) for p in json.loads((ROOT / "data" / "projects.json").read_text())["projects"]]
 COUNT = {3: "Three", 4: "Four", 5: "Five", 6: "Six"}.get(len(TITLES), str(len(TITLES)))
@@ -57,6 +58,12 @@ CARDS = {
       <p class="lede">A neural network's long-only portfolio, January 1960 to today. The market: {dpc["wealthMarket"]["display"]}.</p>
       <p class="dim">Trained on the growth of wealth after costs. Against the market, {dpc["vsMktDeep"]["display"]} a year: {dpc["vsMktVerdictDeep"]["display"]}, by the pre-registered test.</p>
       <p class="foot"><span>Out of sample from 1960</span><span>{dpc["industries"]["display"]} US industries</span><span>Every figure traced</span></p>""",
+    ROOT / "assets" / "og-pension.png": f"""
+      <div class="rule"></div><p class="label accent">Pension Lab · what a pension promise costs to keep</p>
+      <p class="fig">{pen["costLearned"]["display"]} <span style="color:#8e8e93">vs</span> {pen["costGlide"]["display"]}</p>
+      <p class="lede">What a {pen["fundedStart"]["display"]}-funded plan costs its sponsor over 20 years, per $100 promised: a learned policy against a glide path.</p>
+      <p class="dim">{pen["scenarios"]["display"]} simulated futures: {pen["vsGlideVerdict"]["display"]}. {pen["starts"]["display"]} real 20-year periods: {pen["histVerdict"]["display"]}. Rules fixed before the test.</p>
+      <p class="foot"><span>Pre-registered</span><span>Inflation-indexed liabilities</span><span>Every figure traced</span></p>""",
     ROOT / "aurvane" / "media" / "og-aurvane.png": f"""
       <div class="rule"></div><p class="label accent">Aurvane · agent security</p>
       <p class="fig">{aurvane["attacksWith"]["display"]}</p>

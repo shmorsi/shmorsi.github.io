@@ -1085,6 +1085,7 @@ html:not(.motion) .lab-plot .ln-focus { display: none; }
 .st-head { font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
 .st-text { font-size: clamp(19px, 1.7vw, 25px); line-height: 1.38; letter-spacing: -0.01em; max-width: 30em; }
 .fig-inline { color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fig-inline.is-words { white-space: normal; font-weight: 500; }
 .st-foot { display: flex; align-items: center; gap: 18px; margin-top: 8px; }
 .st-bar { display: none; flex: 1; height: 1px; background: var(--line); max-width: 220px; }
 .st-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--violet)); transform-origin: 0 50%; transform: scaleX(var(--p, 1)); }
@@ -1321,3 +1322,43 @@ html:not(.stage) .hero-space { display: none; }
 .st-role { color: var(--ink); }
 .stage .site-footer { text-shadow: 0 1px 10px #000, 0 0 2px #000; }
 :root[data-theme="light"].stage .site-footer { text-shadow: none; }
+
+/* The pension chapter's picture: a promise, a fund, and 20 years of possible futures. */
+.sc-path { fill: none; stroke: var(--accent); stroke-width: 1; stroke-opacity: 0.4; }
+.sc-path.is-short { stroke: var(--warm); stroke-opacity: 0.55; }
+.sc-full { stroke: var(--ink); stroke-width: 1.2; stroke-dasharray: 6 5; stroke-opacity: 0.8; }
+.sc-tick.is-full { fill: var(--ink); }
+.sc-cap.is-strong { fill: var(--ink); font-weight: 600; }
+.sc-strong { fill: var(--ink); font-weight: 600; }
+.sc-promise { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
+.sc-fund { fill: var(--accent); opacity: 0.85; }
+.sc-gap { fill: color-mix(in srgb, var(--warm) 30%, transparent); stroke: var(--warm); stroke-dasharray: 4 4; }
+.stage .scene :is(.sc-path, .sc-promise, .sc-fund, .sc-gap) { visibility: hidden !important; }
+@media (min-width: 1101px) { .telemetry { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); grid-auto-flow: column; } }
+.cards.is-even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 900px) { .cards.is-even { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- Pension Lab: what the learned policy holds (a static chart, drawn by scripts/build_pension_page.py). ---- */
+.an-figure { margin: 26px 0 30px; }
+.an-figure .screen { padding: clamp(12px, 2.4vw, 24px); }
+.an-chart { display: block; width: 100%; height: auto; }
+.an-line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.an-line.is-alt { stroke-width: 1.5; opacity: 0.55; }
+.an-line.is-glide { stroke: var(--warm); }
+.an-full { stroke: var(--line-strong); stroke-width: 1; }
+.an-key { fill: var(--ink); font-size: 12.5px; font-weight: 600; }
+@media (max-width: 640px) { .an-key { font-size: 15px; } .an-chart .sc-tick { font-size: 14px; } }
+
+/* ---- Phones: the pictures' labels are drawn in the picture's own units, so on a narrow screen they would shrink
+   with it. They get larger type there, and the longest captions a shorter wording (scripts/stories.py). ---- */
+.scene .is-narrow { display: none; }
+@media (max-width: 640px) {
+  .scene .is-wide { display: none; }
+  .scene .is-narrow { display: inline; }
+  .scene .sc-tick { font-size: 18px; letter-spacing: 0.02em; }
+  .scene .sc-cap { font-size: 20px; }
+  .scene .sc-note { font-size: 20px; }
+  .scene .sc-key { font-size: 17px; letter-spacing: 0.06em; }
+  .scene .sc-row { font-size: 21px; }
+  .scene .sc-hidden { font-size: 17px; }
+}

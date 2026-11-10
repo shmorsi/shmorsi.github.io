@@ -57,6 +57,18 @@ jobs:
         with:
           python-version: "3.12"
 
+      # World Shock Lab's app is served from this repository; build it from that project's main.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: world-shock-lab/web/package-lock.json
+      - name: Build the World Shock Lab app
+        working-directory: world-shock-lab/web
+        run: |
+          npm ci
+          npm run build
+
       - name: Sync, rebuild and check
         run: python3 shmorsi.github.io/scripts/sync_all.py --src .
 

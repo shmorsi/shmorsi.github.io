@@ -56,7 +56,7 @@ def scene_dpc(P: dict) -> str:
     return f"""<svg class="scene" viewBox="0 0 600 440" role="img" aria-label="Growth of $1 invested in January 1960: the AI's portfolio against holding the market." data-scene="dpc" data-series='{json.dumps(series, separators=(",", ":"))}'>
             <g class="sc-layer sc-temp" data-layer="coin"><text class="sc-huge" x="300" y="250" text-anchor="middle">$1</text><text class="sc-cap" x="300" y="300" text-anchor="middle">invested in January 1960</text></g>
             <g class="sc-layer sc-temp" data-layer="bars">{bars}<line class="sc-axis" x1="40" x2="560" y1="{base}" y2="{base}"/>
-              <text class="sc-cap" x="40" y="{base + 30}">{e(str(len(dbp)))} parts of the economy, September 2026. Filled: the AI. Outline: the market.</text></g>
+              <text class="sc-cap is-wide" x="40" y="{base + 30}">{e(str(len(dbp)))} parts of the economy, September 2026. Filled: the AI. Outline: the market.</text><text class="sc-cap is-narrow" x="40" y="{base + 30}">Filled: the AI. Outline: the market.</text></g>
             <g class="sc-layer" data-layer="chart">{grid}{xt}
               <path class="sc-line is-dim" d="{path(mkt)}" data-draw/>
               <path class="sc-line" d="{path(deep)}" data-draw/>
@@ -64,7 +64,61 @@ def scene_dpc(P: dict) -> str:
               <text class="sc-year" x="560" y="56" text-anchor="end" data-year>{w["dates"][-1][:4]}</text>
               <text class="sc-val" x="56" y="56"><tspan class="sc-key">AI </tspan>{_bind(P, "deep-portfolio-constructor", "wealthDeep")}</text>
               <text class="sc-val is-dim" x="56" y="84"><tspan class="sc-key">Market </tspan>{_bind(P, "deep-portfolio-constructor", "wealthMarket")}</text>
-              <text class="sc-note" x="300" y="430" text-anchor="middle" data-layer="verdict">A gap this size could still be luck, by a test written in advance.</text></g>
+              <text class="sc-note is-wide" x="300" y="430" text-anchor="middle" data-layer="verdict">A gap this size could still be luck, by a test written in advance.</text><text class="sc-note is-narrow" x="300" y="430" text-anchor="middle" data-layer="verdict">A gap this size could still be luck.</text></g>
+          </svg>"""
+
+
+def scene_pension(P: dict) -> str:
+    """$90 in the fund for $100 promised -> 20 years of possible futures under 60/40 -> under a glide path -> under the learned policy.
+
+    The futures are real output: data/pension.json holds the funded ratio, year by year, of the same simulated
+    scenarios under each policy (scripts/sync_pension.py copies them from the study's export).
+    """
+    pid = "pension-lab"
+    fans = json.loads((ROOT / "data" / "pension.json").read_text())["fans"]
+    x0, x1, y0, y1, lo, hi = 62, 566, 362, 62, 0.4, 4.0
+    X = lambda year: x0 + (x1 - x0) * year / 20  # noqa: E731
+    Y = lambda fr: y0 - (y0 - y1) * (math.log(min(max(fr, lo), hi)) - math.log(lo)) / (math.log(hi) - math.log(lo))  # noqa: E731
+
+    def trace(path: list[float]) -> list[tuple[float, float]]:
+        """One future as points. A plan that grows past the top of the chart leaves it there, instead of running along the edge."""
+        pts = []
+        for i, v in enumerate(path):
+            if v > hi and i:
+                a, b = math.log(path[i - 1]), math.log(v)
+                pts.append((X(i - 1 + (math.log(hi) - a) / (b - a)), Y(hi)))
+                break
+            pts.append((X(i), Y(v)))
+        return pts
+
+    def fan(name: str, key: str, label: str, temp: bool) -> str:
+        lines = "".join(f'<polyline class="sc-path{" is-short" if path[-1] < 1 else ""}" points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in trace(path))}"/>'
+                        for path in fans["paths"][name][:60])
+        return (f'<g class="sc-layer{" sc-temp" if temp else ""}" data-layer="{key}">{lines}'
+                f'<text class="sc-cap is-strong" x="{x0 + 8}" y="{y1 - 22}">{e(label)}</text></g>')
+
+    grid = "".join(f'<line class="sc-grid" x1="{x0}" x2="{x1}" y1="{Y(v):.1f}" y2="{Y(v):.1f}"/><text class="sc-tick" x="{x0 - 8}" y="{Y(v) + 4:.1f}" text-anchor="end">{int(v * 100)}%</text>'
+                   for v in (0.5, 2.0, 4.0))
+    years = "".join(f'<text class="sc-tick" x="{X(yr):.1f}" y="{y0 + 22}" text-anchor="middle">{"today" if yr == 0 else f"year {yr}"}</text>' for yr in (0, 5, 10, 15, 20))
+    full = Y(1.0)
+    return f"""<svg class="scene" viewBox="0 0 600 440" role="img" aria-label="A pension plan's funded ratio over 20 years in simulated futures, under three investment policies." data-scene="pension">
+            <g class="sc-layer sc-temp" data-layer="promise">
+              <text class="sc-cap is-strong" x="100" y="136">Promised to retirees</text><text class="sc-val" x="500" y="136" text-anchor="end">$100</text>
+              <rect class="sc-promise" x="100" y="150" width="400" height="44"/>
+              <text class="sc-cap is-strong" x="100" y="250">In the fund today</text><text class="sc-val" x="500" y="250" text-anchor="end">{_bind(P, pid, "fundedStart")}</text>
+              <rect class="sc-fund" x="100" y="264" width="{400 * float(P[pid]["stats"]["fundedStart"]["display"].rstrip("%")) / 100:.0f}" height="44"/>
+              <rect class="sc-gap" x="{100 + 400 * float(P[pid]["stats"]["fundedStart"]["display"].rstrip("%")) / 100:.0f}" y="264" width="{400 * (1 - float(P[pid]["stats"]["fundedStart"]["display"].rstrip("%")) / 100):.0f}" height="44"/>
+              <text class="sc-note" x="500" y="336" text-anchor="end">the gap the sponsor has to close</text></g>
+            <g class="sc-layer" data-layer="axes">{grid}{years}
+              <line class="sc-full" x1="{x0}" x2="{x1}" y1="{full:.1f}" y2="{full:.1f}"/><text class="sc-tick is-full" x="{x0 - 8}" y="{full + 4:.1f}" text-anchor="end">100%</text>
+              <text class="sc-tick is-full" x="{x1}" y="{full - 8:.1f}" text-anchor="end">fully funded</text>
+              <text class="sc-tick is-wide" x="{x1}" y="{y1 - 22}" text-anchor="end">each line is one simulated future</text></g>
+            {fan("60/40", "fan60", "60% stocks, 40% bonds", True)}
+            {fan("Glide path", "fanGlide", "A glide path: fewer stocks as it fills", True)}
+            {fan("Learned policy", "fanLearned", "The learned policy", False)}
+            <g class="sc-layer" data-layer="result">
+              <text class="sc-cap is-wide" x="{x0 + 8}" y="{y0 + 48}">In simulation: <tspan class="sc-strong">{_bind(P, pid, "costLearned")}</tspan> learned, <tspan class="sc-strong">{_bind(P, pid, "costGlide")}</tspan> glide path, per $100 promised</text><text class="sc-cap is-narrow" x="{x0 + 8}" y="{y0 + 48}">Simulation: <tspan class="sc-strong">{_bind(P, pid, "costLearned")}</tspan> learned, <tspan class="sc-strong">{_bind(P, pid, "costGlide")}</tspan> glide path</text>
+              <text class="sc-cap" x="{x0 + 8}" y="{y0 + 70}">On real history: <tspan class="sc-strong">{_bind(P, pid, "histLearned")}</tspan> learned, <tspan class="sc-strong">{_bind(P, pid, "histGlide")}</tspan> glide path</text></g>
           </svg>"""
 
 
@@ -98,7 +152,7 @@ def scene_tsfm(P: dict) -> str:
               <text class="sc-cap" x="40" y="420">Illustration, not data</text></g>
             <g class="sc-layer sc-temp" data-layer="audit">{squares}<line class="sc-scan" x1="40" x2="40" y1="56" y2="372" data-scan/>
               <text class="sc-cap" x="40" y="400">{_bind(P, "tsfm", "datasets")} datasets checked</text>
-              <text class="sc-val is-warm" x="560" y="400" text-anchor="end">{_bind(P, "tsfm", "flagged")} <tspan class="sc-key">overlapping series removed</tspan></text></g>
+              <text class="sc-val is-warm" x="560" y="400" text-anchor="end">{_bind(P, "tsfm", "flagged")} <tspan class="sc-key is-wide">overlapping series removed</tspan><tspan class="sc-key is-narrow">removed</tspan></text></g>
             <g class="sc-layer" data-layer="result">
               <text class="sc-cap" x="80" y="130">Standard method</text><rect class="sc-track" x="80" y="142" width="{W}" height="34"/><rect class="sc-res is-dim" x="80" y="142" width="{W}" height="34" data-grow/>
               <text class="sc-val is-dim" x="{80 + W}" y="128" text-anchor="end">1.00</text>
@@ -138,7 +192,7 @@ def scene_wsl(P: dict) -> str:
               <text class="sc-cap" x="20" y="22">{_bind(P, "world-shock-lab", "assets")} markets around the world</text></g>
             <g class="sc-layer" data-layer="tsx">
               <line class="sc-axis is-dashed" x1="{tx:.1f}" y1="{ty:.1f}" x2="{ax0 + 40}" y2="88"/>
-              <text class="sc-cap" x="{ax0}" y="22">Canada's main stock index (TSX)</text>
+              <text class="sc-cap is-wide" x="{ax0}" y="22">Canada's main stock index (TSX)</text><text class="sc-cap is-narrow" x="{ax0}" y="22">Canada's stocks (TSX)</text>
               <text class="sc-big is-warm" x="{ax0}" y="64">{_bind(P, "world-shock-lab", "tsxFed")}</text>
               <line class="sc-axis" x1="{ax0}" x2="{ax1}" y1="88" y2="88"/><line class="sc-axis" x1="{AX(0):.1f}" x2="{AX(0):.1f}" y1="78" y2="98"/>
               <rect class="sc-band" x="{AX(-1.59):.1f}" y="82" width="{AX(-0.61) - AX(-1.59):.1f}" height="12" data-grow/><circle class="sc-head" cx="{AX(-1.10):.1f}" cy="88" r="5"/>
@@ -146,7 +200,7 @@ def scene_wsl(P: dict) -> str:
             <g class="sc-layer" data-layer="record">
               <line class="sc-axis" x1="70" x2="530" y1="504" y2="504"/><circle class="sc-head" cx="70" cy="504" r="6"/><circle class="sc-head is-warm" cx="530" cy="504" r="6"/>
               <rect class="sc-runner" x="70" y="502" width="460" height="4" data-grow/>
-              <text class="sc-cap" x="70" y="488">Forecast published {e(pub)}</text><text class="sc-cap" x="530" y="488" text-anchor="end">Decision {e(nxt)}</text></g>
+              <text class="sc-cap is-wide" x="70" y="488">Forecast published {e(pub)}</text><text class="sc-cap is-narrow" x="70" y="488">Forecast {e(pub)}</text><text class="sc-cap" x="530" y="488" text-anchor="end">Decision {e(nxt)}</text></g>
           </svg>"""
 
 
@@ -180,10 +234,10 @@ def scene_aurvane(P: dict) -> str:
           </svg>"""
 
 
-SCENES = {"deep-portfolio-constructor": scene_dpc, "tsfm": scene_tsfm, "world-shock-lab": scene_wsl, "aurvane": scene_aurvane}
-TINT = {"deep-portfolio-constructor": "ice", "tsfm": "violet", "world-shock-lab": "teal", "aurvane": "rose"}
+SCENES = {"deep-portfolio-constructor": scene_dpc, "pension-lab": scene_pension, "tsfm": scene_tsfm, "world-shock-lab": scene_wsl, "aurvane": scene_aurvane}
+TINT = {"deep-portfolio-constructor": "ice", "pension-lab": "amber", "tsfm": "violet", "world-shock-lab": "teal", "aurvane": "rose"}
 # The site tells the four projects as one long voyage: what each machine is for, in a word anyone knows.
-ROLE = {"deep-portfolio-constructor": "The engine", "tsfm": "The navigator", "world-shock-lab": "The weather station", "aurvane": "The shield"}
+ROLE = {"deep-portfolio-constructor": "The engine", "pension-lab": "The promise", "tsfm": "The navigator", "world-shock-lab": "The weather station", "aurvane": "The shield"}
 
 
 def story(P: dict, pid: str, href: str) -> str:

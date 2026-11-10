@@ -50,6 +50,14 @@ def glyph(pid: str) -> str:
                 f'<circle cx="118" cy="84" r="5" fill="{ACCENT}"/>'
                 f'<circle cx="118" cy="84" r="14" fill="none" stroke="{ACCENT}" stroke-width="2"/>'
                 f'<circle cx="118" cy="84" r="24" fill="none" stroke="{ACCENT}" stroke-opacity="0.5" stroke-width="1.5"/>')
+    if pid == "pension-lab":  # a plan's funded ratio fanning out over the years, against the line it has to reach
+        top = [(52 + i * 9.6, 118 - i * 5.4 - 1.2 * math.sin(i * 1.3)) for i in range(11)]
+        low = [(52 + i * 9.6, 118 + i * 2.6 + 1.2 * math.sin(i * 1.7)) for i in range(11)]
+        mid = [(52 + i * 9.6, 118 - i * 2.2) for i in range(11)]
+        return (f'<polygon points="{_poly(top + low[::-1])}" fill="{ACCENT}" fill-opacity="0.2"/>'
+                f'<line x1="48" y1="90" x2="152" y2="90" stroke="{INK}" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="5 5"/>'
+                f'<polyline points="{_poly(mid)}" fill="none" stroke="{INK}" stroke-width="3"/>'
+                f'<circle cx="52" cy="118" r="5" fill="{ACCENT}"/>')
     if pid == "aurvane":  # a shield with a check: signed, bounded actions
         return (f'<path d="M100 54 L136 68 V98 C136 122 120 140 100 148 C80 140 64 122 64 98 V68 Z" fill="none" stroke="{INK}" stroke-width="3"/>'
                 f'<path d="M84 100 L97 113 L119 89" fill="none" stroke="{ACCENT}" stroke-width="4" stroke-linecap="square"/>')
