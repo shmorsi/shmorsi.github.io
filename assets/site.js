@@ -1038,3 +1038,673 @@
 
   reveal(document);
 })();
+
+/* ---- Atmosphere: the living field, scroll-driven type and stories, responsive surfaces. ------
+   Pure decoration layered on the page above. Every moving part is a function of the scroll
+   position, so nothing waits on a timer: stop scrolling and the page stops with you. It adds the
+   "fx" class only when the reader allows motion, each piece fails on its own without touching the
+   content, and under prefers-reduced-motion the background draws one still frame and the stories
+   stay as plain text beside finished pictures. */
+(() => {
+  const html = document.documentElement;
+  const body = document.body;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const wide = () => window.innerWidth > 900;
+  const isHome = !!document.querySelector(".hero");
+  const safe = (fn) => { try { fn(); } catch (err) { /* decoration only: never break the page */ } };
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const seg = (v, a, b) => clamp((v - a) / (b - a));
+  const ease = (t) => 1 - Math.pow(1 - t, 3);
+  const inOut = (t) => t * t * (3 - 2 * t);
+  const el = (tag, cls, parent) => { const n = document.createElement(tag); if (cls) n.className = cls; if (parent) parent.append(n); return n; };
+  const docTop = (n) => { let y = 0; while (n) { y += n.offsetTop; n = n.offsetParent; } return y; };
+  if (!reduced) html.classList.add("fx");
+
+  /* One clock for everything that moves, and one place that re-measures the layout. */
+  const tasks = [];
+  const measures = [];
+  const remeasure = () => measures.forEach((fn) => safe(fn));
+  let last = performance.now();
+  let scrollV = 0, lastY = window.scrollY, vh = window.innerHeight;
+  const frame = (now) => {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    const y = window.scrollY;
+    scrollV += ((y - lastY) / Math.max(dt, 0.001) - scrollV) * 0.12;
+    lastY = y;
+    for (const fn of tasks) fn(dt, now / 1000);
+    requestAnimationFrame(frame);
+  };
+  const startClock = () => {
+    remeasure();
+    window.addEventListener("resize", () => { vh = window.innerHeight; remeasure(); });
+    document.fonts?.ready.then(remeasure);
+    window.addEventListener("load", remeasure);
+    if ("ResizeObserver" in window) {
+      let queued = false;
+      new ResizeObserver(() => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; remeasure(); }); } }).observe(body);
+    }
+    if (!reduced) requestAnimationFrame(frame);
+  };
+
+  const pointer = { x: window.innerWidth * 0.62, y: window.innerHeight * 0.4, active: false };
+  window.addEventListener("pointermove", (e) => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; }, { passive: true });
+
+  /* ---- Smooth wheel: the page glides to where the wheel sends it, at the reader's pace. ------- */
+  safe(() => {
+    if (reduced || !finePointer) return;
+    let target = window.scrollY, cur = target, active = false;
+    const max = () => document.documentElement.scrollHeight - window.innerHeight;
+    const ownScroll = (n) => {
+      for (; n && n.nodeType === 1 && n !== body && n !== html; n = n.parentElement) {
+        const s = getComputedStyle(n);
+        if (/(auto|scroll)/.test(s.overflowY) && n.scrollHeight > n.clientHeight + 1) return true;
+      }
+      return false;
+    };
+    window.addEventListener("wheel", (e) => {
+      if (e.ctrlKey || e.defaultPrevented || Math.abs(e.deltaX) > Math.abs(e.deltaY) || body.style.overflow === "hidden" || ownScroll(e.target)) return;
+      e.preventDefault();
+      const d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1);
+      if (!active) target = cur = window.scrollY;
+      target = clamp(target + d, 0, max());
+      active = true;
+    }, { passive: false });
+    const stop = () => { active = false; };
+    window.addEventListener("keydown", stop);
+    window.addEventListener("pointerdown", stop);
+    window.addEventListener("scroll", () => { if (!active) target = cur = window.scrollY; }, { passive: true });
+    tasks.push((dt) => {
+      if (!active) return;
+      cur += (target - cur) * (1 - Math.pow(1 - 0.1, dt * 60));
+      if (Math.abs(target - cur) < 0.5) { cur = target; active = false; }
+      window.scrollTo({ top: cur, behavior: "instant" });
+    });
+  });
+
+  /* ---- The field: domain-warped noise tinted by the chapter you are reading. ---------------- */
+  const tints = { ice: [0.30, 0.56, 1.0], violet: [0.58, 0.40, 1.0], amber: [1.0, 0.62, 0.26], teal: [0.25, 0.86, 0.74] };
+  const field = { tint: tints.ice.slice(), want: tints.ice };
+  safe(() => {
+    const canvas = el("canvas", "fx-field");
+    canvas.setAttribute("aria-hidden", "true");
+    const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, powerPreference: "low-power" });
+    if (!gl) return;
+    body.prepend(canvas);
+    const vs = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
+    const fs = `precision mediump float;
+uniform vec2 r;uniform float t;uniform vec2 m;uniform float s;uniform float L;uniform vec3 tint;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
+void main(){
+  float k=min(r.x,r.y);
+  vec2 p=(gl_FragCoord.xy-.5*r)/k;
+  vec2 mp=(m-.5*r)/k;
+  p.y-=s*.35;
+  float T=t*.035+s*.25;
+  vec2 q=vec2(fbm(p*1.3+vec2(T,-T*.6)),fbm(p*1.3+vec2(5.2,1.3)-T));
+  vec2 w=vec2(fbm(p*1.1+2.2*q+vec2(1.7,9.2)+T*1.2),fbm(p*1.1+2.2*q+vec2(8.3,2.8)-T*.8));
+  p+=(mp-p)*.06*exp(-1.6*length(p-mp));
+  float f=fbm(p*.9+2.6*w);
+  float md=exp(-2.4*length(p-mp));
+  vec3 vio=vec3(.50,.36,1.),amb=vec3(1.,.66,.28);
+  float band=smoothstep(.42,.95,f);
+  vec3 col=tint*band*.62;
+  col+=mix(vio,tint,.35)*smoothstep(.5,1.1,length(w))*.5*band;
+  col+=amb*md*md*.14*band;
+  col+=tint*md*.08;
+  vec2 uv=gl_FragCoord.xy/r;
+  float vig=smoothstep(1.35,.1,length((uv-vec2(.6,.62))*vec2(1.,1.2)));
+  col*=vig;
+  col=pow(col,vec3(1.35))*.95;
+  if(L>.5){
+    vec3 base=vec3(.984,.984,.992);
+    col=base-vec3(col.r*.55+col.g*.25,col.g*.5,col.b*.18)*1.1;
+  }
+  col+=(h(gl_FragCoord.xy+t)-.5)/255.;
+  gl_FragColor=vec4(col,1.);
+}`;
+    const sh = (type, src) => { const x = gl.createShader(type); gl.shaderSource(x, src); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { canvas.remove(); return; }
+    gl.useProgram(prog);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "a");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const U = (name) => gl.getUniformLocation(prog, name);
+    const uR = U("r"), uT = U("t"), uM = U("m"), uS = U("s"), uL = U("L"), uTint = U("tint");
+    const scale = 0.4;
+    let W = 0, H = 0;
+    const size = () => {
+      W = Math.max(2, Math.round(window.innerWidth * scale));
+      H = Math.max(2, Math.round(window.innerHeight * scale));
+      canvas.width = W; canvas.height = H;
+      gl.viewport(0, 0, W, H);
+    };
+    size();
+    const mouse = { x: W * 0.62, y: H * 0.6 };
+    let acc = 0;
+    const draw = (time) => {
+      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      mouse.x += (pointer.x * scale - mouse.x) * 0.05;
+      mouse.y += ((window.innerHeight - pointer.y) * scale - mouse.y) * 0.05;
+      for (let i = 0; i < 3; i++) field.tint[i] += (field.want[i] - field.tint[i]) * 0.04;
+      gl.uniform2f(uR, W, H);
+      gl.uniform1f(uT, time);
+      gl.uniform2f(uM, mouse.x, mouse.y);
+      gl.uniform1f(uS, (window.scrollY / max) * 3.0);
+      gl.uniform1f(uL, html.dataset.theme === "light" ? 1 : 0);
+      gl.uniform3f(uTint, field.tint[0], field.tint[1], field.tint[2]);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    };
+    window.addEventListener("resize", () => { size(); if (reduced) draw(20); });
+    new MutationObserver(() => { if (reduced) draw(20); }).observe(html, { attributes: true, attributeFilter: ["data-theme"] });
+    draw(reduced ? 20 : 0);
+    requestAnimationFrame(() => canvas.classList.add("is-on"));
+    if (reduced) return;
+    tasks.push((dt, t) => {
+      if (document.hidden) return;
+      acc += dt;
+      if (acc < 1 / 40) return; /* 40 frames a second is plenty for a slow field */
+      acc = 0;
+      draw(t);
+    });
+  });
+
+  if (reduced) { startClock(); return; }
+
+  /* ---- Grain, scroll progress, and a header that steps aside while you read down. ------------ */
+  safe(() => {
+    el("div", "fx-grain", body).setAttribute("aria-hidden", "true");
+    const bar = el("div", "fx-progress", body);
+    bar.setAttribute("aria-hidden", "true");
+    const header = document.querySelector(".site-header");
+    const nav = document.querySelector("[data-site-nav]");
+    let dir = 0, lastP = -1;
+    tasks.push(() => {
+      const max = Math.max(1, document.documentElement.scrollHeight - vh);
+      const p = Math.round((window.scrollY / max) * 1000) / 1000;
+      if (p !== lastP) { bar.style.setProperty("--p", p); lastP = p; }
+      if (isHome && header) {
+        if (Math.abs(scrollV) > 40) dir = Math.sign(scrollV);
+        header.classList.toggle("is-tucked", dir > 0 && window.scrollY > vh * 0.6 && !nav?.classList.contains("open") && !header.matches(":focus-within"));
+      }
+    });
+  });
+
+  /* A little helper: write a CSS variable only when its value really changed. */
+  const setVar = (node, name, value, digits = 3) => {
+    const v = value.toFixed(digits);
+    if (node["_" + name] !== v) { node["_" + name] = v; node.style.setProperty(name, v); }
+  };
+
+  /* ---- Titles split into characters whose rise is tied to the scroll. ------------------------ */
+  const splitText = (node) => {
+    if (node.dataset.split || node.children.length) return false;
+    const text = node.textContent.trim();
+    if (!text) return false;
+    node.dataset.split = "1";
+    const sr = el("span", "visually-hidden");
+    sr.textContent = text;
+    const vis = el("span", "fx-split");
+    vis.setAttribute("aria-hidden", "true");
+    let i = 0;
+    text.split(/(\s+)/).forEach((part) => {
+      if (!part) return;
+      if (/^\s+$/.test(part)) { vis.append(document.createTextNode(" ")); return; }
+      const word = el("span", "w", vis);
+      for (const ch of part) { const c = el("span", "ch", word); c.textContent = ch; c.style.setProperty("--i", i++); }
+    });
+    vis.style.setProperty("--n", Math.max(1, i - 1));
+    node.replaceChildren(sr, vis);
+    return true;
+  };
+
+  safe(() => {
+    const heads = [...document.querySelectorAll(".section-head h2, .contact h2, .cs-hero h1, .st-title")].filter(splitText)
+      .map((n) => ({ n, top: 0 }));
+    measures.push(() => heads.forEach((h) => { h.top = docTop(h.n); }));
+    tasks.push(() => {
+      const y = window.scrollY;
+      heads.forEach((h) => {
+        const rel = h.top - y;
+        if (rel > vh * 1.2 || rel < -vh) return;
+        setVar(h.n, "--r", clamp((vh * 0.98 - rel) / (vh * 0.42)));
+      });
+    });
+  });
+
+  /* ---- The hero: the name is there at once, then leaves letter by letter as you scroll. ------ */
+  safe(() => {
+    const hero = document.querySelector(".hero");
+    const h1 = hero?.querySelector("h1");
+    if (!hero || !h1) return;
+    splitText(h1);
+    const copy = [...hero.querySelectorAll(".hero-copy > :not(h1)")];
+    const viz = hero.querySelector(".hero-stage");
+    let hh = 1;
+    measures.push(() => { hh = hero.offsetHeight; });
+    tasks.push(() => {
+      const p = clamp(window.scrollY / (hh * 1.1));
+      if (p > 1 && h1._done) return;
+      h1._done = p >= 1;
+      setVar(h1, "--hx", p);
+      copy.forEach((c, i) => {
+        const q = clamp(p * 1.6 - i * 0.12);
+        c.style.opacity = (1 - q).toFixed(3);
+        c.style.transform = q ? `translate3d(0, ${(-q * 50).toFixed(1)}px, 0)` : "";
+      });
+      if (viz) {
+        viz.style.opacity = (1 - clamp(p * 1.3)).toFixed(3);
+        viz.style.transform = p ? `translate3d(0, ${(p * 90).toFixed(1)}px, 0) scale(${(1 - p * 0.14).toFixed(3)})` : "";
+      }
+    });
+
+    /* Kinetic name: letters thicken and light up where the pointer goes. */
+    if (!finePointer) return;
+    const chars = [...h1.querySelectorAll(".ch")];
+    const f = chars.map(() => 0);
+    let rects = [];
+    const measureChars = () => { rects = chars.map((c) => { const r = c.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2 + window.scrollY, r.height]; }); };
+    setTimeout(measureChars, 1000); /* after the name has landed */
+    measures.push(measureChars);
+    tasks.push(() => {
+      if (!wide() || window.scrollY > vh || !rects.length) return;
+      chars.forEach((c, i) => {
+        const [cx, cy, h] = rects[i];
+        const d = Math.hypot(pointer.x - cx, (pointer.y - (cy - window.scrollY)) * 1.4);
+        const want = pointer.active ? Math.exp(-(d * d) / (2 * Math.pow(h * 0.9, 2))) : 0;
+        const next = f[i] + (want - f[i]) * 0.16;
+        if (Math.abs(next - f[i]) > 0.002) { f[i] = next; c.style.setProperty("--f", next.toFixed(3)); }
+      });
+    });
+  });
+
+  /* ---- Telemetry figures count up to their exact published text, straight away. ------------- */
+  safe(() => {
+    document.querySelectorAll(".telemetry .fig").forEach((node, k) => {
+      const final = node.textContent;
+      const m = final.match(/([−-]?)(\d[\d,]*)(\.\d+)?/);
+      if (!m) return;
+      const target = parseFloat((m[2] + (m[3] || "")).replace(/,/g, ""));
+      const decimals = m[3] ? m[3].length - 1 : 0;
+      const fmt = (v) => {
+        let s = v.toFixed(decimals);
+        if (m[2].includes(",")) { const [a, b] = s.split("."); s = a.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (b ? "." + b : ""); }
+        return final.slice(0, m.index) + m[1] + s + final.slice(m.index + m[0].length);
+      };
+      node.setAttribute("aria-label", final);
+      const start = performance.now() + k * 70, dur = 1300;
+      const step = (now) => {
+        const q = clamp((now - start) / dur);
+        node.textContent = q < 1 ? fmt(target * ease(q)) : final;
+        if (q < 1) requestAnimationFrame(step); else node.removeAttribute("aria-label");
+      };
+      requestAnimationFrame(step);
+    });
+  });
+
+  /* ---- Blocks rise into place with the scroll; rows of siblings arrive one after another. ---- */
+  safe(() => {
+    const groups = [".rules", ".toolkit", ".certs-block", ".facts", ".pipeline", ".cards"];
+    const items = [];
+    const add = (n, idx) => items.push({ n, idx, top: 0, done: false });
+    document.querySelectorAll("[data-reveal]").forEach((n) => {
+      if (n.closest(".hero")) return;
+      const host = groups.find((g) => n.matches(g));
+      if (host) [...n.querySelectorAll(":scope > li, :scope > article, :scope > div, :scope .certs > article")].forEach((c, i) => add(c, i));
+      else add(n, n.matches(".card") ? [...n.parentElement.children].indexOf(n) : 0);
+    });
+    document.querySelectorAll(".facts > div, .pipeline > li, .split > *").forEach((n, i) => add(n, n.parentElement.matches(".facts, .pipeline") ? [...n.parentElement.children].indexOf(n) : 0));
+    const roles = [...document.querySelectorAll(".role")];
+    measures.push(() => items.forEach((it) => { it.top = docTop(it.n); }));
+    tasks.push(() => {
+      const y = window.scrollY;
+      const atEnd = y >= document.documentElement.scrollHeight - vh - 4;
+      items.forEach((it) => {
+        const rel = it.top - y;
+        let r = atEnd ? 1 : clamp((vh * 1.02 - rel - it.idx * vh * 0.045) / (vh * 0.3));
+        if (r >= 1) {
+          if (!it.done) { it.done = true; it.n.style.opacity = ""; it.n.style.transform = ""; }
+          return;
+        }
+        it.done = false;
+        const e = ease(r);
+        it.n.style.opacity = e.toFixed(3);
+        it.n.style.transform = `translate3d(0, ${((1 - e) * 70).toFixed(1)}px, 0) scale(${(0.965 + 0.035 * e).toFixed(4)})`;
+      });
+      roles.forEach((n) => {
+        const rel = n.getBoundingClientRect().top;
+        setVar(n, "--line-p", clamp((vh * 0.95 - rel) / (vh * 0.5)));
+      });
+    });
+  });
+
+  /* ---- The statement lights up word by word. ------------------------------------------------- */
+  safe(() => {
+    const st = document.querySelector("[data-statement]");
+    if (!st) return;
+    const words = [...st.querySelectorAll(".sw")];
+    words.forEach((w, i) => w.style.setProperty("--i", i));
+    st.style.setProperty("--n", words.length);
+    let top = 0, h = 1;
+    measures.push(() => { top = docTop(st); h = st.offsetHeight; });
+    tasks.push(() => {
+      const rel = top - window.scrollY;
+      if (rel > vh * 1.2 || rel + h < -vh) return;
+      setVar(st, "--r", clamp((vh * 0.88 - rel) / (h + vh * 0.32)), 4);
+    });
+  });
+
+  /* ---- Stories: each chapter holds the screen while its steps and picture play out. ---------- */
+  const fmtMoney = (v) => "$" + (v >= 10 ? Math.round(v).toLocaleString("en-US") : v.toFixed(2));
+  const lenOf = (n) => { if (!n._len) n._len = n.getTotalLength(); return n._len; };
+  const drawLine = (n, d) => {
+    const L = lenOf(n);
+    if (!n._dash) { n.style.strokeDasharray = `${L} ${L}`; n._dash = true; }
+    n.style.strokeDashoffset = (L * (1 - d)).toFixed(1);
+  };
+  const show = (n, o, transform) => {
+    if (!n) return;
+    const v = o.toFixed(3);
+    if (n._o !== v) { n._o = v; n.style.opacity = v; n.style.visibility = o <= 0.001 ? "hidden" : ""; }
+    if (transform !== undefined) n.style.transform = transform;
+  };
+  const finals = new WeakMap();
+  const finalOf = (n) => { if (!finals.has(n)) finals.set(n, n.textContent); return finals.get(n); };
+  const setText = (n, text) => { if (n && n._t !== text) { n._t = text; n.textContent = text; } };
+
+  const SCENES = {
+    dpc(svg) {
+      const L = (k) => svg.querySelector(`[data-layer="${k}"]`);
+      const coin = L("coin"), bars = L("bars"), chart = L("chart"), verdict = L("verdict");
+      const barEls = [...bars.querySelectorAll(".sc-bar")];
+      const [mLine, dLine] = chart.querySelectorAll("[data-draw]");
+      const head = chart.querySelector("[data-head]");
+      const year = chart.querySelector("[data-year]");
+      const [dVal, mVal] = chart.querySelectorAll("[data-bind]");
+      const data = JSON.parse(svg.dataset.series);
+      const N = data.deep.length;
+      return (s) => {
+        show(coin, 1 - seg(s, 0.55, 0.95), `scale(${(1 - 0.35 * seg(s, 0.45, 0.95)).toFixed(3)})`);
+        show(bars, seg(s, 0.7, 1.0) * (1 - seg(s, 1.75, 2.05)));
+        barEls.forEach((b, k) => { b.style.transform = `scaleY(${ease(seg(s, 0.75 + k * 0.014, 1.2 + k * 0.014)).toFixed(3)})`; });
+        show(chart, seg(s, 1.85, 2.15));
+        const d = inOut(seg(s, 2.0, 3.35));
+        drawLine(mLine, d);
+        drawLine(dLine, d);
+        const pt = dLine.getPointAtLength(lenOf(dLine) * d);
+        head.setAttribute("cx", pt.x.toFixed(1));
+        head.setAttribute("cy", pt.y.toFixed(1));
+        const i = Math.round(d * (N - 1));
+        setText(year, String(data.year[i]));
+        setText(dVal, d >= 1 ? finalOf(dVal) : fmtMoney(data.deep[i]));
+        setText(mVal, d >= 1 ? finalOf(mVal) : fmtMoney(data.market[i]));
+        show(verdict, seg(s, 3.2, 3.5));
+      };
+    },
+    tsfm(svg) {
+      const L = (k) => svg.querySelector(`[data-layer="${k}"]`);
+      const many = L("many"), fan = L("fan"), audit = L("audit"), result = L("result");
+      const sparks = [...many.querySelectorAll(".sc-spark")].map((n) => { const b = n.getBBox(); return { n, dx: 300 - (b.x + b.width / 2), dy: 200 - (b.y + b.height / 2) }; });
+      const hist = fan.querySelector("[data-draw]"), fut = fan.querySelector("[data-draw2]"), poly = fan.querySelector("[data-fan]");
+      const scan = audit.querySelector("[data-scan]");
+      const squares = [...audit.querySelectorAll(".sc-sq")].map((n) => ({ n, x: +n.getAttribute("x") }));
+      const removed = audit.querySelector('[data-bind$="flagged.display"]');
+      const [g1, g2] = result.querySelectorAll("[data-grow]");
+      const big = result.querySelector("[data-bind]");
+      const target = parseFloat(finalOf(big));
+      const removedN = parseInt(finalOf(removed).replace(/,/g, ""), 10);
+      return (s) => {
+        show(many, 1 - seg(s, 0.8, 1.05));
+        const m = ease(seg(s, 0.3, 0.95)) * 0.85;
+        sparks.forEach((p, k) => { p.n.style.transform = `translate(${(p.dx * m).toFixed(1)}px, ${(p.dy * m).toFixed(1)}px)`; p.n.style.opacity = (0.75 * (1 - m * 0.6)).toFixed(3); });
+        show(fan, seg(s, 0.9, 1.15) * (1 - seg(s, 1.85, 2.1)));
+        drawLine(hist, inOut(seg(s, 0.95, 1.45)));
+        drawLine(fut, inOut(seg(s, 1.4, 1.7)));
+        show(poly, seg(s, 1.4, 1.8));
+        show(audit, seg(s, 1.9, 2.15) * (1 - seg(s, 2.85, 3.1)));
+        const a = seg(s, 2.05, 2.75);
+        const sx = 40 + 520 * a;
+        scan.setAttribute("x1", sx.toFixed(1)); scan.setAttribute("x2", sx.toFixed(1));
+        squares.forEach((q) => q.n.classList.toggle("is-on", q.x + 17 < sx));
+        setText(removed, a >= 1 ? finalOf(removed) : Math.round(removedN * a).toLocaleString("en-US"));
+        show(result, seg(s, 2.9, 3.15));
+        g1.style.transform = `scaleX(${ease(seg(s, 3.0, 3.4)).toFixed(3)})`;
+        const g = ease(seg(s, 3.15, 3.7));
+        g2.style.transform = `scaleX(${g.toFixed(3)})`;
+        setText(big, g >= 1 ? finalOf(big) : (g * target).toFixed(3) + "×");
+      };
+    },
+    wsl(svg) {
+      const L = (k) => svg.querySelector(`[data-layer="${k}"]`);
+      const ripple = L("ripple"), tsx = L("tsx"), record = L("record");
+      const ring = ripple.querySelector("[data-ring]"), ring2 = ripple.querySelector("[data-ring2]");
+      const core = ripple.querySelector(".sc-core");
+      const dots = [...ripple.querySelectorAll(".sc-dot")].map((n) => ({ n, r: +n.dataset.r }));
+      const band = tsx.querySelector("[data-grow]");
+      const big = tsx.querySelector("[data-bind]");
+      const target = parseFloat(finalOf(big).replace("−", "-"));
+      const runner = record.querySelector("[data-grow]");
+      return (s) => {
+        const pulse = 1 + 0.12 * Math.sin(s * Math.PI * 5) * (1 - seg(s, 0.8, 1.1));
+        core.style.transform = `scale(${pulse.toFixed(3)})`;
+        const rr = 210 * inOut(seg(s, 0.95, 1.85));
+        const rr2 = 210 * inOut(seg(s, 1.1, 2.0));
+        const fade = 1 - seg(s, 1.8, 2.05);
+        [[ring, rr, fade], [ring2, rr2, fade * 0.7]].forEach(([n, r, o]) => {
+          n.setAttribute("rx", r.toFixed(1)); n.setAttribute("ry", (r * 0.82).toFixed(1));
+          n.style.opacity = r > 2 ? o.toFixed(3) : "0";
+        });
+        dots.forEach((d) => d.n.classList.toggle("is-lit", rr >= d.r - 4 || s >= 2));
+        setVar(ripple, "--dim", seg(s, 2.0, 2.3) * (1 - seg(s, 3.0, 3.3) * 0.5));
+        show(tsx, seg(s, 2.0, 2.3));
+        const g = ease(seg(s, 2.2, 2.75));
+        band.style.transform = `scaleX(${g.toFixed(3)})`;
+        setText(big, g >= 1 ? finalOf(big) : (g * target).toFixed(2).replace("-", "−") + "%");
+        show(record, seg(s, 2.95, 3.2));
+        runner.style.transform = `scaleX(${inOut(seg(s, 3.05, 3.7)).toFixed(3)})`;
+      };
+    },
+    aurvane(svg) {
+      const L = (k) => svg.querySelector(`[data-layer="${k}"]`);
+      const msg = L("msg"), slip = L("slip"), attacks = L("attacks");
+      const typed = msg.querySelector("[data-type]");
+      const text = typed.dataset.type;
+      const rows = [...slip.querySelectorAll(".sc-row")];
+      const seal = slip.querySelector(".sc-seal"), sealT = slip.querySelector(".sc-seal-t");
+      const sq = [...attacks.querySelectorAll(".sc-atk")].map((n) => ({ n, x: +n.getAttribute("x"), kept: n.classList.contains("is-kept") }));
+      const scan = attacks.querySelector("[data-scan]");
+      const [count, loss] = attacks.querySelectorAll("[data-bind]");
+      const cap = attacks.querySelector(".sc-cap");
+      const total = sq.length;
+      svg.querySelectorAll(".is-kept").forEach((n) => n.classList.remove("is-kept"));
+      return (s) => {
+        show(msg, 1 - seg(s, 0.85, 1.05));
+        const nType = Math.round(text.length * seg(s, 0.05, 0.75));
+        setText(typed, text.slice(0, nType) + (nType < text.length ? "▍" : ""));
+        show(slip, seg(s, 0.95, 1.2) * (1 - seg(s, 1.85, 2.05)));
+        rows.forEach((r, k) => { r.style.opacity = seg(s, 1.1 + k * 0.14, 1.3 + k * 0.14).toFixed(3); });
+        const sk = ease(seg(s, 1.5, 1.72));
+        seal.style.transform = sealT.style.transform = `scale(${sk.toFixed(3)})`;
+        show(attacks, seg(s, 1.9, 2.1));
+        const a = seg(s, 2.05, 2.8), g = seg(s, 3.0, 3.75);
+        const landed = Math.round(total * a);
+        const sx = 70 + 480 * g;
+        scan.setAttribute("x1", sx.toFixed(1)); scan.setAttribute("x2", sx.toFixed(1));
+        scan.style.opacity = g > 0 && g < 1 ? "1" : "0";
+        let worked = 0;
+        sq.forEach((q, k) => {
+          const blocked = g > 0 && !q.kept && q.x + 18 < sx;
+          const isLanded = k < landed && !blocked;
+          q.n.classList.toggle("is-landed", isLanded);
+          q.n.classList.toggle("is-blocked", blocked);
+          if (isLanded) worked++;
+        });
+        cap.textContent = g >= 0.5 ? "Attacks that worked, with Aurvane" : "Attacks that worked, without Aurvane";
+        setText(count, g >= 1 ? finalOf(count) : `${worked} of ${total}`);
+        const lossFrom = 12135, lossTo = parseInt(finalOf(loss).replace(/,/g, ""), 10);
+        const money = g > 0 ? lossFrom + (lossTo - lossFrom) * g : lossFrom * a;
+        setText(loss, g >= 1 ? finalOf(loss) : `${Math.round(money).toLocaleString("en-US")} CAD`);
+      };
+    },
+  };
+
+  safe(() => {
+    const storyEls = [...document.querySelectorAll("[data-story]")];
+    if (!storyEls.length) return;
+    const pinned = () => getComputedStyle(storyEls[0].querySelector(".story-stage")).position === "sticky";
+    const list = storyEls.map((st) => {
+      const svg = st.querySelector(".scene");
+      svg.querySelectorAll("[data-bind]").forEach(finalOf); /* remember each published figure before counting to it */
+      let run = null;
+      safe(() => { run = SCENES[svg.dataset.scene](svg); svg.classList.add("is-live"); });
+      const steps = [...st.querySelectorAll(".st-step")];
+      const tabs = [...st.querySelectorAll("[data-step-go]")];
+      const bar = st.querySelector(".st-bar i");
+      const num = st.querySelector(".st-num");
+      const item = { st, run, steps, tabs, bar, num, n: steps.length, top: 0, h: 1, lastS: null };
+      tabs.forEach((b, i) => b.addEventListener("click", () => {
+        const span = item.h - vh;
+        window.scrollTo({ top: item.top + span * ((i + (i ? 0.45 : 0.05)) / item.n), behavior: "smooth" });
+      }));
+      return item;
+    });
+    measures.push(() => list.forEach((it) => { it.top = docTop(it.st); it.h = it.st.offsetHeight; it.lastS = null; }));
+    tasks.push(() => {
+      const y = window.scrollY;
+      let tint = null;
+      const isPinned = pinned();
+      list.forEach((it) => {
+        if (y + vh * 0.5 >= it.top && y + vh * 0.5 < it.top + it.h) tint = it.st.dataset.tint;
+        if (y + vh < it.top - vh * 0.2 || y > it.top + it.h + vh * 0.2) return;
+        const span = Math.max(1, it.h - vh);
+        const p = isPinned ? clamp((y - it.top) / span) : 1;
+        const s = p * it.n;
+        if (it.lastS !== null && Math.abs(it.lastS - s) < 0.0005) return;
+        it.lastS = s;
+        if (it.run) it.run(s);
+        if (it.bar) it.bar.style.setProperty("--p", p.toFixed(4));
+        if (it.num) it.num.style.transform = `translate3d(0, ${((0.5 - p) * 60).toFixed(1)}px, 0)`;
+        const active = Math.min(it.n - 1, Math.floor(s));
+        it.tabs.forEach((b, i) => {
+          b.style.setProperty("--t", clamp(s - i).toFixed(3));
+          if (i === active) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+        });
+        if (!isPinned) return;
+        it.steps.forEach((node, i) => {
+          const local = s - i;
+          const enter = i === 0 ? 1 : inOut(clamp((local + 0.12) / 0.24));
+          const leave = i === it.n - 1 ? 1 : inOut(clamp((1.12 - local) / 0.24));
+          const o = Math.min(enter, leave);
+          show(node, o, `translate3d(0, ${((1 - enter) * 46 - (1 - leave) * 46).toFixed(1)}px, 0)`);
+        });
+      });
+      field.want = tints[tint] || tints.ice;
+    });
+  });
+
+  /* ---- Marquee: drifts on its own, runs with the scroll and leans into it. ------------------- */
+  safe(() => {
+    const track = document.querySelector("[data-marquee]");
+    if (!track) return;
+    let x = 0, skew = 0, dir = -1, width = 0;
+    measures.push(() => { width = track.firstElementChild.getBoundingClientRect().width; });
+    tasks.push((dt) => {
+      if (!width) return;
+      if (Math.abs(scrollV) > 30) dir = scrollV > 0 ? -1 : 1;
+      x += dir * (60 + Math.min(1600, Math.abs(scrollV)) * 0.45) * dt;
+      x = ((x % width) - width) % width;
+      skew += (clamp(-scrollV * 0.004, -10, 10) - skew) * 0.1;
+      track.style.transform = `translate3d(${x.toFixed(2)}px,0,0) skewX(${skew.toFixed(2)}deg)`;
+    });
+  });
+
+  /* ---- The closing wordmark fills as the page ends, and is sized to its line. ---------------- */
+  safe(() => {
+    const giant = document.querySelector("[data-giant]");
+    if (!giant) return;
+    const line = giant.querySelector(".giant-line");
+    let startY = 0;
+    measures.push(() => {
+      giant.style.fontSize = "";
+      const avail = giant.clientWidth - parseFloat(getComputedStyle(giant).paddingLeft) * 2;
+      const now = line.getBoundingClientRect().width;
+      if (now > 0) giant.style.fontSize = `${(parseFloat(getComputedStyle(giant).fontSize) * avail / now * 0.99).toFixed(2)}px`;
+      startY = docTop(giant) - vh;
+    });
+    tasks.push(() => {
+      const y = window.scrollY;
+      const endY = Math.max(startY + 1, document.documentElement.scrollHeight - vh - 2);
+      setVar(giant, "--g", clamp((y - startY) / (endY - startY)), 4);
+    });
+  });
+
+  /* ---- Surfaces that answer the pointer: lit borders, tilting tiles, magnetic buttons. ------- */
+  if (finePointer) {
+    safe(() => {
+      const sel = ".card, .feature, .telemetry a, .rules li, .toolkit article, .certs article, .role, .facts div, .project-switch a, .plain";
+      document.querySelectorAll(sel).forEach((p) => { if (getComputedStyle(p).position === "static") p.style.position = "relative"; el("span", "fx-glow", p).setAttribute("aria-hidden", "true"); });
+      let lit = null;
+      document.addEventListener("pointermove", (e) => {
+        const p = e.target.closest?.(sel);
+        if (lit && lit !== p) { lit.classList.remove("is-lit"); if (lit.matches(".telemetry a")) { lit.style.removeProperty("--rx"); lit.style.removeProperty("--ry"); } }
+        lit = p;
+        if (!p) return;
+        const r = p.getBoundingClientRect();
+        const mx = e.clientX - r.left, my = e.clientY - r.top;
+        p.style.setProperty("--mx", `${mx}px`);
+        p.style.setProperty("--my", `${my}px`);
+        p.classList.add("is-lit");
+        if (p.matches(".telemetry a")) {
+          p.style.setProperty("--ry", `${((mx / r.width - 0.5) * 10).toFixed(2)}deg`);
+          p.style.setProperty("--rx", `${((0.5 - my / r.height) * 10).toFixed(2)}deg`);
+        }
+      }, { passive: true });
+    });
+    safe(() => {
+      document.querySelectorAll(".button, .nav-resume, .theme-toggle, .viz-pause").forEach((b) => {
+        b.addEventListener("pointermove", (e) => {
+          const r = b.getBoundingClientRect();
+          const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+          b.classList.add("is-magnet");
+          b.style.transform = `translate(${(dx * 0.22).toFixed(1)}px, ${(dy * 0.32).toFixed(1)}px)`;
+        });
+        b.addEventListener("pointerleave", () => { b.classList.remove("is-magnet"); b.style.transform = ""; });
+      });
+    });
+    safe(() => {
+      const ring = el("div", "fx-cursor", body);
+      const dot = el("div", "fx-dot", body);
+      ring.setAttribute("aria-hidden", "true");
+      dot.setAttribute("aria-hidden", "true");
+      let rx = pointer.x, ry = pointer.y;
+      document.addEventListener("pointerover", (e) => {
+        const t = e.target;
+        ring.classList.toggle("is-link", !!t.closest?.("a, button, summary, label, [role='button'], [data-lab] li, [data-attack] [role='radio']"));
+        ring.classList.toggle("is-fine", !!t.closest?.("canvas, input[type='range'], .lab-plot, .chart-track"));
+      });
+      document.addEventListener("pointerdown", () => ring.classList.add("is-down"));
+      document.addEventListener("pointerup", () => ring.classList.remove("is-down"));
+      html.addEventListener("pointerleave", () => html.classList.remove("fx-pointer"));
+      window.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse") html.classList.add("fx-pointer"); }, { passive: true });
+      tasks.push((dt) => {
+        const k = 1 - Math.pow(1 - 0.2, dt * 60);
+        rx += (pointer.x - rx) * k;
+        ry += (pointer.y - ry) * k;
+        ring.style.transform = `translate3d(${rx.toFixed(1)}px, ${ry.toFixed(1)}px, 0)`;
+        dot.style.transform = `translate3d(${pointer.x}px, ${pointer.y}px, 0)`;
+      });
+    });
+  }
+
+  startClock();
+})();

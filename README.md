@@ -50,9 +50,9 @@ The master page and the Deep Portfolio Constructor page are generated from `data
 ```sh
 python3 scripts/sync_dpc.py ../deep-portfolio-constructor/reports/site_wealth.json    # project figures, series and holdings, when they change
 python3 scripts/make_marks.py        # one project mark per project (assets/marks/)
-python3 scripts/build_home.py        # index.html, the master page
+python3 scripts/build_home.py        # index.html, the master page (with scripts/stories.py and scripts/plain.py)
 python3 scripts/build_dpc_page.py    # projects/deep-portfolio-constructor.html
-python3 scripts/sync_chrome.py       # header, footer, project label, previous / next links, private-repo notes
+python3 scripts/sync_chrome.py       # header, footer, project label, plain-English panel, previous / next links, private-repo notes
 python3 scripts/make_og.py           # share images (needs Playwright's Chromium)
 python3 scripts/check_site.py        # copy rules, figure binds, charts, pending slots, internal links
 ```
@@ -69,6 +69,11 @@ The look is a launch-control theme for a deep learning and markets portfolio: pu
 - **Project cards.** One chart grammar for every card: a reference line (zero or the baseline) and either bars or points with their intervals, drawn from the data at build time. World Shock Lab's card takes a Fed or Bank of Canada surprise of any size and scales the committed per-10 bp estimates and their 90% bands; Aurvane's card replays its 30 poisoned tasks with and without the guard.
 - **The portfolio page.** "Try it" is a two-asset growth toy (labelled as made-up numbers) that shows why the network is trained on the growth of wealth rather than on average return; "Inside the portfolio" scrubs through the network's real holdings against the market's, quarter by quarter since 1960; "How often to trade" switches the same trained network between daily, monthly, quarterly and yearly rebalancing; the results compare it with the S&P 500 (dividends reinvested) and the NASDAQ Composite.
 - **Plain English.** Jargon (Sharpe, the Kelly criterion, active share, CRPS, basis point, prompt injection and so on) has a dotted underline and a one-tap definition.
+
+- **Four projects, in plain English.** Right after the hero, a sentence lights up word by word as you scroll, then each project gets a pinned chapter: the screen holds while four short, jargon-free steps (the question, what it does, how it works, the honest result) play out with the scroll, and a picture beside them builds from the project's real results: the growth of $1 since 1960 drawn month by month, the forecast error against a standard method, a Fed surprise rippling across 53 markets, 30 attacks landing and then being stopped. The words live in `scripts/plain.py` (one source, also used for the "In plain English" panel at the top of each project page); the pictures are drawn by `scripts/stories.py` from `data/projects.json` and `data/dpc_wealth.json`, and every number in them is a data-bind.
+- **Motion that follows the scroll.** Nothing waits on a timer: titles rise letter by letter, blocks slide into place and figures count up as a function of the scroll position, so the page moves exactly as fast as the reader. The mouse wheel is smoothed. A slow WebGL field of domain-warped noise sits behind every page and takes on each chapter's colour; the hero name thickens and lights toward the pointer, then leaves letter by letter as you scroll; a toolkit marquee runs with the scroll; a closing wordmark fills as the page ends. Panels light up under the pointer, buttons lean toward it, and pages cross-fade.
+
+All of it lives at the end of `assets/site.css` and `assets/site.js` ("Atmosphere"). It is added only when the reader allows motion: under `prefers-reduced-motion` the field draws one still frame, the chapters lay out as plain text beside finished pictures, and nothing moves. Nothing is hidden if the script does not run.
 
 Every interactive piece is rendered as complete static HTML first by `scripts/lab.py`, so it reads correctly without JavaScript; `assets/site.js` then wires it up.
 

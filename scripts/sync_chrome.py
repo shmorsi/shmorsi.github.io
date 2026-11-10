@@ -20,6 +20,8 @@ import json
 import re
 from pathlib import Path
 
+import plain  # scripts/plain.py: each project in plain English
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "projects.json").read_text())
 PROJECTS = {p["id"]: p for p in DATA["projects"]}
@@ -134,6 +136,12 @@ def projectize(html: str, pid: str) -> str:
                       lambda m: meta, html, count=1, flags=re.S)
     if n != 1:
         raise SystemExit(f"{pid}: could not find the project label block")
+    # The "In plain English" panel sits right under the page title, from scripts/plain.py.
+    html = re.sub(r'\s*<section class="plain" data-plain.*?</section>', "", html, count=1, flags=re.S)
+    if pid in plain.PLAIN:
+        start = html.index('<header class="cs-hero')
+        h1 = html.index("</h1>", start) + len("</h1>")
+        html = html[:h1] + "\n      " + plain.panel(pid, p["stats"]) + html[h1:]
     if "data-subnav" not in html:
         start = html.index('<header class="cs-hero')
         end = html.index("</header>", start) + len("</header>")

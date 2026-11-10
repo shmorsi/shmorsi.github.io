@@ -19,6 +19,7 @@ import re
 from pathlib import Path
 
 import lab  # scripts/lab.py: the interactive pieces, rendered as static HTML first
+import stories  # scripts/stories.py: one pinned, plain-English chapter per project
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "projects.json").read_text())
@@ -257,6 +258,33 @@ TOOLKIT = [
 ]
 
 
+MARQUEE = ["PyTorch", "Transformers", "Portfolio construction", "Probabilistic forecasting",
+           "Differentiable simulation", "Event studies", "AI agents", "Pre-registered tests"]
+
+
+def marquee() -> str:
+    """A decorative band of the toolkit. aria-hidden: the same words are in the Approach section."""
+    items = "".join(f'<span class="mq-item{" is-outline" if i % 2 else ""}">{e(w)}</span><span class="mq-sep">✦</span>'
+                    for i, w in enumerate(MARQUEE))
+    return (f'<div class="marquee" aria-hidden="true"><div class="marquee-track" data-marquee>'
+            f'<div class="marquee-run">{items}</div><div class="marquee-run">{items}</div></div></div>')
+
+
+STATEMENT = ("I build AI for money: systems that *invest*, *forecast*, and keep *AI assistants* honest. "
+             "And I test them like a scientist. The test is written down before the result is seen, "
+             "and the result is published even when the answer is no.")
+
+
+def statement() -> str:
+    """A sentence that lights up word by word as the reader scrolls. *word* marks an accent."""
+    words = []
+    for w in STATEMENT.split():
+        hot = w.startswith("*")
+        clean = w.replace("*", "")
+        words.append(f'<span class="sw{" is-hot" if hot else ""}">{e(clean)}</span>')
+    return " ".join(words)
+
+
 def rules() -> str:
     return "".join(f'<li><span class="num">{i:02d}</span><h3>{e(t)}</h3><p>{e(d)}</p></li>' for i, (t, d) in enumerate(RULES, 1))
 
@@ -335,6 +363,7 @@ def page() -> str:
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-grid wrap">
         <div class="hero-copy">
+          <p class="hero-badge"><span class="pulse" aria-hidden="true"></span>Open to internships from January 2027</p>
           <p class="eyebrow">Computer Science · Concordia University · Montreal</p>
           <h1 id="hero-title">Sherif Morsi</h1>
           <p class="hero-lead">{tagline}</p>
@@ -363,12 +392,32 @@ def page() -> str:
       </div>
     </section>
 
-    <section class="section" id="work" aria-labelledby="work-title">
+    {marquee()}
+
+    <section class="section statement" aria-label="In short">
+      <div class="wrap">
+        <p class="label">In short</p>
+        <p class="statement-text" data-statement>{statement()}</p>
+      </div>
+    </section>
+
+    <section class="section stories" id="work" aria-labelledby="work-title">
       <div class="wrap">
         <div class="section-head" data-reveal>
           <p class="label">Work</p>
-          <h2 id="work-title">{words} projects</h2>
-          <p>Deep learning, markets and AI agents. Each project has its own page with the method, the results and the limits, including the results that did not work.</p>
+          <h2 id="work-title">{words} projects, in plain English</h2>
+          <p>What each one does, why it matters and what it found, in four short steps. Keep scrolling: each picture is built from the project's real results.</p>
+        </div>
+      </div>
+      {"".join(stories.story(P, pid, page_href(P[pid])) for pid in ORDER)}
+    </section>
+
+    <section class="section" id="explore" aria-labelledby="explore-title">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <p class="label">Explore</p>
+          <h2 id="explore-title">Try the results yourself</h2>
+          <p>The same {words.lower()} projects, hands-on. Pick an investing strategy, size a central-bank surprise, or switch the AI guard on and off. Every underlined word has a one-tap definition.</p>
         </div>
         {feature()}
         <ol class="cards">{"".join(card(i) for i in CARDS)}
@@ -463,6 +512,7 @@ def page() -> str:
           <div><dt>Also</dt><dd>QUARCC member. Arab Run Club Montreal. John Molson Book Club.</dd></div>
         </dl>
       </div>
+      <p class="giant" aria-hidden="true" data-giant><span class="giant-line">Sherif Morsi</span><span class="giant-fill">Sherif Morsi</span></p>
     </section>
   </main>
 
