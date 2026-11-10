@@ -257,6 +257,18 @@ TOOLKIT = [
 ]
 
 
+MARQUEE = ["PyTorch", "Transformers", "Portfolio construction", "Probabilistic forecasting",
+           "Differentiable simulation", "Event studies", "AI agents", "Pre-registered tests"]
+
+
+def marquee() -> str:
+    """A decorative band of the toolkit. aria-hidden: the same words are in the Approach section."""
+    items = "".join(f'<span class="mq-item{" is-outline" if i % 2 else ""}">{e(w)}</span><span class="mq-sep">✦</span>'
+                    for i, w in enumerate(MARQUEE))
+    return (f'<div class="marquee" aria-hidden="true"><div class="marquee-track" data-marquee>'
+            f'<div class="marquee-run">{items}</div><div class="marquee-run">{items}</div></div></div>')
+
+
 def rules() -> str:
     return "".join(f'<li><span class="num">{i:02d}</span><h3>{e(t)}</h3><p>{e(d)}</p></li>' for i, (t, d) in enumerate(RULES, 1))
 
@@ -335,6 +347,7 @@ def page() -> str:
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-grid wrap">
         <div class="hero-copy">
+          <p class="hero-badge"><span class="pulse" aria-hidden="true"></span>Open to internships from January 2027</p>
           <p class="eyebrow">Computer Science · Concordia University · Montreal</p>
           <h1 id="hero-title">Sherif Morsi</h1>
           <p class="hero-lead">{tagline}</p>
@@ -362,6 +375,8 @@ def page() -> str:
         </ol>
       </div>
     </section>
+
+    {marquee()}
 
     <section class="section" id="work" aria-labelledby="work-title">
       <div class="wrap">
@@ -463,6 +478,7 @@ def page() -> str:
           <div><dt>Also</dt><dd>QUARCC member. Arab Run Club Montreal. John Molson Book Club.</dd></div>
         </dl>
       </div>
+      <p class="giant" aria-hidden="true" data-giant><span class="giant-line">Sherif Morsi</span><span class="giant-fill">Sherif Morsi</span></p>
     </section>
   </main>
 

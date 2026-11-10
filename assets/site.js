@@ -1038,3 +1038,438 @@
 
   reveal(document);
 })();
+
+/* ---- Atmosphere: the living field, kinetic type, and surfaces that answer the pointer. --------
+   Pure decoration layered on top of the page above. It adds the "fx" class only when the reader
+   allows motion, every piece fails on its own without touching the content, and under
+   prefers-reduced-motion it draws one still frame of the background and nothing else moves. */
+(() => {
+  const html = document.documentElement;
+  const body = document.body;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const wide = () => window.innerWidth > 900;
+  const isHome = !!document.querySelector(".hero");
+  const safe = (fn) => { try { fn(); } catch (err) { /* decoration only: never break the page */ } };
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const el = (tag, cls, parent) => { const n = document.createElement(tag); if (cls) n.className = cls; if (parent) parent.append(n); return n; };
+  if (!reduced) html.classList.add("fx");
+
+  /* One clock for everything that moves. */
+  const tasks = new Set();
+  let last = performance.now();
+  let scrollV = 0, lastY = window.scrollY;
+  const frame = (now) => {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    const y = window.scrollY;
+    scrollV += ((y - lastY) / Math.max(dt, 0.001) - scrollV) * 0.12;
+    lastY = y;
+    tasks.forEach((fn) => fn(dt, now / 1000));
+    requestAnimationFrame(frame);
+  };
+  if (!reduced) requestAnimationFrame(frame);
+
+  const pointer = { x: window.innerWidth * 0.62, y: window.innerHeight * 0.4, active: false };
+  window.addEventListener("pointermove", (e) => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true; }, { passive: true });
+
+  /* ---- The field: domain-warped noise in ice blue and violet, drifting with time and scroll. -- */
+  safe(() => {
+    const canvas = el("canvas", "fx-field");
+    canvas.setAttribute("aria-hidden", "true");
+    const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, powerPreference: "low-power" });
+    if (!gl) return;
+    body.prepend(canvas);
+    const vs = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
+    const fs = `precision mediump float;
+uniform vec2 r;uniform float t;uniform vec2 m;uniform float s;uniform float L;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
+void main(){
+  float k=min(r.x,r.y);
+  vec2 p=(gl_FragCoord.xy-.5*r)/k;
+  vec2 mp=(m-.5*r)/k;
+  p.y-=s*.35;
+  float T=t*.035;
+  vec2 q=vec2(fbm(p*1.3+vec2(T,-T*.6)),fbm(p*1.3+vec2(5.2,1.3)-T));
+  vec2 w=vec2(fbm(p*1.1+2.2*q+vec2(1.7,9.2)+T*1.2),fbm(p*1.1+2.2*q+vec2(8.3,2.8)-T*.8));
+  p+=(mp-p)*.06*exp(-1.6*length(p-mp));
+  float f=fbm(p*.9+2.6*w);
+  float md=exp(-2.4*length(p-mp));
+  vec3 ice=vec3(.30,.56,1.),vio=vec3(.50,.36,1.),amb=vec3(1.,.66,.28);
+  float band=smoothstep(.42,.95,f);
+  vec3 col=ice*band*.62;
+  col+=vio*smoothstep(.5,1.1,length(w))*.5*band;
+  col+=amb*md*md*.16*band;
+  col+=ice*md*.08;
+  vec2 uv=gl_FragCoord.xy/r;
+  float vig=smoothstep(1.35,.1,length((uv-vec2(.6,.62))*vec2(1.,1.2)));
+  col*=vig;
+  col=pow(col,vec3(1.35))*.95;
+  if(L>.5){
+    vec3 base=vec3(.984,.984,.992);
+    col=base-vec3(col.r*.55+col.g*.25,col.g*.5,col.b*.18)*1.1+vec3(-.02,-.01,.0)*band;
+  }
+  col+=(h(gl_FragCoord.xy+t)-.5)/255.;
+  gl_FragColor=vec4(col,1.);
+}`;
+    const sh = (type, src) => { const x = gl.createShader(type); gl.shaderSource(x, src); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { canvas.remove(); return; }
+    gl.useProgram(prog);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "a");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const U = (name) => gl.getUniformLocation(prog, name);
+    const uR = U("r"), uT = U("t"), uM = U("m"), uS = U("s"), uL = U("L");
+    const scale = 0.4;
+    let W = 0, H = 0;
+    const size = () => {
+      W = Math.max(2, Math.round(window.innerWidth * scale));
+      H = Math.max(2, Math.round(window.innerHeight * scale));
+      canvas.width = W; canvas.height = H;
+      gl.viewport(0, 0, W, H);
+    };
+    size();
+    const mouse = { x: W * 0.62, y: H * 0.6 };
+    let acc = 0, scrollS = 0;
+    const draw = (time) => {
+      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      scrollS += (window.scrollY / max - scrollS) * 0.06;
+      mouse.x += (pointer.x * scale - mouse.x) * 0.04;
+      mouse.y += ((window.innerHeight - pointer.y) * scale - mouse.y) * 0.04;
+      gl.uniform2f(uR, W, H);
+      gl.uniform1f(uT, time);
+      gl.uniform2f(uM, mouse.x, mouse.y);
+      gl.uniform1f(uS, scrollS * 3.0);
+      gl.uniform1f(uL, html.dataset.theme === "light" ? 1 : 0);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    };
+    window.addEventListener("resize", () => { size(); if (reduced) draw(20); });
+    new MutationObserver(() => { if (reduced) draw(20); }).observe(html, { attributes: true, attributeFilter: ["data-theme"] });
+    draw(reduced ? 20 : 0);
+    requestAnimationFrame(() => canvas.classList.add("is-on"));
+    if (reduced) return;
+    tasks.add((dt, t) => {
+      if (document.hidden) return;
+      acc += dt;
+      if (acc < 1 / 40) return; /* 40 frames a second is plenty for a slow field */
+      acc = 0;
+      draw(t);
+    });
+  });
+
+  if (reduced) return;
+
+  /* ---- Grain and scroll progress. ------------------------------------------------------------ */
+  safe(() => {
+    el("div", "fx-grain", body).setAttribute("aria-hidden", "true");
+    const bar = el("div", "fx-progress", body);
+    bar.setAttribute("aria-hidden", "true");
+    const header = document.querySelector(".site-header");
+    const nav = document.querySelector("[data-site-nav]");
+    let dir = 0;
+    tasks.add(() => {
+      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      bar.style.setProperty("--p", (window.scrollY / max).toFixed(4));
+      if (isHome && header) {
+        if (Math.abs(scrollV) > 40) dir = Math.sign(scrollV);
+        const tuck = dir > 0 && window.scrollY > window.innerHeight * 0.6 && !nav?.classList.contains("open") && !header.matches(":focus-within");
+        header.classList.toggle("is-tucked", tuck);
+      }
+    });
+  });
+
+  /* ---- Split headings into characters that rise into place. ---------------------------------- */
+  const splitText = (node) => {
+    if (node.dataset.split || node.children.length) return false;
+    const text = node.textContent.trim();
+    if (!text) return false;
+    node.dataset.split = "1";
+    const sr = el("span", "visually-hidden");
+    sr.textContent = text;
+    const vis = el("span", "fx-split");
+    vis.setAttribute("aria-hidden", "true");
+    let i = 0;
+    text.split(/(\s+)/).forEach((part) => {
+      if (!part) return;
+      if (/^\s+$/.test(part)) { vis.append(document.createTextNode(" ")); return; }
+      const word = el("span", "w", vis);
+      for (const ch of part) { const c = el("span", "ch", word); c.textContent = ch; c.style.setProperty("--i", i++); }
+    });
+    node.replaceChildren(sr, vis);
+    return true;
+  };
+  const whenSeen = (nodes, fn, opts) => {
+    if (!("IntersectionObserver" in window)) { nodes.forEach(fn); return; }
+    const io = new IntersectionObserver((entries) => entries.forEach((en) => {
+      if (en.isIntersecting) { io.unobserve(en.target); fn(en.target); }
+    }), opts || { threshold: 0.2 });
+    nodes.forEach((n) => io.observe(n));
+  };
+
+  const heroTitle = document.querySelector(".hero h1");
+  safe(() => {
+    const heads = [...document.querySelectorAll(".section-head h2, .contact h2, .cs-hero h1")].filter(splitText);
+    whenSeen(heads, (h) => h.classList.add("split-in"), { threshold: 0.3 });
+    if (heroTitle) splitText(heroTitle);
+  });
+
+  /* ---- Labels decode from noise when they arrive. --------------------------------------------- */
+  safe(() => {
+    const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&/<>*+";
+    const labels = [...document.querySelectorAll(".eyebrow, .section-head > .label, .contact .wrap > .label, .feature-stack > .label, .certs-block > .label")]
+      .filter((n) => !n.children.length && n.textContent.trim());
+    const scramble = (node) => {
+      const final = node.textContent;
+      node.setAttribute("aria-label", final);
+      const start = performance.now(), dur = 900;
+      const step = (now) => {
+        const k = clamp((now - start) / dur, 0, 1);
+        const shown = Math.floor(final.length * k);
+        let out = "";
+        for (let i = 0; i < final.length; i++) {
+          const ch = final[i];
+          out += i < shown || ch === " " || ch === "·" ? ch : glyphs[(Math.random() * glyphs.length) | 0];
+        }
+        node.textContent = out;
+        if (k < 1) requestAnimationFrame(step); else { node.textContent = final; node.removeAttribute("aria-label"); }
+      };
+      requestAnimationFrame(step);
+    };
+    whenSeen(labels.filter((n) => !n.closest(".hero")), scramble, { threshold: 0.6 });
+    labels.filter((n) => n.closest(".hero")).forEach((n) => window.addEventListener("fx:hero", () => setTimeout(() => scramble(n), 150), { once: true }));
+  });
+
+  /* ---- Count the telemetry figures up to their exact published text. ------------------------ */
+  const countUp = (node, delay) => {
+    const final = node.textContent;
+    const m = final.match(/([−-]?)(\d[\d,]*)(\.\d+)?/);
+    if (!m) return;
+    const target = parseFloat((m[2] + (m[3] || "")).replace(/,/g, ""));
+    const decimals = m[3] ? m[3].length - 1 : 0;
+    const comma = m[2].includes(",");
+    const fmt = (v) => {
+      let s = v.toFixed(decimals);
+      if (comma) { const [a, b] = s.split("."); s = a.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (b ? "." + b : ""); }
+      return final.slice(0, m.index) + m[1] + s + final.slice(m.index + m[0].length);
+    };
+    node.setAttribute("aria-label", final);
+    node.textContent = fmt(0);
+    setTimeout(() => {
+      const start = performance.now(), dur = 1600;
+      const step = (now) => {
+        const k = clamp((now - start) / dur, 0, 1);
+        const e = 1 - Math.pow(1 - k, 4);
+        node.textContent = k < 1 ? fmt(target * e) : final;
+        if (k < 1) requestAnimationFrame(step); else node.removeAttribute("aria-label");
+      };
+      requestAnimationFrame(step);
+    }, delay);
+  };
+
+  /* ---- The hero: entrance, then a name that thickens and lights where the pointer goes. ------- */
+  const startHero = () => {
+    html.classList.add("hero-in");
+    window.dispatchEvent(new Event("fx:hero"));
+    safe(() => {
+      if (!heroTitle) return;
+      requestAnimationFrame(() => heroTitle.classList.add("split-in"));
+      const chars = [...heroTitle.querySelectorAll(".ch")];
+      const f = chars.map(() => 0);
+      setTimeout(() => {
+        heroTitle.classList.add("is-live");
+        if (!finePointer) return;
+        let rects = [];
+        const measure = () => { rects = chars.map((c) => { const r = c.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r.height]; }); };
+        measure();
+        window.addEventListener("resize", measure);
+        document.addEventListener("scroll", measure, { passive: true });
+        tasks.add(() => {
+          if (!wide() || window.scrollY > window.innerHeight) return;
+          chars.forEach((c, i) => {
+            const [cx, cy, h] = rects[i];
+            const d = Math.hypot(pointer.x - cx, (pointer.y - cy) * 1.4);
+            const want = pointer.active ? Math.exp(-(d * d) / (2 * Math.pow(h * 0.9, 2))) : 0;
+            const next = f[i] + (want - f[i]) * 0.14;
+            if (Math.abs(next - f[i]) > 0.002) { f[i] = next; c.style.setProperty("--f", next.toFixed(3)); }
+          });
+        });
+      }, 1500);
+    });
+    safe(() => {
+      document.querySelectorAll(".telemetry .fig").forEach((n, i) => countUp(n, 900 + i * 110));
+    });
+  };
+
+  /* ---- First visit of the session: a count-in, then the curtain lifts. ----------------------- */
+  try {
+    if (!isHome) throw 0;
+    let seen = false;
+    try { seen = sessionStorage.getItem("fx-intro") === "1"; sessionStorage.setItem("fx-intro", "1"); } catch { seen = true; }
+    if (seen || window.scrollY > 40) { startHero(); return; }
+    html.classList.add("is-intro");
+    const curtain = el("div", "fx-intro", body);
+    curtain.setAttribute("aria-hidden", "true");
+    const name = el("div", "fx-intro-name", curtain);
+    "Sherif Morsi".split(" ").forEach((w, i) => { const s = el("span", "", name); s.textContent = w; s.style.animationDelay = `${0.1 + i * 0.12}s`; });
+    const row = el("div", "fx-intro-row", curtain);
+    const count = el("div", "fx-intro-count", row);
+    const meta = el("div", "fx-intro-meta", row);
+    meta.innerHTML = "Deep learning<br>for finance<br>Montreal";
+    const bar = el("div", "fx-intro-bar", curtain);
+    const start = performance.now(), dur = 1500;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      curtain.classList.add("is-out");
+      html.classList.remove("is-intro");
+      setTimeout(startHero, 280);
+      setTimeout(() => curtain.remove(), 1200);
+    };
+    const tick = (now) => {
+      if (done) return;
+      const k = clamp((now - start) / dur, 0, 1);
+      const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      count.textContent = String(Math.round(e * 100)).padStart(3, "0");
+      bar.style.setProperty("--p", e.toFixed(3));
+      if (k < 1) requestAnimationFrame(tick); else setTimeout(finish, 180);
+    };
+    requestAnimationFrame(tick);
+    curtain.addEventListener("click", finish);
+    window.addEventListener("keydown", finish, { once: true });
+  } catch { if (isHome) startHero(); else html.classList.add("hero-in"); }
+
+  /* ---- Parallax: the hero settles back as you scroll; section titles drift. ------------------ */
+  safe(() => {
+    const copy = document.querySelector(".hero-copy");
+    const viz = document.querySelector(".hero-viz .hero-stage");
+    const heads = [...document.querySelectorAll(".section-head h2, .contact h2")];
+    tasks.add(() => {
+      const y = window.scrollY, vh = window.innerHeight;
+      if (y < vh * 1.2) {
+        if (copy) copy.style.translate = `0 ${(y * 0.16).toFixed(1)}px`;
+        if (viz) viz.style.translate = `0 ${(y * 0.07).toFixed(1)}px`;
+      }
+      if (!wide()) return;
+      heads.forEach((h) => {
+        const r = h.getBoundingClientRect();
+        if (r.bottom < -50 || r.top > vh + 50) return;
+        const k = clamp((r.top + r.height / 2) / vh - 0.45, 0, 0.6); /* slides in from the right, settles on the margin */
+        h.style.translate = `${(k * 90).toFixed(1)}px 0`;
+      });
+    });
+  });
+
+  /* ---- Marquee: drifts on its own, runs with the scroll and leans into it. ------------------- */
+  safe(() => {
+    const track = document.querySelector("[data-marquee]");
+    if (!track) return;
+    let x = 0, skew = 0, dir = -1, width = 0;
+    const measure = () => { width = track.firstElementChild.getBoundingClientRect().width; };
+    measure();
+    window.addEventListener("resize", measure);
+    document.fonts?.ready.then(measure);
+    tasks.add((dt) => {
+      if (!width) return;
+      if (Math.abs(scrollV) > 30) dir = scrollV > 0 ? -1 : 1;
+      x += dir * (60 + Math.min(1600, Math.abs(scrollV)) * 0.45) * dt;
+      x = ((x % width) - width) % width;
+      skew += (clamp(-scrollV * 0.004, -10, 10) - skew) * 0.1;
+      track.style.transform = `translate3d(${x.toFixed(2)}px,0,0) skewX(${skew.toFixed(2)}deg)`;
+    });
+  });
+
+  /* ---- The closing wordmark fills as the page ends, and is sized to its line. ---------------- */
+  safe(() => {
+    const giant = document.querySelector("[data-giant]");
+    if (!giant) return;
+    const line = giant.querySelector(".giant-line");
+    const fit = () => {
+      giant.style.fontSize = "";
+      const avail = giant.clientWidth - parseFloat(getComputedStyle(giant).paddingLeft) * 2;
+      const now = line.getBoundingClientRect().width;
+      if (now > 0) giant.style.fontSize = `${(parseFloat(getComputedStyle(giant).fontSize) * avail / now * 0.99).toFixed(2)}px`;
+    };
+    fit();
+    document.fonts?.ready.then(fit);
+    window.addEventListener("resize", fit);
+    let g = 0;
+    tasks.add(() => {
+      /* empty when it enters the screen, full at the bottom of the page */
+      const vh = window.innerHeight, y = window.scrollY;
+      const startY = giant.getBoundingClientRect().top + y - vh;
+      const endY = Math.max(startY + 1, document.documentElement.scrollHeight - vh - 2);
+      const want = clamp((y - startY) / (endY - startY), 0, 1);
+      g += (want - g) * 0.08;
+      giant.style.setProperty("--g", g.toFixed(4));
+    });
+  });
+
+  /* ---- Surfaces that answer the pointer: lit borders, tilting tiles, magnetic buttons. ------- */
+  if (!finePointer) return;
+  safe(() => {
+    const panels = document.querySelectorAll(".card, .feature, .telemetry a, .rules li, .toolkit article, .certs article, .role, .facts div, .project-switch a");
+    panels.forEach((p) => { if (getComputedStyle(p).position === "static") p.style.position = "relative"; el("span", "fx-glow", p).setAttribute("aria-hidden", "true"); });
+    let lit = null;
+    document.addEventListener("pointermove", (e) => {
+      const p = e.target.closest?.(".card, .feature, .telemetry a, .rules li, .toolkit article, .certs article, .role, .facts div, .project-switch a");
+      if (lit && lit !== p) { lit.classList.remove("is-lit"); if (lit.matches(".telemetry a")) { lit.style.removeProperty("--rx"); lit.style.removeProperty("--ry"); } }
+      lit = p;
+      if (!p) return;
+      const r = p.getBoundingClientRect();
+      const mx = e.clientX - r.left, my = e.clientY - r.top;
+      p.style.setProperty("--mx", `${mx}px`);
+      p.style.setProperty("--my", `${my}px`);
+      p.classList.add("is-lit");
+      if (p.matches(".telemetry a")) {
+        p.style.setProperty("--ry", `${((mx / r.width - 0.5) * 10).toFixed(2)}deg`);
+        p.style.setProperty("--rx", `${((0.5 - my / r.height) * 10).toFixed(2)}deg`);
+      }
+    }, { passive: true });
+    document.addEventListener("pointerleave", () => { if (lit) lit.classList.remove("is-lit"); lit = null; });
+  });
+
+  safe(() => {
+    document.querySelectorAll(".button, .nav-resume, .theme-toggle, .viz-pause").forEach((b) => {
+      b.addEventListener("pointermove", (e) => {
+        const r = b.getBoundingClientRect();
+        const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+        b.classList.add("is-magnet");
+        b.style.transform = `translate(${(dx * 0.22).toFixed(1)}px, ${(dy * 0.32).toFixed(1)}px)`;
+      });
+      b.addEventListener("pointerleave", () => { b.classList.remove("is-magnet"); b.style.transform = ""; });
+    });
+  });
+
+  safe(() => {
+    const ring = el("div", "fx-cursor", body);
+    const dot = el("div", "fx-dot", body);
+    ring.setAttribute("aria-hidden", "true");
+    dot.setAttribute("aria-hidden", "true");
+    let rx = pointer.x, ry = pointer.y;
+    document.addEventListener("pointerover", (e) => {
+      const t = e.target;
+      ring.classList.toggle("is-link", !!t.closest?.("a, button, summary, label, [role='button'], [data-lab] li, [data-attack] [role='radio']"));
+      ring.classList.toggle("is-fine", !!t.closest?.("canvas, input[type='range'], svg[role], .lab-plot, .chart-track"));
+    });
+    document.addEventListener("pointerdown", () => ring.classList.add("is-down"));
+    document.addEventListener("pointerup", () => ring.classList.remove("is-down"));
+    document.documentElement.addEventListener("pointerleave", () => html.classList.remove("fx-pointer"));
+    window.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse") html.classList.add("fx-pointer"); }, { passive: true });
+    tasks.add(() => {
+      rx += (pointer.x - rx) * 0.18;
+      ry += (pointer.y - ry) * 0.18;
+      ring.style.transform = `translate3d(${rx.toFixed(1)}px, ${ry.toFixed(1)}px, 0)`;
+      dot.style.transform = `translate3d(${pointer.x}px, ${pointer.y}px, 0)`;
+    });
+  });
+})();
