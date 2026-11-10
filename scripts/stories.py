@@ -113,12 +113,13 @@ def scene_wsl(P: dict) -> str:
     """A decision -> the ripple across 53 markets -> one measured move -> forecasts on the record."""
     n = int(P["world-shock-lab"]["stats"]["assets"]["display"])
     land = json.loads((ROOT / "data" / "land_mask.json").read_text())  # scripts/make_land.py: where land is, for the particle globe
+    gx, gy, gr = 270, 265, 205  # the particle globe: centre and radius in this picture's units (assets/site.js reads data-globe)
     rings = [(80, 11), (140, 18), (200, n - 29)]
     dots, k = [], 0
     for r, count in rings:
         for j in range(count):
             a = -math.pi / 2 + 2 * math.pi * (j + 0.5 * (r == 140)) / count
-            x, y = 300 + r * math.cos(a), 250 + r * 0.82 * math.sin(a)
+            x, y = gx + r * math.cos(a), gy + r * 0.82 * math.sin(a)
             tsx = r == 200 and j == 3
             dots.append(f'<circle class="sc-dot{" is-tsx" if tsx else ""}" data-r="{r}" cx="{x:.1f}" cy="{y:.1f}" r="{7 if tsx else 5}"/>')
             if tsx:
@@ -126,26 +127,26 @@ def scene_wsl(P: dict) -> str:
             k += 1
     pub, nxt = P["world-shock-lab"]["stats"]["forecastPublished"]["display"], P["world-shock-lab"]["stats"]["forecastDecision"]["display"]
     # the measured move on a small axis: 0 at the right, the 90% range as a bar
-    ax0, ax1, lo, hi = 330, 560, -2.0, 0.0
+    ax0, ax1, lo, hi = 385, 590, -2.0, 0.0
     AX = lambda v: ax0 + (ax1 - ax0) * (v - lo) / (hi - lo)  # noqa: E731
-    return f"""<svg class="scene" viewBox="0 0 600 470" role="img" aria-label="A Federal Reserve surprise ripples across {n} markets; Canada's main stock index moved −1.10%." data-scene="wsl" data-land="{land["width"]}x{land["height"]}:{land["bits"]}">
+    return f"""<svg class="scene" viewBox="0 0 600 520" role="img" aria-label="A Federal Reserve surprise ripples across {n} markets; Canada's main stock index moved −1.10%." data-scene="wsl" data-globe="{gx},{gy},{gr}" data-land="{land["width"]}x{land["height"]}:{land["bits"]}">
             <g class="sc-layer" data-layer="ripple">
-              <ellipse class="sc-ring" cx="300" cy="250" rx="200" ry="164" data-ring/>
-              <ellipse class="sc-ring is-2" cx="300" cy="250" rx="200" ry="164" data-ring2/>
+              <ellipse class="sc-ring" cx="{gx}" cy="{gy}" rx="200" ry="164" data-ring/>
+              <ellipse class="sc-ring is-2" cx="{gx}" cy="{gy}" rx="200" ry="164" data-ring2/>
               {"".join(dots)}
-              <circle class="sc-core" cx="300" cy="250" r="30"/><text class="sc-core-t" x="300" y="256" text-anchor="middle">Fed</text>
-              <text class="sc-cap" x="40" y="22">{_bind(P, "world-shock-lab", "assets")} markets around the world</text></g>
+              <circle class="sc-core" cx="{gx}" cy="{gy}" r="30"/><text class="sc-core-t" x="{gx}" y="{gy + 6}" text-anchor="middle">Fed</text>
+              <text class="sc-cap" x="20" y="22">{_bind(P, "world-shock-lab", "assets")} markets around the world</text></g>
             <g class="sc-layer" data-layer="tsx">
-              <line class="sc-axis is-dashed" x1="{tx:.1f}" y1="{ty:.1f}" x2="{ax0 + 60}" y2="88"/>
+              <line class="sc-axis is-dashed" x1="{tx:.1f}" y1="{ty:.1f}" x2="{ax0 + 40}" y2="88"/>
               <text class="sc-cap" x="{ax0}" y="22">Canada's main stock index (TSX)</text>
               <text class="sc-big is-warm" x="{ax0}" y="64">{_bind(P, "world-shock-lab", "tsxFed")}</text>
               <line class="sc-axis" x1="{ax0}" x2="{ax1}" y1="88" y2="88"/><line class="sc-axis" x1="{AX(0):.1f}" x2="{AX(0):.1f}" y1="78" y2="98"/>
               <rect class="sc-band" x="{AX(-1.59):.1f}" y="82" width="{AX(-0.61) - AX(-1.59):.1f}" height="12" data-grow/><circle class="sc-head" cx="{AX(-1.10):.1f}" cy="88" r="5"/>
               <text class="sc-tick" x="{AX(0):.1f}" y="116" text-anchor="middle">0</text><text class="sc-tick" x="{AX(-2):.1f}" y="116">−2%</text></g>
             <g class="sc-layer" data-layer="record">
-              <line class="sc-axis" x1="70" x2="530" y1="456" y2="456"/><circle class="sc-head" cx="70" cy="456" r="6"/><circle class="sc-head is-warm" cx="530" cy="456" r="6"/>
-              <rect class="sc-runner" x="70" y="454" width="460" height="4" data-grow/>
-              <text class="sc-cap" x="70" y="436">Forecast published {e(pub)}</text><text class="sc-cap" x="530" y="436" text-anchor="end">Decision {e(nxt)}</text></g>
+              <line class="sc-axis" x1="70" x2="530" y1="504" y2="504"/><circle class="sc-head" cx="70" cy="504" r="6"/><circle class="sc-head is-warm" cx="530" cy="504" r="6"/>
+              <rect class="sc-runner" x="70" y="502" width="460" height="4" data-grow/>
+              <text class="sc-cap" x="70" y="488">Forecast published {e(pub)}</text><text class="sc-cap" x="530" y="488" text-anchor="end">Decision {e(nxt)}</text></g>
           </svg>"""
 
 
@@ -180,7 +181,7 @@ def scene_aurvane(P: dict) -> str:
 
 
 SCENES = {"deep-portfolio-constructor": scene_dpc, "tsfm": scene_tsfm, "world-shock-lab": scene_wsl, "aurvane": scene_aurvane}
-TINT = {"deep-portfolio-constructor": "ice", "tsfm": "violet", "world-shock-lab": "amber", "aurvane": "teal"}
+TINT = {"deep-portfolio-constructor": "ice", "tsfm": "violet", "world-shock-lab": "teal", "aurvane": "rose"}
 
 
 def story(P: dict, pid: str, href: str) -> str:

@@ -1295,3 +1295,22 @@ html:not(.stage) .hero-space { display: none; }
 /* "Where I fit": the label sits above the three columns. */
 .toolkit > .label { grid-column: 1 / -1; padding-top: 22px; margin-bottom: -6px; }
 .toolkit > .label + article { padding-left: 0; border-left: 0; }
+
+/* The pictures take the right side of the screen, up to its edge: bigger shapes, less empty black. */
+@media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
+  .fx .story-stage {
+    max-width: none; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.3fr);
+    padding-left: max(var(--gutter), calc((100vw - var(--max)) / 2)); padding-right: clamp(20px, 3.4vw, 64px);
+  }
+  .fx .st-scene { height: 100%; display: grid; place-items: center; }
+  .fx .st-scene .scene { width: 100%; height: auto; max-height: calc(100svh - var(--header) - 48px); }
+}
+
+/* Project pages: the project's picture beside its title (drawn by the stage when it runs). */
+.cs-scene { margin: 0; min-width: 0; max-width: 640px; }
+.cs-scene .scene { width: 100%; height: auto; }
+@media (min-width: 1001px) {
+  .cs-hero.has-scene { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); column-gap: clamp(28px, 4vw, 64px); }
+  .cs-hero.has-scene > * { grid-column: 1; }
+  .cs-hero.has-scene > .cs-scene { grid-column: 2; grid-row: 2 / span 5; align-self: center; max-width: none; }
+}

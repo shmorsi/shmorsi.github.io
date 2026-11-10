@@ -21,6 +21,7 @@ import re
 from pathlib import Path
 
 import plain  # scripts/plain.py: each project in plain English
+import stories  # scripts/stories.py: each project's picture, drawn from its results
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "projects.json").read_text())
@@ -142,6 +143,13 @@ def projectize(html: str, pid: str) -> str:
         start = html.index('<header class="cs-hero')
         h1 = html.index("</h1>", start) + len("</h1>")
         html = html[:h1] + "\n      " + plain.panel(pid, p["stats"]) + html[h1:]
+    # The project's picture sits beside the title: the same scene as its story on the master page, in its final state.
+    html = re.sub(r'\s*<figure class="cs-scene".*?</figure>', "", html, count=1, flags=re.S)
+    html = html.replace('<header class="cs-hero wrap has-scene">', '<header class="cs-hero wrap">', 1)
+    if pid in stories.SCENES:
+        html = html.replace('<header class="cs-hero wrap">', '<header class="cs-hero wrap has-scene">', 1)
+        end = html.index("</section>", html.index('<section class="plain" data-plain')) + len("</section>")
+        html = html[:end] + '\n      <figure class="cs-scene" data-cs-scene>\n        ' + stories.SCENES[pid](PROJECTS) + "\n      </figure>" + html[end:]
     if "data-subnav" not in html:
         start = html.index('<header class="cs-hero')
         end = html.index("</header>", start) + len("</header>")
