@@ -57,7 +57,8 @@ PLAIN = {
              "Central banks like the US Federal Reserve set interest rates. When a decision is not what investors expected, "
              "stocks, bonds and currencies jump."),
             ("What it measures",
-             "It tracks how each surprise from the Federal Reserve and the Bank of Canada spreads across {assets} markets around the world."),
+             "It tracks how each surprise from the Federal Reserve and the Bank of Canada spreads across {assets} markets around the world. "
+             "It does the same for oil-supply news, and it records what markets did when geopolitical risk jumped, reported as a pattern, not a proven cause."),
             ("One finding",
              "A small Fed surprise, a tenth of a percentage point, moved Canada's main stock index {tsxFed} that day. "
              "The likely range, −1.59% to −0.61%, is clearly below zero."),
