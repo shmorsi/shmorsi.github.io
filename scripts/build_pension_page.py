@@ -132,6 +132,23 @@ def learned_section() -> str:
 """
 
 
+def stress_section() -> str:
+    """The third study's estimates applied to this plan. Present once dpc.pension.stress has been run and synced."""
+    if "stress" not in P["tables"]:
+        return ""
+    return f"""
+      <section class="cs-section" aria-labelledby="s-stress">
+        <h2 id="s-stress">When the Fed surprises</h2>
+        <div class="prose">
+          <p class="big">{b("stress")}</p>
+          <p>This is where the three studies meet. <a href="world-shock-lab.html">World Shock Lab</a> measures, across {stat("stressEvents")} Fed announcements, what a surprise in US monetary policy does to markets. Applied to this plan: a 10 {t("bp", "basis point")} policy surprise moves stocks {stat("stressStocks")} and the 10-year yield {stat("stressYield")} on the day, which changes the value of the promise by {stat("stressPromise")}. For a 60/40 plan the stocks cost {stat("stress6040Stocks")} points of {t("funded-ratio", "funded ratio")} and the cheaper promise gives {stat("stress6040Yield")} back: a net of {stat("stress6040")}. An information surprise of the same size, the Fed revealing good news about the economy, sends stocks and yields up together, and the same plan moves {stat("stress6040Info")}. A plan held entirely in {t("matching-bonds", "matching bonds")} does not move in either case.</p>
+          {table("stress")}
+          <p class="caveat">{b("stressBand")} A first-order calculation at the plan's starting position, not a forecast and not part of the pre-registered tests. <a href="../shock-lab/">Open the lab</a> to see the same surprise spread across 53 markets.</p>
+        </div>
+      </section>
+"""
+
+
 def page() -> str:
     title = "Pension Lab · Sherif Morsi"
     desc = ("A pension plan that is 90% funded, 60 years of inflation-indexed promises, and five ways to invest: what each costs the plan's sponsor over 20 years, "
@@ -266,6 +283,7 @@ def page() -> str:
       </section>
 
 {learned_section()}
+{stress_section()}
       <section class="cs-section" aria-labelledby="s-read">
         <h2 id="s-read">How to read it</h2>
         <div class="prose">

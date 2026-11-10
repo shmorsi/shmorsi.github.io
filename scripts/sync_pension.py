@@ -222,6 +222,41 @@ def main() -> None:
         pictures["anatomy"] = {"funded": curve["funded"], "glide": [round(w[0], 4) for w in curve["glide"]],
                                "learned": {name: [round(w[0], 4) for w in rows] for name, rows in curve["learned"].items()}}
 
+    # The third study's estimates applied to this plan (dpc.pension.stress): what a Fed surprise does to the funded ratio.
+    stress = export.get("stress")
+    if stress:
+        from_lab = f"deep-portfolio-constructor reports/pension/stress.json, from world-shock-lab {stress['lab']['lab_commit'][:7]}"
+        pts = lambda v: f"{signed(v['points'] / 100)[:-2] if False else ('+' if v['points'] > 0 else '−' if v['points'] < 0 else '')}{abs(v['points']):.2f}"  # noqa: E731
+        mp, cbi = stress["shocks"]["fed_mp"]["horizons"]["0"], stress["shocks"]["fed_cbi"]["horizons"]["0"]
+        names = list(mp["policies"])
+        sg = lambda x, unit: f"{'+' if x > 0 else '−' if x < 0 else ''}{abs(x):.2f}{unit}" if unit == "%" else f"{'+' if x > 0 else '−' if x < 0 else ''}{abs(x):.1f}{unit}"  # noqa: E731
+        rows = [[sh["name"], sg(r["stocks_pct"], "%"), sg(r["yield_bp"], " bp"), sg(r["promise_pct"], "%"),
+                 *[f"{pts(v)} (±{v['half_width']:.2f})" for v in r["policies"].values()]]
+                for sh in stress["shocks"].values() for r in [sh["horizons"]["0"]]]
+        project["tables"]["stress"] = {
+            "caption": f"The move in the plan's funded ratio, in points, on the day of a 10 bp surprise in US monetary policy, at {pct(stress['at']['funded'])} funded. "
+                       "In brackets: a band that adds the two estimates' 90% half-widths.",
+            "headers": ["Surprise (+10 bp)", "Stocks", "10-year yield", "The promise", *names], "rows": rows, "source": from_lab}
+        put2 = lambda label, display: {"label": label, "display": display, "source": from_lab}  # noqa: E731
+        six = mp["policies"][SIXTY]
+        project["stats"] |= {
+            "stressStocks": put2("What a 10 bp Fed policy surprise does to stocks on the day (World Shock Lab)", sg(mp["stocks_pct"], "%")),
+            "stressYield": put2("What it does to the 10-year yield", sg(mp["yield_bp"], " bp")),
+            "stressPromise": put2("What that does to the value of the promise", sg(mp["promise_pct"], "%")),
+            "stress6040": put2("Move in the funded ratio of a 60/40 plan, points", pts(six)),
+            "stress6040Stocks": put2("Of which from its stocks, points", f"{abs(six['from_stocks']):.2f}"),
+            "stress6040Yield": put2("Of which from the cheaper promise, net of its bonds, points", f"{abs(six['from_yield']):.2f}"),
+            "stress6040Info": put2("Move in the funded ratio of a 60/40 plan after an information surprise, points", pts(cbi["policies"][SIXTY])),
+            "stressEvents": put2("Fed announcements behind the estimates (stocks, then the yield)",
+                                 " to ".join(str(n) for n in sorted(set(stress["shocks"]["fed_mp"]["events"].values())))),
+        }
+        project["stress"] = ("The same rise in rates can hurt or help a pension plan, depending on why it happened."
+                             if six["points"] < 0 < cbi["policies"][SIXTY]["points"] else
+                             "What a Fed surprise does to the plan depends on what it holds: the more it is matched to its promise, the less it moves.")
+        project["stressBand"] = ("Both moves are inside their bands: the two channels are of similar size, so the net is small and these estimates do not settle its sign."
+                                 if not six["excludes_zero"] and not cbi["policies"][SIXTY]["excludes_zero"] else
+                                 "At least one of the two moves is outside its band.")
+
     project["stats"].setdefault("edgeSource", {"label": "Where the simulated saving came from, in a sentence", "display": "that analysis is on the project page",
                                                "source": "deep-portfolio-constructor reports/pension/anatomy.json"})
 

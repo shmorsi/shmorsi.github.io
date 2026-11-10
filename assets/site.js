@@ -1738,7 +1738,7 @@ void main(){
   if(uLight>.5&&c.a>8.)alpha=0.; /* the soft glows only read on a dark page */
   vC=vec4(rgb*(1.+arc*.7),alpha);}`;
     const fs = `precision mediump float;varying vec4 vC;uniform float uLight;
-void main(){float d=length(gl_PointCoord-.5)*2.;float a=max(0.,1.-d*d);a=a*a*vC.a;vec3 c=vC.rgb;
+void main(){float d=length(gl_PointCoord-.5)*2.;float h=max(0.,1.-d*d);float a=min(1.,smoothstep(.62,.08,d)*.85+h*h*.3)*vC.a;vec3 c=vC.rgb;
   if(uLight>.5){float k=clamp(max(c.r,max(c.g,c.b)),.001,1.);c=c/k;c=c*c*.6;a*=k;gl_FragColor=vec4(c*a,a)*.9;}else gl_FragColor=vec4(c*a,a*.1);}`;
     const sh = (type, src) => { const x = gl.createShader(type); gl.shaderSource(x, src); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
     const prog = gl.createProgram();
@@ -1759,7 +1759,7 @@ float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(p);p=p*2.03+vec2(1
 void main(){
   float d=length(vq);vec3 Ld=normalize(uL.xyz);
   float facing=clamp(dot(vq/max(d,.001),Ld.xy)*.5+.5,0.,1.);
-  float air=exp(-max(d-1.,0.)*9.)*step(1.,d)*(.05+.6*facing*facing);
+  float air=exp(-max(d-1.,0.)*16.)*step(1.,d)*(.04+.42*facing*facing);
   vec3 col=uCa*air;float alpha=air*.2;
   if(d<1.){
     float z=sqrt(1.-d*d);vec3 nn=vec3(vq,z);
@@ -1767,6 +1767,7 @@ void main(){
     float lat=dot(nn.xy,uAx);
     float b=fbm(vec2(lat*4.+uK.x,atan(nn.x,z)*.9+uK.x*3.+uT*.004));
     float bands=mix(b,sin(lat*(13.+uK.x*3.)+b*5.)*.5+.5,uK.y);
+    bands=clamp(bands+(sin(lat*(47.+uK.x*9.)+b*11.)*.5+.5-.5)*.16*(.4+uK.y),0.,1.);
     vec3 body=mix(uCb,uCa,bands)*(pow(lit,.8)*1.2+.008);
     body+=uCa*pow(1.-z,3.)*(.1+.9*facing*lit);
     if(uLight>.5)body=mix(vec3(.9,.92,.96),mix(uCb,uCa,bands)*.6+.35,.6)*(.82+.18*lit);
@@ -2090,7 +2091,8 @@ void main(){
     const giant = document.querySelector("[data-giant]"), giantLine = document.querySelector(".giant-line");
     const tilt = { x: 0, y: 0 };
     const lay = { hero: null, name: null, segs: [] };
-    const quality = { dpr: Math.min(window.devicePixelRatio || 1, 2), count: N, sum: 0, frames: -40 };
+    const DPR_MAX = Math.min(window.devicePixelRatio || 1, 2), DPR_MIN = Math.min(DPR_MAX, 1.5);
+    const quality = { dpr: DPR_MAX, count: N, sum: 0, frames: -40, calm: 0 };
     const stageTop = (it, y) => (y < it.top ? it.top - y : y > it.top + it.h - it.stageH ? it.top + it.h - it.stageH - y : 0);
     const svgFrame = (it, y) => ({ cx: it.svgCx, cy: stageTop(it, y) + it.svgCy, s: it.svgS, d: 1400, rx: tilt.x, ry: tilt.y, alpha: 1, size: clamp(it.svgS * 1.1, 0.75, 1.6), depth: 1e5, back: 1, drift: 0.5, pulse: 0 });
     const globeFrame = (it, y, t) => ({ ...svgFrame(it, y), cx: it.svgCx + globe.x * it.svgS, cy: stageTop(it, y) + it.svgCy + globe.y * it.svgS, rx: -0.56 + tilt.x * 0.8, ry: 1.52 + tilt.y * 1.3 + Math.sin(t * 0.25) * 0.09, depth: globe.r * it.svgS, back: 0.2 });
@@ -2209,7 +2211,7 @@ void main(){
         if (w.o <= 0 || w.y - w.r * 1.5 > vh || w.y + w.r * 1.5 < 0) return;
         gl.uniform4f(WU.uQ, w.x, w.y, w.r, 1.45);
         gl.uniform4f(WU.uL, w.light[0], w.light[1], w.light[2], w.o);
-        gl.uniform4f(WU.uK, w.seed, w.bands, 2.5 / Math.max(8, w.r * quality.dpr), 0);
+        gl.uniform4f(WU.uK, w.seed, w.bands, 1.4 / Math.max(8, w.r * quality.dpr), 0);
         gl.uniform3f(WU.uCa, w.ca[0], w.ca[1], w.ca[2]);
         gl.uniform3f(WU.uCb, w.cb[0], w.cb[1], w.cb[2]);
         gl.uniform2f(WU.uAx, w.axis[0], w.axis[1]);
@@ -2252,13 +2254,22 @@ void main(){
 
     const draw = (dt, t) => {
       if (!ready || document.hidden) return;
-      /* If the device cannot hold the frame rate, give up sharpness first, then points. It never climbs back. */
+      /* If the device cannot hold the frame rate, thin the points first, then give up sharpness a quarter step at a
+         time and never below a floor that keeps the planets crisp. When frames come easily again, it takes both back.
+         A stall (a tab switch, a page still loading) counts as one slow frame, not as a slow device. */
       quality.frames += 1;
       if (quality.frames > 0) {
-        quality.sum += dt;
+        quality.sum += Math.min(dt, 0.05);
         if (quality.frames >= 80) {
-          if (quality.sum / quality.frames > 0.027) {
-            if (quality.dpr > 1) { quality.dpr = 1; measure(); } else if (quality.count > N * 0.4) quality.count = Math.round(quality.count * 0.62);
+          const avg = quality.sum / quality.frames;
+          if (avg > 0.030) {
+            quality.calm = 0;
+            if (quality.count > N * 0.45) quality.count = Math.round(quality.count * 0.7);
+            else if (quality.dpr > DPR_MIN) { quality.dpr = Math.max(DPR_MIN, quality.dpr - 0.25); measure(); }
+          } else if (avg < 0.0175 && (quality.calm += 1) >= 2) {
+            quality.calm = 0;
+            if (quality.dpr < DPR_MAX) { quality.dpr = Math.min(DPR_MAX, quality.dpr + 0.25); measure(); }
+            else if (quality.count < N) quality.count = Math.min(N, Math.round(quality.count / 0.7));
           }
           quality.sum = 0; quality.frames = -20;
         }
@@ -2288,7 +2299,7 @@ void main(){
       gl.uniform4f(U.uMix, mix, order, w, swirl);
       gl.uniform4f(U.uPtr, pointer.x, pointer.y, 95, 42 * ptr);
       gl.uniform2f(U.uView, window.innerWidth, window.innerHeight);
-      gl.uniform2f(U.uTime, t, quality.dpr < 1.5 ? 1.8 : quality.dpr * 1.25); /* points stay visible on standard-density screens */
+      gl.uniform2f(U.uTime, t, quality.dpr < 1.5 ? 1.7 : quality.dpr * 1.12); /* points stay visible on standard-density screens */
       gl.uniform2f(U.uFx, clamp(scrollV, -2200, 2200) * 0.006, front); /* a fast scroll leaves the points a little behind */
       gl.uniform1f(U.uLight, light);
       gl.drawArrays(gl.POINTS, 0, quality.count);

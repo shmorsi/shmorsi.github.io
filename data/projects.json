@@ -1434,7 +1434,7 @@
         },
         "tests": {
           "label": "Tests of the pension code",
-          "display": "29",
+          "display": "30",
           "source": "deep-portfolio-constructor tests/test_pension.py"
         },
         "costHeadline": {
@@ -1591,6 +1591,46 @@
           "label": "Where the simulated saving came from, in a sentence",
           "display": "most of its simulated edge came from patterns the simulator repeats, which no real plan can count on",
           "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "stressStocks": {
+          "label": "What a 10 bp Fed policy surprise does to stocks on the day (World Shock Lab)",
+          "display": "−0.98%",
+          "source": "deep-portfolio-constructor reports/pension/stress.json, from world-shock-lab 9707616"
+        },
+        "stressYield": {
+          "label": "What it does to the 10-year yield",
+          "display": "+3.4 bp",
+          "source": "deep-portfolio-constructor reports/pension/stress.json, from world-shock-lab 9707616"
+        },
+        "stressPromise": {
+          "label": "What that does to the value of the promise",
+          "display": "−0.48%",
+          "source": "deep-portfolio-constructor reports/pension/stress.json, from world-shock-lab 9707616"
+        },
+        "stress6040": {
+          "label": "Move in the funded ratio of a 60/40 plan, points",
+          "display": "−0.20",
+          "source": "deep-portfolio-constructor reports/pension/stress.json, from world-shock-lab 9707616"
+        },
+        "stress6040Stocks": {
+          "label": "Of which from its stocks, points",
+          "display": "0.53",
+          "source": "deep-portfolio-constructor reports/pension/stress.json, from world-shock-lab 9707616"
+        },
+        "stress6040Yield": {
+          "label": "Of which from the cheaper promise, net of its bonds, points",
+          "display": "0.34",
+          "source": "deep-portfolio-constructor reports/pension/stress.json, from world-shock-lab 9707616"
+        },
+        "stress6040Info": {
+          "label": "Move in the funded ratio of a 60/40 plan after an information surprise, points",
+          "display": "+0.62",
+          "source": "deep-portfolio-constructor reports/pension/stress.json, from world-shock-lab 9707616"
+        },
+        "stressEvents": {
+          "label": "Fed announcements behind the estimates (stocks, then the yield)",
+          "display": "287 to 334",
+          "source": "deep-portfolio-constructor reports/pension/stress.json, from world-shock-lab 9707616"
         }
       },
       "tables": {
@@ -1943,11 +1983,52 @@
           ],
           "highlightRow": 2,
           "source": "deep-portfolio-constructor reports/pension/anatomy.json"
+        },
+        "stress": {
+          "caption": "The move in the plan's funded ratio, in points, on the day of a 10 bp surprise in US monetary policy, at 90% funded. In brackets: a band that adds the two estimates' 90% half-widths.",
+          "headers": [
+            "Surprise (+10 bp)",
+            "Stocks",
+            "10-year yield",
+            "The promise",
+            "60/40",
+            "Liability-driven 40/60",
+            "Fully matched",
+            "Glide path",
+            "Learned policy"
+          ],
+          "rows": [
+            [
+              "Fed policy surprise",
+              "−0.98%",
+              "+3.4 bp",
+              "−0.48%",
+              "−0.20 (±0.37)",
+              "−0.18 (±0.22)",
+              "0.00 (±0.00)",
+              "−0.24 (±0.29)",
+              "−0.13 (±0.15)"
+            ],
+            [
+              "Fed information surprise",
+              "+0.41%",
+              "+4.1 bp",
+              "−0.57%",
+              "+0.62 (±0.79)",
+              "+0.35 (±0.46)",
+              "0.00 (±0.00)",
+              "+0.47 (±0.61)",
+              "+0.25 (±0.32)"
+            ]
+          ],
+          "source": "deep-portfolio-constructor reports/pension/stress.json, from world-shock-lab 9707616"
         }
       },
       "learned": "It holds less in stocks than the glide path whether the plan is short or funded. Above all it follows the yield: the higher the yield, the more it puts in bonds matched to the promise.",
       "tuned": "The network still costs less than the tuned rule in simulation, so tuning is not the whole story.",
       "why": "Most of the simulated saving came from patterns in the last twelve months that hold inside the runs of history the simulator replays. A plan cannot rely on them: real history, where every network had seen only the past, gave the same answer.",
+      "stress": "The same rise in rates can hurt or help a pension plan, depending on why it happened.",
+      "stressBand": "Both moves are inside their bands: the two channels are of similar size, so the net is small and these estimates do not settle its sign.",
       "number": "01.2",
       "group": "investing",
       "study": "Pension Lab"

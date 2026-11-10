@@ -89,7 +89,7 @@ Every interactive piece is rendered as complete static HTML first by `scripts/la
 
 Project pages share one template: a project label with its mark, the headline, a sticky section index built from the page's own headings, the sections, and previous / next project links. Motion is a short fade on scroll and charts that draw in; nothing moves under `prefers-reduced-motion`, and nothing is hidden if the script does not run.
 
-`aurvane/index.html` is built in the `aurvane` repository (`python ui/build.py`) and copied here unchanged. It uses the same tokens and loads this site's Inter Tight from `../assets/fonts/`.
+`aurvane/index.html` is built in the `aurvane` repository (`python ui/build.py`) and copied here unchanged. It uses the same tokens and loads this site's Inter Tight from `../assets/fonts/`. It carries this site's header and links back to the other projects, as World Shock Lab's app (`shock-lab/`) does: every page of every project opens under one header.
 
 ## Check
 

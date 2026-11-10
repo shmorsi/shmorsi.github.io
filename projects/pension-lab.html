@@ -190,6 +190,17 @@
         </div>
       </section>
 
+
+      <section class="cs-section" aria-labelledby="s-stress">
+        <h2 id="s-stress">When the Fed surprises</h2>
+        <div class="prose">
+          <p class="big"><span data-bind="pension-lab.stress">The same rise in rates can hurt or help a pension plan, depending on why it happened.</span></p>
+          <p>This is where the three studies meet. <a href="world-shock-lab.html">World Shock Lab</a> measures, across <span data-bind="pension-lab.stats.stressEvents.display">287 to 334</span> Fed announcements, what a surprise in US monetary policy does to markets. Applied to this plan: a 10 <button type="button" class="term" data-term="bp">basis point</button> policy surprise moves stocks <span data-bind="pension-lab.stats.stressStocks.display">−0.98%</span> and the 10-year yield <span data-bind="pension-lab.stats.stressYield.display">+3.4 bp</span> on the day, which changes the value of the promise by <span data-bind="pension-lab.stats.stressPromise.display">−0.48%</span>. For a 60/40 plan the stocks cost <span data-bind="pension-lab.stats.stress6040Stocks.display">0.53</span> points of <button type="button" class="term" data-term="funded-ratio">funded ratio</button> and the cheaper promise gives <span data-bind="pension-lab.stats.stress6040Yield.display">0.34</span> back: a net of <span data-bind="pension-lab.stats.stress6040.display">−0.20</span>. An information surprise of the same size, the Fed revealing good news about the economy, sends stocks and yields up together, and the same plan moves <span data-bind="pension-lab.stats.stress6040Info.display">+0.62</span>. A plan held entirely in <button type="button" class="term" data-term="matching-bonds">matching bonds</button> does not move in either case.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="The move in the plan&#x27;s funded ratio, in points, on the day of a 10 bp surprise in US monetary policy, at 90% funded" data-table="pension-lab.tables.stress"><p class="table-caption" aria-hidden="true">The move in the plan&#x27;s funded ratio, in points, on the day of a 10 bp surprise in US monetary policy, at 90% funded. In brackets: a band that adds the two estimates&#x27; 90% half-widths.</p><table><caption class="visually-hidden">The move in the plan&#x27;s funded ratio, in points, on the day of a 10 bp surprise in US monetary policy, at 90% funded. In brackets: a band that adds the two estimates&#x27; 90% half-widths.</caption><thead><tr><th scope="col">Surprise (+10 bp)</th><th scope="col">Stocks</th><th scope="col">10-year yield</th><th scope="col">The promise</th><th scope="col">60/40</th><th scope="col">Liability-driven 40/60</th><th scope="col">Fully matched</th><th scope="col">Glide path</th><th scope="col">Learned policy</th></tr></thead><tbody><tr><th scope="row">Fed policy surprise</th><td>−0.98%</td><td>+3.4 bp</td><td>−0.48%</td><td>−0.20 (±0.37)</td><td>−0.18 (±0.22)</td><td>0.00 (±0.00)</td><td>−0.24 (±0.29)</td><td>−0.13 (±0.15)</td></tr><tr><th scope="row">Fed information surprise</th><td>+0.41%</td><td>+4.1 bp</td><td>−0.57%</td><td>+0.62 (±0.79)</td><td>+0.35 (±0.46)</td><td>0.00 (±0.00)</td><td>+0.47 (±0.61)</td><td>+0.25 (±0.32)</td></tr></tbody></table></div>
+          <p class="caveat"><span data-bind="pension-lab.stressBand">Both moves are inside their bands: the two channels are of similar size, so the net is small and these estimates do not settle its sign.</span> A first-order calculation at the plan's starting position, not a forecast and not part of the pre-registered tests. <a href="../shock-lab/">Open the lab</a> to see the same surprise spread across 53 markets.</p>
+        </div>
+      </section>
+
       <section class="cs-section" aria-labelledby="s-read">
         <h2 id="s-read">How to read it</h2>
         <div class="prose">
@@ -220,7 +231,7 @@
         <div class="prose">
           <p>The study lives in the Deep Portfolio Constructor repository, beside the wealth study it shares a method with. One command downloads the public data, trains the <span data-bind="pension-lab.stats.networks.display">24</span> networks and writes every number on this page:</p>
           <p><code>python -m dpc.cli pension</code></p>
-          <p>The pension code has <span data-bind="pension-lab.stats.tests.display">29</span> tests of its own. The mathematics is checked against closed forms: a fully matched, fully funded plan stays exactly funded whatever yields do; the liability's value matches discounting each payment one by one; no decision depends on anything that comes after it.</p>
+          <p>The pension code has <span data-bind="pension-lab.stats.tests.display">30</span> tests of its own. The mathematics is checked against closed forms: a fully matched, fully funded plan stays exactly funded whatever yields do; the liability's value matches discounting each payment one by one; no decision depends on anything that comes after it.</p>
         </div>
       </section>
 
