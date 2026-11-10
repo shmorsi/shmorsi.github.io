@@ -1472,7 +1472,7 @@ void main(){
         drawLine(fut, inOut(seg(s, 1.4, 1.7)));
         show(poly, seg(s, 1.4, 1.8));
         show(audit, seg(s, 1.9, 2.15) * (1 - seg(s, 2.85, 3.1)));
-        const a = seg(s, 2.05, 2.75);
+        const a = seg(s, 2.12, 2.75);
         const sx = 40 + 520 * a;
         scan.setAttribute("x1", sx.toFixed(1)); scan.setAttribute("x2", sx.toFixed(1));
         squares.forEach((q) => q.n.classList.toggle("is-on", q.x + 17 < sx));
@@ -1522,6 +1522,7 @@ void main(){
       const rows = [...slip.querySelectorAll(".sc-row")];
       const seal = slip.querySelector(".sc-seal"), sealT = slip.querySelector(".sc-seal-t");
       const sq = [...attacks.querySelectorAll(".sc-atk")].map((n) => ({ n, x: +n.getAttribute("x"), kept: n.classList.contains("is-kept") }));
+      sq.forEach((q) => { if (q.kept) q.n.dataset.kept = "1"; });
       const scan = attacks.querySelector("[data-scan]");
       const [count, loss] = attacks.querySelectorAll("[data-bind]");
       const cap = attacks.querySelector(".sc-cap");
@@ -1536,7 +1537,7 @@ void main(){
         const sk = ease(seg(s, 1.5, 1.72));
         seal.style.transform = sealT.style.transform = `scale(${sk.toFixed(3)})`;
         show(attacks, seg(s, 1.9, 2.1));
-        const a = seg(s, 2.05, 2.8), g = seg(s, 3.0, 3.75);
+        const a = seg(s, 2.1, 2.8), g = seg(s, 3.0, 3.75);
         const landed = Math.round(total * a);
         const sx = 70 + 480 * g;
         scan.setAttribute("x1", sx.toFixed(1)); scan.setAttribute("x2", sx.toFixed(1));
@@ -1558,6 +1559,7 @@ void main(){
     },
   };
 
+  let storyList = [];
   safe(() => {
     const storyEls = [...document.querySelectorAll("[data-story]")];
     if (!storyEls.length) return;
@@ -1571,13 +1573,14 @@ void main(){
       const tabs = [...st.querySelectorAll("[data-step-go]")];
       const bar = st.querySelector(".st-bar i");
       const num = st.querySelector(".st-num");
-      const item = { st, run, steps, tabs, bar, num, n: steps.length, top: 0, h: 1, lastS: null };
+      const item = { st, svg, stage: st.querySelector(".story-stage"), run, steps, tabs, bar, num, n: steps.length, top: 0, h: 1, lastS: null };
       tabs.forEach((b, i) => b.addEventListener("click", () => {
         const span = item.h - vh;
         window.scrollTo({ top: item.top + span * ((i + (i ? 0.45 : 0.05)) / item.n), behavior: "smooth" });
       }));
       return item;
     });
+    storyList = list;
     measures.push(() => list.forEach((it) => { it.top = docTop(it.st); it.h = it.st.offsetHeight; it.lastS = null; }));
     tasks.push(() => {
       const y = window.scrollY;
@@ -1602,14 +1605,488 @@ void main(){
         if (!isPinned) return;
         it.steps.forEach((node, i) => {
           const local = s - i;
-          const enter = i === 0 ? 1 : inOut(clamp((local + 0.12) / 0.24));
-          const leave = i === it.n - 1 ? 1 : inOut(clamp((1.12 - local) / 0.24));
+          const enter = i === 0 ? 1 : inOut(clamp(local / 0.13));
+          const leave = i === it.n - 1 ? 1 : inOut(clamp((1 - local) / 0.13));
           const o = Math.min(enter, leave);
           show(node, o, `translate3d(0, ${((1 - enter) * 46 - (1 - leave) * 46).toFixed(1)}px, 0)`);
         });
       });
       field.want = tints[tint] || tints.ice;
     });
+  });
+
+  /* ---- The stage: one sculpture of points that re-forms for every chapter. --------------------
+     A fixed WebGL canvas behind the page. Its points fly in as a neural network behind the name,
+     then become each story's picture in turn: "$1", thirty industry bars, the growth of that dollar,
+     a forecast and its range, a globe taking a shock, thirty attacks landing and being stopped,
+     and finally the name. Every shape is sampled from the story's own SVG (so it carries the same
+     data), each change is a function of the scroll, and the SVG keeps its words and numbers on top.
+     Without WebGL nothing here runs and the SVG pictures stay as they are. */
+  safe(() => {
+    if (!isHome || !storyList.length) return;
+    const byScene = {};
+    storyList.forEach((it, i) => { byScene[it.svg.dataset.scene] = it; it.index = i; });
+    if (!byScene.dpc || !byScene.tsfm || !byScene.wsl || !byScene.aurvane) return;
+    const canvas = el("canvas", "fx-stage");
+    canvas.setAttribute("aria-hidden", "true");
+    const gl = canvas.getContext("webgl", { antialias: false, alpha: true, premultipliedAlpha: true, depth: false, powerPreference: "high-performance" });
+    if (!gl) return;
+    const vs = `attribute vec4 aFrom,aTo,aCF,aCT;attribute vec2 aSeed;
+uniform vec4 uFA,uRA,uDA,uFB,uRB,uDB,uMix;uniform vec2 uView,uTime;uniform mediump float uLight;varying vec4 vC;
+vec3 rot(vec3 p,vec2 a){float c=cos(a.y),s=sin(a.y);p=vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);c=cos(a.x);s=sin(a.x);return vec3(p.x,c*p.y-s*p.z,s*p.y+c*p.z);}
+vec4 place(vec3 p,vec4 F,vec4 R,vec4 D,float t){
+  vec3 q=rot(p*F.z,R.xy);float k=F.w/(F.w-q.z);
+  vec2 s=F.xy+q.xy*k+D.z*vec2(sin(t*.31+aSeed.x*50.),cos(t*.27+aSeed.y*50.));
+  return vec4(s,k,mix(D.y,1.,clamp(q.z/D.x*.5+.5,0.,1.)));}
+void main(){
+  float t=uTime.x;
+  float o=mix(aSeed.x,aTo.w,uMix.y);
+  float m=clamp((uMix.x*(1.+uMix.z)-o)/uMix.z,0.,1.);m=m*m*(3.-2.*m);
+  vec4 a=place(aFrom.xyz,uFA,uRA,uDA,t),b=place(aTo.xyz,uFB,uRB,uDB,t);
+  float arc=sin(3.14159265*m);
+  vec2 d=b.xy-a.xy;float len=length(d);
+  vec2 nrm=len>.5?vec2(-d.y,d.x)/len:vec2(0.);
+  vec2 p=mix(a.xy,b.xy,m)+nrm*arc*(aSeed.y-.5)*uMix.w*min(len,700.)*.55
+    +arc*uMix.w*14.*vec2(sin(aSeed.x*40.+t*1.3),cos(aSeed.y*37.+t*1.1));
+  vec4 c=mix(aCF,aCT,m);
+  float u=mix(aFrom.w,aTo.w,m),pulse=mix(uDA.w,uDB.w,m);
+  float f1=pow(max(0.,1.-abs(fract(u-t*.21)-.5)*2.),14.);
+  float f2=pow(max(0.,1.-abs(fract(u+t*.12+.37)-.5)*2.),18.);
+  vec3 rgb=c.rgb*(1.+pulse*f1*2.2)+vec3(.97,.72,.30)*pulse*f2*1.1;
+  float tw=.9+.1*sin(t*1.7+aSeed.x*90.);
+  gl_Position=vec4(p.x/uView.x*2.-1.,1.-p.y/uView.y*2.,0.,1.);
+  gl_PointSize=max(1.,c.a*mix(a.z,b.z,m)*uTime.y*mix(uRA.w,uRB.w,m)*(1.+arc*.5));
+  float alpha=mix(uRA.z,uRB.z,m)*mix(a.w,b.w,m)*tw;
+  if(uLight>.5&&c.a>8.)alpha=0.; /* the soft glows only read on a dark page */
+  vC=vec4(rgb*(1.+arc*.7),alpha);}`;
+    const fs = `precision mediump float;varying vec4 vC;uniform float uLight;
+void main(){float d=length(gl_PointCoord-.5)*2.;float a=max(0.,1.-d*d);a=a*a*vC.a;vec3 c=vC.rgb;
+  if(uLight>.5){float k=clamp(max(c.r,max(c.g,c.b)),.001,1.);c=c/k;c=c*c*.6;a*=k;gl_FragColor=vec4(c*a,a)*.9;}else gl_FragColor=vec4(c*a,a*.1);}`;
+    const sh = (type, src) => { const x = gl.createShader(type); gl.shaderSource(x, src); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; };
+    const prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs));
+    gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+    gl.useProgram(prog);
+    const fieldCanvas = document.querySelector(".fx-field");
+    if (fieldCanvas) fieldCanvas.after(canvas); else body.prepend(canvas);
+
+    const N = window.innerWidth > 900 ? 18000 : 8000;
+    const C = { ice: [0.56, 0.77, 1.0], white: [0.93, 0.96, 1.0], violet: [0.66, 0.58, 1.0], amber: [0.97, 0.72, 0.30], dim: [0.40, 0.46, 0.60], faint: [0.20, 0.24, 0.33] };
+    const mixC = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+    const mk = (seed) => { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+
+    /* A shape is N places (x, y, z and an order key u) and N looks (colour and size). */
+    const shape = (seed, fill) => {
+      const pos = new Float32Array(N * 4), col = new Float32Array(N * 4), tag = new Uint8Array(N);
+      const r = mk(seed);
+      let i = 0;
+      const g = () => { let u = 0; while (u === 0) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.2831853 * r()); };
+      const put = (x, y, z, u, c, size, k = 1, t = 0) => {
+        if (i >= N) return;
+        const o = i * 4;
+        pos[o] = x; pos[o + 1] = y; pos[o + 2] = z; pos[o + 3] = u;
+        col[o] = c[0] * k; col[o + 1] = c[1] * k; col[o + 2] = c[2] * k; col[o + 3] = size;
+        tag[i] = t; i += 1;
+      };
+      const many = (count, fn) => { const m = Math.min(count, N - i); for (let k = 0; k < m; k += 1) fn(k, m); };
+      fill({ put, r, g, many, n: (f) => Math.round(N * f), left: () => N - i });
+      return { pos, col, tag };
+    };
+    /* The same places with new looks (and, if given, a new order key): for changes that sweep across a picture. */
+    const relook = (base, fn) => {
+      const pos = base.pos.slice(), col = new Float32Array(N * 4);
+      for (let i = 0; i < N; i += 1) {
+        const o = i * 4;
+        const [c, size, k, u] = fn(base.tag[i], pos[o], pos[o + 1], pos[o + 3]);
+        col[o] = c[0] * k; col[o + 1] = c[1] * k; col[o + 2] = c[2] * k; col[o + 3] = size;
+        if (u !== undefined) pos[o + 3] = u;
+      }
+      return { pos, col, tag: base.tag };
+    };
+
+    /* Geometry read straight from the story SVGs. */
+    const nums = (str) => (str.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+    const ptsOf = (n) => { const a = nums(n.getAttribute("points") || n.getAttribute("d") || ""); const out = []; for (let i = 0; i + 1 < a.length; i += 2) out.push([a[i], a[i + 1]]); return out; };
+    const rectOf = (n) => [+n.getAttribute("x"), +n.getAttribute("y"), +n.getAttribute("width"), +n.getAttribute("height")];
+    const line = (pts) => {
+      const cum = [0];
+      for (let i = 1; i < pts.length; i += 1) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+      const L = cum[cum.length - 1] || 1;
+      return (t) => {
+        const d = clamp(t) * L;
+        let lo = 0, hi = cum.length - 1;
+        while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (cum[mid] <= d) lo = mid; else hi = mid; }
+        const f = (d - cum[lo]) / Math.max(1e-6, cum[hi] - cum[lo]);
+        return [pts[lo][0] + (pts[hi][0] - pts[lo][0]) * f, pts[lo][1] + (pts[hi][1] - pts[lo][1]) * f];
+      };
+    };
+    const onRect = (q, r) => {
+      let d = r() * 2 * (q[2] + q[3]);
+      if (d < q[2]) return [q[0] + d, q[1]];
+      d -= q[2];
+      if (d < q[3]) return [q[0] + q[2], q[1] + d];
+      d -= q[3];
+      if (d < q[2]) return [q[0] + q[2] - d, q[1] + q[3]];
+      return [q[0], q[1] + q[3] - (d - q[2])];
+    };
+    const inRect = (q, r) => [q[0] + r() * q[2], q[1] + r() * q[3]];
+    const centre = (svg) => { const vb = nums(svg.getAttribute("viewBox")); return [vb[2] / 2, vb[3] / 2]; };
+    const sampleText = (text, weight, spacing) => {
+      const size = 200, cv = document.createElement("canvas"), cx = cv.getContext("2d", { willReadFrequently: true });
+      const setFont = () => { cx.font = `${weight} ${size}px "Inter Tight", "Helvetica Neue", Arial, sans-serif`; if ("letterSpacing" in cx) cx.letterSpacing = `${spacing * size}px`; };
+      setFont();
+      const w = Math.ceil(cx.measureText(text).width + size * 0.4), h = Math.ceil(size * 1.3);
+      cv.width = w; cv.height = h;
+      setFont();
+      cx.fillStyle = "#fff";
+      cx.fillText(text, size * 0.2, size);
+      const data = cx.getImageData(0, 0, w, h).data, px = [];
+      let x0 = w, x1 = 0, y0 = h, y1 = 0;
+      for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) {
+        if (data[(y * w + x) * 4 + 3] > 128) { px.push(x, y); x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      }
+      if (!px.length) throw new Error("no glyphs");
+      const iw = Math.max(1, x1 - x0), ih = Math.max(1, y1 - y0);
+      return { aspect: iw / ih, pick: (r) => { const k = ((r() * (px.length / 2)) | 0) * 2; return [(px[k] + r() * 2 - x0) / iw, (px[k + 1] + r() * 2 - y0) / ih]; } };
+    };
+
+    const shapes = {};
+    const GLOBE_R = 165, GLOBE_DY = 27, WASHINGTON = [-77.04, 38.9], TORONTO = [-79.38, 43.65];
+    const sphere = (lon, lat, rad) => { const f = lat * Math.PI / 180, l = lon * Math.PI / 180; return [rad * Math.cos(f) * Math.sin(l), -rad * Math.sin(f), rad * Math.cos(f) * Math.cos(l)]; };
+    let nameText = null;
+
+    const build = () => {
+      /* Ambient dust, and the network behind the name. */
+      shapes.ambient = shape(71, ({ put, r, many, left }) => many(left(), () => {
+        const far = r() < 0.72;
+        put((r() * 2 - 1) * 1.2, (r() * 2 - 1) * 1.2, (r() * 2 - 1) * 0.3, r(), r() < 0.7 ? C.dim : C.ice, far ? 0.9 + r() * 0.5 : 1.3 + r() * 1.2, far ? 0.16 : 0.5);
+      }));
+      shapes.net = shape(61, ({ put, r, g, many, n, left }) => {
+        const layers = [6, 9, 12, 9, 5], nodes = [], edges = [];
+        layers.forEach((count, li) => {
+          const x = (-1 + 2 * li / (layers.length - 1)) * 0.96;
+          for (let k = 0; k < count; k += 1) {
+            const a = 6.2831853 * k / count + li * 0.55, rad = count > 8 && k % 2 ? 0.34 : 0.64;
+            nodes.push({ li, p: [x, Math.cos(a) * rad, Math.sin(a) * rad] });
+          }
+        });
+        nodes.forEach((a) => {
+          const next = nodes.filter((b) => b.li === a.li + 1);
+          for (let k = 0; k < Math.min(4, next.length); k += 1) edges.push({ a: a.p, b: next[(r() * next.length) | 0].p, phase: r() });
+        });
+        many(nodes.length * 3, (k) => { const nd = nodes[k % nodes.length]; put(nd.p[0], nd.p[1], nd.p[2], r(), mixC(C.ice, C.violet, r()), 20 + r() * 10, 0.2); });
+        many(n(0.26), (k) => {
+          const nd = nodes[k % nodes.length];
+          put(nd.p[0] + g() * 0.02, nd.p[1] + g() * 0.02, nd.p[2] + g() * 0.02, r(), nd.li === 0 ? C.white : nd.li === 4 ? C.ice : mixC(C.ice, C.violet, r()), 1.3 + r() * 1.5, 0.75);
+        });
+        many(left(), (k) => {
+          const e = edges[k % edges.length], t = r();
+          put(e.a[0] + (e.b[0] - e.a[0]) * t + g() * 0.005, e.a[1] + (e.b[1] - e.a[1]) * t + g() * 0.005, e.a[2] + (e.b[2] - e.a[2]) * t + g() * 0.005,
+            (t * 0.55 + e.phase) % 1, r() < 0.25 ? C.violet : C.ice, 1 + r() * 0.8, 0.7);
+        });
+      });
+
+      /* Chapter 1: "$1", thirty industry bars, then the growth of that dollar. */
+      { const svg = byScene.dpc.svg, [ox, oy] = centre(svg);
+        const [mPath, dPath] = svg.querySelectorAll('[data-layer="chart"] [data-draw]');
+        const mAt = line(ptsOf(mPath)), dAt = line(ptsOf(dPath));
+        const one = sampleText("$1", 300, 0);
+        shapes.coin = shape(11, ({ put, r, g, many, left }) => many(left(), () => {
+          const [nx, ny] = one.pick(r);
+          put((nx - 0.5) * 176 * one.aspect, (ny - 0.5) * 176 - 38, g() * 9, r(), r() < 0.25 ? C.white : C.ice, 1.3 + r() * 1.1, 0.5);
+        }));
+        const bars = [...svg.querySelectorAll(".sc-bar")].map(rectOf), outlines = [...svg.querySelectorAll(".sc-bar-m")].map(rectOf);
+        shapes.bars = shape(12, ({ put, r, g, many, n, left }) => {
+          const total = bars.reduce((s, q) => s + q[3] + 8, 0), fillN = N - n(0.22);
+          bars.forEach((q, k) => many(Math.round(fillN * (q[3] + 8) / total), () => {
+            const up = r();
+            put(q[0] + r() * q[2] - ox, q[1] + q[3] * (1 - up) - oy, g() * 7, (k + up) / bars.length, r() < 0.15 ? C.white : C.ice, 1.3 + r() * 1.1, 0.5);
+          }));
+          many(left(), () => {
+            const k = (r() * outlines.length) | 0, [x, y] = onRect(outlines[k], r);
+            put(x - ox, y - oy, g() * 4, (k + 0.5) / outlines.length, C.dim, 1.1, 0.8);
+          });
+        });
+        const p0 = dAt(0);
+        shapes.seed = shape(13, ({ put, r, g, many, left }) => many(left(), () => put(p0[0] - ox + g() * 8, p0[1] - oy + g() * 8, g() * 8, r(), r() < 0.3 ? C.white : C.ice, 1.2 + r(), 0.08)));
+        shapes.chart = shape(14, ({ put, r, g, many, n, left }) => {
+          many(n(0.58), () => { const t = r(), p = dAt(t); put(p[0] - ox + g() * 1.1, p[1] - oy + g() * 1.1, g() * 6, t, r() < 0.12 ? C.white : C.ice, 1.3 + r() * 1.1, 0.42); });
+          many(n(0.24), () => { const t = r(), p = mAt(t); put(p[0] - ox + g() * 0.9, p[1] - oy + g() * 0.9, -14 + g() * 5, t, C.dim, 1.1 + r() * 0.7, 0.6); });
+          many(left(), () => { const t = r(), p = dAt(t), drop = r() * r() * 70; put(p[0] - ox + g() * 2, p[1] - oy + 3 + drop, g() * 14, t, C.ice, 1 + r() * 0.8, 0.3 * (1 - drop / 80)); });
+        });
+      }
+
+      /* Chapter 2: many series, one forecast with its range, the audit, the sealed test. */
+      { const svg = byScene.tsfm.svg, [ox, oy] = centre(svg);
+        const sparks = [...svg.querySelectorAll(".sc-spark")].map((n) => line(ptsOf(n)));
+        shapes.many = shape(21, ({ put, r, g, many, left }) => many(left(), (k) => {
+          const j = k % sparks.length, t = r(), p = sparks[j](t);
+          put(p[0] - ox + g() * 0.7, p[1] - oy + g() * 0.7, g() * 10 + ((j % 6) - 2.5) * 7, t, j % 3 === 2 ? C.violet : C.ice, 1.2 + r() * 1, 0.6);
+        }));
+        const histAt = line(ptsOf(svg.querySelector('[data-layer="fan"] [data-draw]'))), futAt = line(ptsOf(svg.querySelector("[data-draw2]")));
+        const fan = ptsOf(svg.querySelector("[data-fan]")), half = fan.length / 2;
+        const upAt = line(fan.slice(0, half)), loAt = line(fan.slice(half).reverse()), tip = histAt(1);
+        const past = (api, key) => api.many(api.n(0.5), () => {
+          const t = api.r(), p = histAt(t);
+          api.put(p[0] - ox + api.g() * 1, p[1] - oy + api.g() * 1, api.g() * 6, key(t), api.r() < 0.12 ? C.white : C.ice, 1.3 + api.r() * 1.1, 0.45);
+        });
+        shapes.hist = shape(22, (api) => { past(api, (t) => t); api.many(api.left(), () => api.put(tip[0] - ox + api.g() * 5, tip[1] - oy + api.g() * 5, api.g() * 5, 1, C.amber, 1.2, 0.08)); });
+        shapes.fan = shape(22, (api) => {
+          const { put, r, g, many, n, left } = api;
+          past(api, () => 0);
+          many(n(0.14), () => { const t = r(), p = futAt(t); put(p[0] - ox + g() * 1, p[1] - oy + g() * 1, g() * 6, t, C.amber, 1.4 + r() * 1.1, 0.7); });
+          many(left(), () => { const t = Math.pow(r(), 0.8), a = upAt(t), b = loAt(t), v = r(); put(a[0] + (b[0] - a[0]) * v - ox, a[1] + (b[1] - a[1]) * v - oy, g() * 10, t, C.amber, 1.2 + r() * 0.9, 0.22); });
+        });
+        const squares = [...svg.querySelectorAll(".sc-sq")].map(rectOf);
+        const grid = shape(23, ({ put, r, g, many, left }) => many(left(), (k) => {
+          const q = squares[k % squares.length], edge = r() < 0.62, [x, y] = edge ? onRect(q, r) : inRect(q, r);
+          put(x - ox, y - oy, g() * 5, clamp((x - 40) / 520), C.dim, 1.2, 1, edge ? 1 : 2);
+        }));
+        shapes.gridOff = relook(grid, (t) => (t === 1 ? [C.dim, 1.3, 0.7] : [C.faint, 1.2, 0.2]));
+        shapes.gridOn = relook(grid, (t) => (t === 1 ? [C.ice, 1.5, 0.8] : [C.ice, 1.6, 0.22]));
+        const [std, ours] = [...svg.querySelectorAll('[data-layer="result"] [data-grow]')].map(rectOf);
+        shapes.result = shape(24, ({ put, r, g, many, n, left }) => {
+          many(n(0.42), () => { const [x, y] = inRect(std, r); put(x - ox, y - oy, g() * 6, (x - std[0]) / std[2], C.dim, 2 + r() * 0.8, 0.3); });
+          many(left(), () => { const [x, y] = inRect(ours, r); put(x - ox, y - oy, g() * 6, (x - std[0]) / std[2], r() < 0.08 ? C.white : C.ice, 2 + r() * 0.9, 0.34); });
+        });
+      }
+
+      /* Chapter 3: the world, and a surprise spreading out from Washington. */
+      { const svg = byScene.wsl.svg;
+        const [dims, bits] = (svg.dataset.land || "").split(":"), [lw, lh] = dims.split("x").map(Number);
+        const raw = atob(bits), cells = [], cum = [];
+        let total = 0;
+        for (let j = 0; j < lh; j += 1) for (let i = 0; i < lw; i += 1) {
+          const k = j * lw + i;
+          if ((raw.charCodeAt(k >> 3) >> (7 - (k & 7))) & 1) {
+            const lat = 90 - (j + 0.5) * 180 / lh;
+            total += Math.cos(lat * Math.PI / 180);
+            cells.push([-180 + (i + 0.5) * 360 / lw, lat]);
+            cum.push(total);
+          }
+        }
+        const pickCell = (r) => { const v = r() * total; let lo = 0, hi = cum.length - 1; while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid] < v) lo = mid + 1; else hi = mid; } return cells[lo]; };
+        const w0 = sphere(WASHINGTON[0], WASHINGTON[1], 1);
+        const away = (p, rad) => Math.acos(clamp((p[0] * w0[0] + p[1] * w0[1] + p[2] * w0[2]) / rad, -1, 1)) / Math.PI;
+        const globe = shape(31, ({ put, r, g, many, n, left }) => {
+          const add = (p, rad, c, size, t) => put(p[0], p[1], p[2], away(p, rad), c, size, 1, t);
+          many(n(0.6), () => { const c = pickCell(r); add(sphere(c[0] + (r() - 0.5) * 360 / lw, c[1] + (r() - 0.5) * 180 / lh, GLOBE_R), GLOBE_R, C.ice, 1, 1); });
+          many(n(0.16), () => {
+            const p = r() < 0.5 ? sphere(r() * 360 - 180, -80 + 20 * ((r() * 9) | 0), GLOBE_R) : sphere(-180 + 20 * ((r() * 18) | 0), r() * 170 - 85, GLOBE_R);
+            add(p, GLOBE_R, C.dim, 1, 2);
+          });
+          many(40, () => { const rad = GLOBE_R * 1.01; add(sphere(WASHINGTON[0], WASHINGTON[1], rad), rad, C.ice, 1, 6); });
+          many(30, () => { const rad = GLOBE_R * 1.02; add(sphere(TORONTO[0], TORONTO[1], rad), rad, C.amber, 1, 7); });
+          many(n(0.035), () => { const rad = GLOBE_R * (1 + Math.abs(g()) * 0.03); add(sphere(WASHINGTON[0] + g() * 0.7, WASHINGTON[1] + g() * 0.7, rad), rad, C.white, 2.2, 3); });
+          many(n(0.03), () => { const rad = GLOBE_R * (1.01 + Math.abs(g()) * 0.02); add(sphere(TORONTO[0] + g() * 0.6, TORONTO[1] + g() * 0.6, rad), rad, C.amber, 2, 4); });
+          many(left(), () => { const rad = GLOBE_R * (1.03 + r() * 0.13); add(sphere(r() * 360 - 180, Math.asin(r() * 2 - 1) * 180 / Math.PI, rad), rad, C.ice, 1, 5); });
+        });
+        /* looks by kind: 1 land, 2 grid lines, 3 Washington, 4 Toronto, 5 halo, 6 the glow over Washington, 7 the glow over Toronto */
+        shapes.gDim = relook(globe, (t) => [0, [C.dim, 1.8, 0.75], [C.faint, 1.2, 0.5], [C.white, 1.8, 0.5], [C.dim, 1.6, 0.7], [C.faint, 1.2, 0.3], [C.ice, 26, 0.1], [C.amber, 4, 0]][t]);
+        shapes.gLit = relook(globe, (t) => [0, [C.ice, 2.1, 0.85], [C.dim, 1.2, 0.5], [C.white, 2, 0.6], [C.ice, 2, 0.85], [C.ice, 1.3, 0.25], [C.ice, 34, 0.16], [C.amber, 4, 0]][t]);
+        shapes.gFocus = relook(globe, (t) => [0, [C.dim, 1.9, 0.9], [C.faint, 1.2, 0.5], [C.ice, 1.5, 0.3], [C.amber, 2.4, 0.9], [C.faint, 1.2, 0.3], [C.ice, 10, 0.03], [C.amber, 18, 0.12]][t]);
+      }
+
+      /* Chapter 4: a poisoned email, the permission slip, thirty attacks landing and being stopped. */
+      { const svg = byScene.aurvane.svg, [ox, oy] = centre(svg);
+        const card = rectOf(svg.querySelector(".sc-card")), texts = [...svg.querySelectorAll(".sc-txt")].map(rectOf);
+        shapes.msg = shape(41, ({ put, r, g, many, n, left }) => {
+          many(n(0.45), () => { const [x, y] = onRect(card, r); put(x - ox + g() * 0.6, y - oy + g() * 0.6, g() * 6, r(), C.dim, 1.2 + r() * 0.6, 0.3); });
+          many(n(0.2), () => { const [x, y] = inRect(texts[r() < 0.43 ? 0 : 1], r); put(x - ox, y - oy, g() * 4, r(), C.dim, 1.4, 0.16); });
+          many(n(0.2), () => put(84 + r() * 390 - ox, 172 + Math.abs(g()) * 3 - oy, g() * 8, r(), C.amber, 1.1 + r() * 0.8, 0.3));
+          many(left(), () => { const [x, y] = inRect(card, r); put(x - ox, y - oy, -20 + g() * 14, r(), C.dim, 1 + r() * 0.6, 0.1); });
+        });
+        shapes.slip = shape(42, ({ put, r, g, many, n, left }) => {
+          many(n(0.45), () => { const [x, y] = onRect(card, r); put(x - ox + g() * 0.6, y - oy + g() * 0.6, g() * 6, r(), C.ice, 1.2 + r() * 0.7, 0.34); });
+          many(n(0.2), () => { const a = r() * 6.2831853, rad = 26 + g() * 0.9; put(490 + Math.cos(a) * rad - ox, 130 + Math.sin(a) * rad - oy, g() * 5, r(), r() < 0.2 ? C.white : C.ice, 1.3 + r() * 0.8, 0.5); });
+          many(n(0.15), () => put(84 + r() * 300 - ox, 118 + 28 * ((r() * 3) | 0) + g() * 0.4 - oy, g() * 5, r(), C.dim, 1, 0.22));
+          many(left(), () => { const [x, y] = inRect(card, r); put(x - ox, y - oy, -20 + g() * 14, r(), C.ice, 1 + r() * 0.6, 0.08); });
+        });
+        const atk = [...svg.querySelectorAll(".sc-atk")].map((n) => ({ q: rectOf(n), kept: n.dataset.kept === "1" }));
+        const tiles = shape(43, ({ put, r, g, many, left }) => many(left(), (k) => {
+          const j = k % atk.length, edge = r() < 0.45, [x, y] = edge ? onRect(atk[j].q, r) : inRect(atk[j].q, r);
+          put(x - ox, y - oy, g() * 5, (j + r()) / atk.length, C.dim, 1.2, 1, (edge ? 1 : 2) + (atk[j].kept ? 2 : 0));
+        }));
+        shapes.idle = relook(tiles, (t) => (t % 2 ? [C.dim, 1.2, 0.8] : [C.faint, 1, 0.2]));
+        shapes.landed = relook(tiles, (t) => (t % 2 ? [C.amber, 1.5, 0.8] : [C.amber, 1.9, 0.38]));
+        shapes.guarded = relook(tiles, (t, x) => [...(t > 2 ? (t === 3 ? [C.amber, 1.5, 0.8] : [C.amber, 1.9, 0.38]) : t === 1 ? [C.ice, 1.4, 0.8] : [C.ice, 1.7, 0.14]), clamp((x + ox - 70) / 480)]);
+      }
+
+      /* The last word. */
+      nameText = sampleText("SHERIF MORSI", 700, -0.02);
+      shapes.name = shape(51, ({ put, r, g, many, left }) => many(left(), () => {
+        const [nx, ny] = nameText.pick(r);
+        put((nx - 0.5) * nameText.aspect, ny - 0.5, g() * 0.03, nx, nx < 0.45 ? mixC(C.ice, C.violet, nx / 0.45) : mixC(C.violet, C.amber, (nx - 0.45) / 0.55), 1.3 + r() * 1.2, 0.62);
+      }));
+
+      Object.values(shapes).forEach((s) => {
+        s.posBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, s.posBuf); gl.bufferData(gl.ARRAY_BUFFER, s.pos, gl.STATIC_DRAW);
+        s.colBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, s.colBuf); gl.bufferData(gl.ARRAY_BUFFER, s.col, gl.STATIC_DRAW);
+        s.pos = s.col = s.tag = null;
+      });
+      const seeds = new Float32Array(N * 2), r = mk(7);
+      for (let i = 0; i < N * 2; i += 1) seeds[i] = r();
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(gl.ARRAY_BUFFER, seeds, gl.STATIC_DRAW);
+      const aSeed = gl.getAttribLocation(prog, "aSeed");
+      gl.enableVertexAttribArray(aSeed);
+      gl.vertexAttribPointer(aSeed, 2, gl.FLOAT, false, 0, 0);
+    };
+
+    /* Where each shape stands on screen: a centre, a scale, a tilt and a depth, recomputed every frame. */
+    const A = ["aFrom", "aTo", "aCF", "aCT"].map((name) => { const loc = gl.getAttribLocation(prog, name); gl.enableVertexAttribArray(loc); return loc; });
+    const U = {};
+    ["uFA", "uRA", "uDA", "uFB", "uRB", "uDB", "uMix", "uView", "uTime", "uLight"].forEach((name) => { U[name] = gl.getUniformLocation(prog, name); });
+    const heroSpace = document.querySelector("[data-hero-stage]");
+    const giant = document.querySelector("[data-giant]"), giantLine = document.querySelector(".giant-line");
+    const tilt = { x: 0, y: 0 };
+    const lay = { hero: null, name: null, segs: [] };
+    const stageTop = (it, y) => (y < it.top ? it.top - y : y > it.top + it.h - it.stageH ? it.top + it.h - it.stageH - y : 0);
+    const svgFrame = (it, y) => ({ cx: it.svgCx, cy: stageTop(it, y) + it.svgCy, s: it.svgS, d: 1400, rx: tilt.x, ry: tilt.y, alpha: 1, size: clamp(it.svgS * 1.2, 0.75, 1.5), depth: 1e5, back: 1, drift: 0.5, pulse: 0 });
+    const globeFrame = (it, y, t) => ({ ...svgFrame(it, y), cy: stageTop(it, y) + it.svgCy + GLOBE_DY * it.svgS, rx: -0.56 + tilt.x * 0.8, ry: 1.52 + tilt.y * 1.3 + Math.sin(t * 0.25) * 0.09, depth: GLOBE_R * it.svgS, back: 0.2 });
+    const FRAMES = {
+      ambient: (y) => { const s = Math.max(window.innerWidth, vh) * 0.6; return { cx: window.innerWidth / 2, cy: vh / 2, s, d: 1400, rx: tilt.x * 0.5, ry: y * 0.00012 + tilt.y * 0.5, alpha: 0.85, size: 1, depth: s * 0.3, back: 0.5, drift: 5, pulse: 0 }; },
+      net: (y, t) => { const h = lay.hero, s = Math.min(h.w * 0.6, h.h * 0.66); return { cx: h.x + h.w * (wide() ? 0.56 : 0.5), cy: h.top - y + h.h * 0.48, s, d: 1400, rx: 0.24 + tilt.x * 1.4, ry: t * 0.13 + tilt.y * 2.2, alpha: wide() ? 1 : 0.8, size: wide() ? 1.15 : 0.9, depth: s, back: 0.3, drift: 0.4, pulse: 1 }; },
+      name: (y) => { const g = lay.name, s = g.w * 0.985 / nameText.aspect; return { cx: g.x + g.w / 2, cy: g.top - y + g.font * 0.41, s, d: 1400, rx: tilt.x * 0.6, ry: tilt.y * 0.6, alpha: 1, size: clamp(s / 110, 0.7, 1.3), depth: 1e5, back: 1, drift: 0.4, pulse: 0 }; },
+    };
+    const OWNER = { coin: "dpc", bars: "dpc", seed: "dpc", chart: "dpc", many: "tsfm", hist: "tsfm", fan: "tsfm", gridOff: "tsfm", gridOn: "tsfm", result: "tsfm", msg: "aurvane", slip: "aurvane", idle: "aurvane", landed: "aurvane", guarded: "aurvane" };
+    const frameOf = (name, y, t) => (FRAMES[name] ? FRAMES[name](y, t) : OWNER[name] ? svgFrame(byScene[OWNER[name]], y) : globeFrame(byScene.wsl, y, t));
+
+    /* The timeline: which two shapes the points are between at each scroll position, and how they travel. */
+    const measure = () => {
+      const w = Math.round(window.innerWidth * dpr()), h = Math.round(window.innerHeight * dpr());
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
+      storyList.forEach((it) => {
+        const keep = it.svg.style.transform;
+        it.svg.style.transform = "none";
+        const a = it.svg.getBoundingClientRect(), b = it.stage.getBoundingClientRect();
+        it.svg.style.transform = keep;
+        it.svgCx = a.left + a.width / 2; it.svgCy = a.top - b.top + a.height / 2; it.svgS = a.width / 600;
+        it.svgLeft = a.left; it.svgTop = a.top - b.top; it.stageH = it.stage.offsetHeight;
+      });
+      const hr = heroSpace.getBoundingClientRect();
+      lay.hero = { x: hr.left, top: hr.top + window.scrollY, w: hr.width, h: hr.height };
+      const gr = giantLine.getBoundingClientRect();
+      lay.name = { x: gr.left, top: gr.top + window.scrollY, w: gr.width, font: parseFloat(getComputedStyle(giant).fontSize) };
+      const segs = [];
+      const at = (it, s) => it.top + (s / it.n) * (it.h - it.stageH);
+      const step = (it, s0, s1, a, b, o = {}) => segs.push({ y0: at(it, s0), y1: at(it, s1), a, b, order: 0, w: 0.6, swirl: 0.5, ...o });
+      const cross = (y0, y1, a, b, o = {}) => segs.push({ y0, y1, a, b, order: 0, w: 0.6, swirl: 1, ...o });
+      const [s1, s2, s3, s4] = [byScene.dpc, byScene.tsfm, byScene.wsl, byScene.aurvane];
+      const heroTop = lay.hero.top, heroH = Math.max(lay.hero.h, vh * 0.6);
+      cross(heroTop + heroH * 0.1, heroTop + heroH * 0.95, "net", "ambient", { swirl: 0.7 });
+      cross(s1.top - vh * 0.8, s1.top - vh * 0.04, "ambient", "coin");
+      step(s1, 0.5, 0.98, "coin", "bars", { order: 1, w: 0.5 });
+      step(s1, 1.72, 1.98, "bars", "seed", { swirl: 0.3 });
+      step(s1, 2.0, 3.35, "seed", "chart", { order: 1, w: 0.05, swirl: 0.25, ease: true });
+      cross(s2.top - vh * 0.85, s2.top - vh * 0.08, "chart", "many");
+      step(s2, 0.45, 1.4, "many", "hist", { order: 1, w: 0.3 });
+      step(s2, 1.4, 1.8, "hist", "fan", { order: 1, w: 0.25, swirl: 0.2 });
+      step(s2, 1.85, 2.1, "fan", "gridOff");
+      step(s2, 2.12, 2.75, "gridOff", "gridOn", { order: 1, w: 0.03, swirl: 0 });
+      step(s2, 2.9, 3.6, "gridOn", "result", { order: 1, w: 0.3 });
+      cross(s3.top - vh * 0.85, s3.top - vh * 0.08, "result", "gDim");
+      step(s3, 0.95, 1.85, "gDim", "gLit", { order: 1, w: 0.07, swirl: 0.6, ease: true });
+      step(s3, 2.0, 2.3, "gLit", "gFocus", { swirl: 0 });
+      cross(s4.top - vh * 0.85, s4.top - vh * 0.08, "gFocus", "msg");
+      step(s4, 0.88, 1.12, "msg", "slip", { swirl: 0.3 });
+      step(s4, 1.85, 2.08, "slip", "idle");
+      step(s4, 2.1, 2.8, "idle", "landed", { order: 1, w: 0.02, swirl: 0 });
+      step(s4, 3.0, 3.75, "landed", "guarded", { order: 1, w: 0.02, swirl: 0.5 });
+      const out = s4.top + s4.h - s4.stageH;
+      cross(out + vh * 0.05, out + vh * 0.8, "guarded", "ambient");
+      const end = document.documentElement.scrollHeight - vh;
+      const nameStart = Math.max(out + vh, lay.name.top - vh * 1.05);
+      cross(nameStart, Math.max(nameStart + 1, end - vh * 0.08), "ambient", "name", { order: 1, w: 0.5, swirl: 0.8 });
+      lay.segs = segs.sort((p, q) => p.y0 - q.y0);
+    };
+    const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
+
+    /* Labels that ride on the globe: "Fed" over Washington, and the line out to Toronto's stock index. */
+    const wslIt = byScene.wsl;
+    const fedLabel = wslIt.svg.querySelector(".sc-core-t"), tsxLine = wslIt.svg.querySelector('[data-layer="tsx"] .is-dashed');
+    const project = (p, F) => {
+      let x = p[0] * F.s, y = p[1] * F.s, z = p[2] * F.s;
+      let c = Math.cos(F.ry), s = Math.sin(F.ry);
+      [x, z] = [c * x + s * z, -s * x + c * z];
+      c = Math.cos(F.rx); s = Math.sin(F.rx);
+      [y, z] = [c * y - s * z, s * y + c * z];
+      const k = F.d / (F.d - z);
+      return [F.cx + x * k, F.cy + y * k];
+    };
+
+    let pair = "", ready = false, introStart = 0;
+    const bind = (a, b) => {
+      if (pair === a + ">" + b) return;
+      pair = a + ">" + b;
+      [[A[0], shapes[a].posBuf], [A[1], shapes[b].posBuf], [A[2], shapes[a].colBuf], [A[3], shapes[b].colBuf]].forEach(([loc, buf]) => {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.vertexAttribPointer(loc, 4, gl.FLOAT, false, 0, 0);
+      });
+    };
+    const send = (F, f, r, d) => {
+      gl.uniform4f(U[f], F.cx, F.cy, F.s, F.d);
+      gl.uniform4f(U[r], F.rx, F.ry, F.alpha, F.size);
+      gl.uniform4f(U[d], F.depth, F.back, F.drift, F.pulse);
+    };
+    gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.clearColor(0, 0, 0, 0);
+
+    const draw = (dt, t) => {
+      if (!ready || document.hidden) return;
+      const y = window.scrollY;
+      const k = 1 - Math.pow(1 - 0.06, dt * 60);
+      const px = pointer.active && finePointer ? pointer.x / window.innerWidth - 0.5 : 0, py = pointer.active && finePointer ? pointer.y / vh - 0.5 : 0;
+      tilt.x += (-py * 0.16 + Math.sin(t * 0.43) * 0.02 - tilt.x) * k;
+      tilt.y += (px * 0.26 + Math.sin(t * 0.31) * 0.035 - tilt.y) * k;
+
+      let sg = lay.segs[0];
+      for (const s of lay.segs) { if (y >= s.y0) sg = s; else break; }
+      let a = sg.a, b = sg.b, mix = clamp((y - sg.y0) / Math.max(1, sg.y1 - sg.y0)), order = sg.order, w = sg.w, swirl = sg.swirl;
+      if (sg.ease) mix = inOut(mix);
+      const intro = clamp((t - introStart) / 1.5);
+      if (intro < 1 && sg === lay.segs[0] && mix === 0) { a = "ambient"; b = "net"; mix = ease(intro); order = 0; w = 0.7; swirl = 0.9; }
+      bind(a, b);
+      send(frameOf(a, y, t), "uFA", "uRA", "uDA");
+      send(frameOf(b, y, t), "uFB", "uRB", "uDB");
+      gl.uniform4f(U.uMix, mix, order, w, swirl);
+      gl.uniform2f(U.uView, window.innerWidth, window.innerHeight);
+      gl.uniform2f(U.uTime, t, dpr() < 1.5 ? 1.8 : dpr() * 1.25); /* points stay visible on standard-density screens */
+      gl.uniform1f(U.uLight, html.dataset.theme === "light" ? 1 : 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.POINTS, 0, N);
+
+      /* The words on top lean with the points; the globe carries its own two labels. */
+      storyList.forEach((it) => {
+        if (y + vh < it.top - vh * 0.2 || y > it.top + it.h + vh * 0.2) return;
+        if (it === wslIt) {
+          const F = globeFrame(it, y, t), top = stageTop(it, y) + it.svgTop;
+          const toSvg = (p) => [(p[0] - it.svgLeft) / it.svgS, (p[1] - top) / it.svgS];
+          const fed = toSvg(project(sphere(WASHINGTON[0], WASHINGTON[1], GLOBE_R), F)), tsx = toSvg(project(sphere(TORONTO[0], TORONTO[1], GLOBE_R * 1.02), F));
+          fedLabel.setAttribute("x", (fed[0] + 12).toFixed(1)); fedLabel.setAttribute("y", (fed[1] + 16).toFixed(1));
+          tsxLine.setAttribute("x1", tsx[0].toFixed(1)); tsxLine.setAttribute("y1", tsx[1].toFixed(1));
+        } else {
+          it.svg.style.transform = `perspective(1400px) rotateX(${tilt.x.toFixed(4)}rad) rotateY(${tilt.y.toFixed(4)}rad)`;
+        }
+      });
+    };
+
+    const start = () => safe(() => {
+      build();
+      fedLabel.setAttribute("text-anchor", "start");
+      measures.push(measure);
+      measure();
+      introStart = window.scrollY > 40 ? -10 : performance.now() / 1000 + 0.05;
+      ready = true;
+      html.classList.add("stage");
+      requestAnimationFrame(remeasure); /* the hero and the pictures change size once the stage is on */
+      tasks.push(draw);
+    });
+    if (document.fonts?.ready) document.fonts.ready.then(start); else start();
   });
 
   /* ---- Marquee: drifts on its own, runs with the scroll and leans into it. ------------------- */

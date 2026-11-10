@@ -82,14 +82,8 @@
             <a class="button" href="https://www.linkedin.com/in/sherif-morsi-a17628295/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
           </div>
         </div>
-        <figure class="hero-viz">
-          <!-- Drawn by assets/site.js. An illustration, not data; a still frame under reduced motion. -->
-          <div class="hero-stage">
-            <canvas class="hero-canvas" data-market aria-hidden="true"></canvas>
-            <button type="button" class="viz-pause" data-market-pause aria-pressed="false">Pause</button>
-          </div>
-          <figcaption>Illustration, not data. Prices stream into a transformer that sets the portfolio's weights; the amber pulses are the gradient of the result flowing back. <span class="viz-hint">Point at a stock to trace it; click its price line to shock it and watch the portfolio rebalance.</span></figcaption>
-        </figure>
+        <!-- The right half is the stage for the particle sculpture drawn by assets/site.js: decoration, not content. -->
+        <div class="hero-space" data-hero-stage aria-hidden="true"></div>
       </div>
       <div class="telemetry-band">
         <!-- Figures below mirror data/projects.json so they show without JavaScript. scripts/check_site.py fails if they drift. -->
@@ -192,7 +186,7 @@
           </div>
           <div class="st-scene">
             <span class="st-num" aria-hidden="true">03</span>
-            <svg class="scene" viewBox="0 0 600 470" role="img" aria-label="A Federal Reserve surprise ripples across 53 markets; Canada's main stock index moved −1.10%." data-scene="wsl">
+            <svg class="scene" viewBox="0 0 600 470" role="img" aria-label="A Federal Reserve surprise ripples across 53 markets; Canada's main stock index moved −1.10%." data-scene="wsl" data-land="144x72:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/5///gAAAAAAAAAAAAAAAAEz/P//8ABwAAAADAAAAAAAABKZAP//8AAAAA4AH4AAAAAAADwDQAP/8AAAAGAH/4AIAAgEABfG/gH/4AAAAGHf//9/gAB///1Ds4H/gAAf4F6///////8/////w+H8BAB/0/////////AP////UcHwCAD3/////////+A////8BgDgAAPn////////74AeB//+B6AAAAPn///////4CAAIAf//h+AAACFP///////gOAAAAP//7/gAANH////////wMAAAAH////wAAD/////////wAAAAAD///04AAD/////////wAAAAAD///8AAAB//X3/////gAAAAAD///wAAAB6+Dv/////EAAAAAD///gAAAPhvbz////8IAAAAAB///AAAAPAp/z///+IIAAAAAB///AAAAA8Af/////EwAAAAAAf/+AAAAH8AP/////BAAAAAAAX/4AAAAP/uv/////gAAAAAAAP8EAAAAP///v////gAAAAAAAD4EAAAA///3z////AAAAAAAAB4AAAAA///3+H//+gAAAAAAAA4gAAAB///7/D+fgAAAAAAAAA9gYAAA///7+B8PQAAAAAAAAAHgAAAB///94B4HggAAAAAAAAA4AAAB////gAwHwwAAAAAAAAAAoAAA///+QAwFgAAAAAAAAAAF/AAAf///wAAEAIAAAAAAAAAB/gAAPv//wAICAAAAAAAAAAAB/8AAAD//gAAGGAAAAAAAAAAD/8AAAD//AAADOAAAAAAAAAAD//AAAD/+AAADOjAAAAAAAAAD//4AAD/8AAABAg8AAAAAAAAD//8AAB/8AAAAgAeAAAAAAAAD//8AAB/8AAAABoIAAAAAAAAB//4AAB/8AAAAAAAAAAAAAAAB//wAAB/8QAAAADAAAAAAAAAAf/wAAB/8wAAAAfkAAAAAAAAAP/wAAB/wwAAAAf+AAAAAAAAAP/wAAB/xgAAAD//AAAAAAAAAP/AAAA/xgAAAH//AAAAAAAAAP+AAAA/gAAAAH//gAAAAAAAAf8AAAAfgAAAAD//gAAAAAAAAf8AAAAfAAAAAD//gAAAAAAAAf4AAAAcAAAAADw/gAAAAAAAAfgAAAAAAAAAAAAPAAAAAAAAAfAAAAAAAAAAAAACACAAAAAAA8AAAAAAAAAAAAACAEAAAAAAAcAAAAAAAAAAAAAAAIAAAAAAA4AAAAAAAAAAAAAAAQAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAwgAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAACAAAAAAAGAABEAAAAAAAAAAAEAAAAAAR/8f////gAAAAAAAA+AAAF////5//////wAAABAf+/AAB////////////gAAP////wAAP///////////+AAT////+ADj/////////////gAD/////4AH////////////8AAB/////////////////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA">
             <g class="sc-layer" data-layer="ripple">
               <ellipse class="sc-ring" cx="300" cy="250" rx="200" ry="164" data-ring/>
               <ellipse class="sc-ring is-2" cx="300" cy="250" rx="200" ry="164" data-ring2/>
@@ -305,6 +299,14 @@
         </div>
         <div class="feature-stack">
           <p class="label">The deep stack · PyTorch</p>
+          <figure class="hero-viz stack-viz">
+            <!-- Drawn by assets/site.js. An illustration, not data; a still frame under reduced motion. -->
+            <div class="hero-stage">
+              <canvas class="hero-canvas" data-market aria-hidden="true"></canvas>
+              <button type="button" class="viz-pause" data-market-pause aria-pressed="false">Pause</button>
+            </div>
+            <figcaption>Illustration, not data. Prices stream into a transformer that sets the portfolio's weights; the amber pulses are the gradient of the result flowing back. <span class="viz-hint">Point at a stock to trace it; click its price line to shock it and watch the portfolio rebalance.</span></figcaption>
+          </figure>
           <ol class="pipeline"><li><span class="step-num">01</span><b>Point-in-time features</b><span>13 per industry, 7 for the market</span><small><span data-bind="deep-portfolio-constructor.stats.industries.display">30</span> US industries</small></li><li><span class="step-num">02</span><b>Transformer</b><span>Every industry attends to every other</span><small><span data-bind="deep-portfolio-constructor.stats.params.display">20,066</span> parameters</small></li><li><span class="step-num">03</span><b>Long-only tilt</b><span>Scales each market weight by ⅓× to 3×</span><small>Never short, never levered</small></li><li><span class="step-num">04</span><b>Learned trade fraction</b><span>How much of the gap to its target to trade</span><small><span data-bind="deep-portfolio-constructor.stats.tradedDeep.display">155%</span> traded a year</small></li></ol>
           <p class="backprop"><span class="backprop-line" aria-hidden="true"></span><span>Trained <button type="button" class="term" data-term="end-to-end">end to end</button> on the <button type="button" class="term" data-term="kelly">growth of wealth</button>: the gradient of 60 months of compounding, net of every trading cost, flows back through a <button type="button" class="term" data-term="differentiable">differentiable simulator</button> into the network.</span></p>
         </div>

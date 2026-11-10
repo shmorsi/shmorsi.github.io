@@ -1266,3 +1266,28 @@ html:not(.fx) .giant-fill { clip-path: none; }
   .fx-field { transition: none; }
   .fx-cursor, .fx-dot { display: none; }
 }
+
+/* ---- The stage: one sculpture of points that re-forms for every chapter -------------------
+   A WebGL canvas fixed behind the page. site.js adds "stage" to <html> once it is running; the
+   shapes in each story's picture are then drawn by the points, and the SVG keeps only its words,
+   numbers and thin guide lines. Without WebGL (or under reduced motion) the SVG pictures stay. */
+.fx-stage { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity 0.5s linear; }
+.stage .fx-stage { opacity: 1; }
+.hero-space { min-width: 0; min-height: 320px; align-self: stretch; }
+html:not(.stage) .hero-space { display: none; }
+.stage .scene { transform-origin: 50% 50%; }
+.stage .scene :is(.sc-line, .sc-bar, .sc-bar-m, .sc-spark, .sc-fan, .sc-sq, .sc-res, .sc-ring, .sc-dot, .sc-core, .sc-card, .sc-txt, .sc-seal, .sc-atk, .sc-huge) { visibility: hidden !important; }
+.stage .sc-core-t { fill: var(--ink); font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
+.stage [data-layer="tsx"] .is-dashed { stroke: var(--warm); stroke-width: 1.2; }
+.sc-seal-t { transform-box: fill-box; transform-origin: 50% 50%; }
+.stage .giant-fill { display: none; }
+.stage .giant-line { color: transparent; }
+.stage .hero::before, .stage .hero::after { display: none; }
+.stack-viz { max-width: 760px; }
+.stack-viz .hero-canvas { aspect-ratio: 16 / 9; }
+@media (min-width: 1101px) {
+  .stage .hero h1 { font-size: clamp(64px, 9.6vw, 150px); }
+}
+@media (max-width: 1100px) {
+  .hero-space { order: -1; min-height: 0; height: 30svh; }
+}

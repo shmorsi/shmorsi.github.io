@@ -112,6 +112,7 @@ def scene_tsfm(P: dict) -> str:
 def scene_wsl(P: dict) -> str:
     """A decision -> the ripple across 53 markets -> one measured move -> forecasts on the record."""
     n = int(P["world-shock-lab"]["stats"]["assets"]["display"])
+    land = json.loads((ROOT / "data" / "land_mask.json").read_text())  # scripts/make_land.py: where land is, for the particle globe
     rings = [(80, 11), (140, 18), (200, n - 29)]
     dots, k = [], 0
     for r, count in rings:
@@ -127,7 +128,7 @@ def scene_wsl(P: dict) -> str:
     # the measured move on a small axis: 0 at the right, the 90% range as a bar
     ax0, ax1, lo, hi = 330, 560, -2.0, 0.0
     AX = lambda v: ax0 + (ax1 - ax0) * (v - lo) / (hi - lo)  # noqa: E731
-    return f"""<svg class="scene" viewBox="0 0 600 470" role="img" aria-label="A Federal Reserve surprise ripples across {n} markets; Canada's main stock index moved −1.10%." data-scene="wsl">
+    return f"""<svg class="scene" viewBox="0 0 600 470" role="img" aria-label="A Federal Reserve surprise ripples across {n} markets; Canada's main stock index moved −1.10%." data-scene="wsl" data-land="{land["width"]}x{land["height"]}:{land["bits"]}">
             <g class="sc-layer" data-layer="ripple">
               <ellipse class="sc-ring" cx="300" cy="250" rx="200" ry="164" data-ring/>
               <ellipse class="sc-ring is-2" cx="300" cy="250" rx="200" ry="164" data-ring2/>

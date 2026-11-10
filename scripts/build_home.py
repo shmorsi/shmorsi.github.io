@@ -209,6 +209,14 @@ def feature() -> str:
         </div>
         <div class="feature-stack">
           <p class="label">The deep stack · PyTorch</p>
+          <figure class="hero-viz stack-viz">
+            <!-- Drawn by assets/site.js. An illustration, not data; a still frame under reduced motion. -->
+            <div class="hero-stage">
+              <canvas class="hero-canvas" data-market aria-hidden="true"></canvas>
+              <button type="button" class="viz-pause" data-market-pause aria-pressed="false">Pause</button>
+            </div>
+            <figcaption>Illustration, not data. Prices stream into a transformer that sets the portfolio's weights; the amber pulses are the gradient of the result flowing back. <span class="viz-hint">Point at a stock to trace it; click its price line to shock it and watch the portfolio rebalance.</span></figcaption>
+          </figure>
           <ol class="pipeline">{steps}</ol>
           <p class="backprop"><span class="backprop-line" aria-hidden="true"></span><span>Trained {lab.term("end-to-end", "end to end")} on the {lab.term("kelly", "growth of wealth")}: the gradient of 60 months of compounding, net of every trading cost, flows back through a {lab.term("differentiable", "differentiable simulator")} into the network.</span></p>
         </div>
@@ -375,14 +383,8 @@ def page() -> str:
             <a class="button" href="{LINKEDIN}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
           </div>
         </div>
-        <figure class="hero-viz">
-          <!-- Drawn by assets/site.js. An illustration, not data; a still frame under reduced motion. -->
-          <div class="hero-stage">
-            <canvas class="hero-canvas" data-market aria-hidden="true"></canvas>
-            <button type="button" class="viz-pause" data-market-pause aria-pressed="false">Pause</button>
-          </div>
-          <figcaption>Illustration, not data. Prices stream into a transformer that sets the portfolio's weights; the amber pulses are the gradient of the result flowing back. <span class="viz-hint">Point at a stock to trace it; click its price line to shock it and watch the portfolio rebalance.</span></figcaption>
-        </figure>
+        <!-- The right half is the stage for the particle sculpture drawn by assets/site.js: decoration, not content. -->
+        <div class="hero-space" data-hero-stage aria-hidden="true"></div>
       </div>
       <div class="telemetry-band">
         <!-- Figures below mirror data/projects.json so they show without JavaScript. scripts/check_site.py fails if they drift. -->
