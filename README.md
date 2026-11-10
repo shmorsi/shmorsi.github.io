@@ -1,6 +1,6 @@
 # Sherif Morsi
 
-Portfolio of Sherif Morsi, a third-year Computer Science student at Concordia University in Montreal: deep learning for finance, quant research, and AI agents.
+Portfolio of Sherif Morsi, a third-year Computer Science student at Concordia University in Montreal: AI for long-term investing, quant research, and AI agents.
 
 **Live:** https://shmorsi.github.io/
 
@@ -50,6 +50,7 @@ The master page and the Deep Portfolio Constructor page are generated from `data
 ```sh
 python3 scripts/sync_dpc.py ../deep-portfolio-constructor/reports/site_wealth.json    # project figures, series and holdings, when they change
 python3 scripts/make_marks.py        # one project mark per project (assets/marks/)
+python3 scripts/make_land.py land-110m.json   # data/land_mask.json for the particle globe (only if the map source changes)
 python3 scripts/build_home.py        # index.html, the master page (with scripts/stories.py and scripts/plain.py)
 python3 scripts/build_dpc_page.py    # projects/deep-portfolio-constructor.html
 python3 scripts/sync_chrome.py       # header, footer, project label, plain-English panel, previous / next links, private-repo notes
@@ -63,9 +64,10 @@ Static HTML, one stylesheet (`assets/site.css`), one script (`assets/site.js`), 
 
 The look is a launch-control theme for a deep learning and markets portfolio: pure black by default on every page, tracked uppercase display type, thin rules, telemetry numerals, ghost buttons that fill on hover, and one ice-blue accent (`#8ec5ff`), with amber for anything live. The header toggle switches to light for that browser.
 
-- **Hero.** An original canvas illustration of end-to-end learning for a long-only portfolio: seeded random-walk prices stream into a small network, attention picks out edges, the outputs set the portfolio's weights, and amber pulses run backwards as the gradient. Point at a stock to trace it; click its price line to shock it and watch the portfolio rebalance. It is labelled as an illustration, not data, has a pause button, pauses off screen and in background tabs, and draws one still frame under `prefers-reduced-motion`.
+- **Hero.** Full-bleed: the name on the left, and behind it a 3D neural network drawn in 18,000 glowing points (8,000 on phones) that flies together when the page opens, turns slowly, leans toward the pointer and carries pulses forward and amber pulses back.
+- **The stage.** Those points are one system for the whole page (a WebGL canvas fixed behind the content, "The stage" in `assets/site.js`). As the reader scrolls they re-form into each story's picture in turn: "$1", thirty industry bars, the growth of that dollar drawn from 1960 to 2026, a forecast and its range, a globe taking a shock that spreads out from Washington, thirty attacks landing and then being stopped, and finally the name. Each shape is sampled from the story's own SVG, so the points carry the same data and the SVG keeps its words and numbers on top; the globe's land comes from `data/land_mask.json` (Natural Earth 1:110m, public domain; `scripts/make_land.py` rasterises it). Without WebGL, or under reduced motion, the SVG pictures stay as they are.
 - **Telemetry strip.** Each project's headline figure, linked to its card.
-- **Featured project: the portfolio lab.** Pick one of seven long-only strategies and see its growth of $1 since 1960 (market crashes shaded, a readout under the pointer), its compound growth, worst fall and turnover, its pre-registered verdict against the market, and what it did differently, in plain English.
+- **Featured project: the portfolio lab.** Pick one of seven long-only strategies and see its growth of $1 since 1960 (market crashes shaded, a readout under the pointer), its compound growth, worst fall and turnover, its pre-registered verdict against the market, and what it did differently, in plain English. Beside its deep stack sits the interactive illustration of end-to-end learning: seeded random-walk prices stream into a small network, the outputs set the portfolio's weights, and amber pulses run backwards as the gradient. Point at a stock to trace it; click its price line to shock it. It is labelled as an illustration, not data, has a pause button, and draws one still frame under `prefers-reduced-motion`.
 - **Project cards.** One chart grammar for every card: a reference line (zero or the baseline) and either bars or points with their intervals, drawn from the data at build time. World Shock Lab's card takes a Fed or Bank of Canada surprise of any size and scales the committed per-10 bp estimates and their 90% bands; Aurvane's card replays its 30 poisoned tasks with and without the guard.
 - **The portfolio page.** "Try it" is a two-asset growth toy (labelled as made-up numbers) that shows why the network is trained on the growth of wealth rather than on average return; "Inside the portfolio" scrubs through the network's real holdings against the market's, quarter by quarter since 1960; "How often to trade" switches the same trained network between daily, monthly, quarterly and yearly rebalancing; the results compare it with the S&P 500 (dividends reinvested) and the NASDAQ Composite.
 - **Plain English.** Jargon (Sharpe, the Kelly criterion, active share, CRPS, basis point, prompt injection and so on) has a dotted underline and a one-tap definition.

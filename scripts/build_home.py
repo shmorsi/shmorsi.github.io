@@ -256,13 +256,18 @@ RULES = [
     ("Every number traced", "Figures are read from one data file that names each result's source, and a check fails the build if a page drifts."),
 ]
 
+# Where the work fits, by the team that would use it. Every phrase names something a project's code does;
+# scripts/check_site.py still rejects job titles and claims the projects do not back.
 TOOLKIT = [
-    ("Deep learning", "Transformers written and trained in PyTorch, attention across assets, differentiable optimisation, probabilistic forecasting, mixed precision.",
-     ["deep-portfolio-constructor", "tsfm"]),
-    ("Quant and finance", "Portfolio optimisation, risk and factor models, walk-forward backtests, event studies, Newey-West and bootstrap inference.",
+    ("On an investment team", "Long-only portfolios built for decades, with rebalancing and every trading cost counted. Factor models, "
+     "walk-forward backtests with no look-ahead, and how a rate surprise moves stocks, bond yields and currencies.",
      ["deep-portfolio-constructor", "world-shock-lab"]),
-    ("AI agents and engineering", "LLM agents, tool calling, MCP, prompt-injection defence. Python, TypeScript, SQL, pytest, GitHub Actions.",
-     ["aurvane", "world-shock-lab"]),
+    ("In quantitative research", "The test is fixed before the data is opened. Newey-West and bootstrap inference, event studies, "
+     "false-discovery control, and published findings replicated before anything new is claimed.",
+     ["deep-portfolio-constructor", "world-shock-lab", "tsfm"]),
+    ("On an AI or ML team", "Transformers written and trained from scratch in PyTorch, probabilistic forecasting, LLM agents with tool calling, "
+     "MCP and prompt-injection defence. Python, TypeScript, SQL, pytest, GitHub Actions.",
+     ["tsfm", "aurvane"]),
 ]
 
 
@@ -278,16 +283,16 @@ def marquee() -> str:
             f'<div class="marquee-run">{items}</div><div class="marquee-run">{items}</div></div></div>')
 
 
-STATEMENT = ("I build AI for money: systems that *invest*, *forecast*, and keep *AI assistants* honest. "
-             "And I test them like a scientist. The test is written down before the result is seen, "
-             "and the result is published even when the answer is no.")
+STATEMENT = ("I build AI for long-term investing: systems that *invest* for decades, *forecast* with an honest range, "
+             "and keep *AI assistants* safe around money. And I test them like a scientist. The test is written down "
+             "before the result is seen, and the result is published even when the answer is no.")
 
 
 def statement() -> str:
     """A sentence that lights up word by word as the reader scrolls. *word* marks an accent."""
     words = []
     for w in STATEMENT.split():
-        hot = w.startswith("*")
+        hot = "*" in w
         clean = w.replace("*", "")
         words.append(f'<span class="sw{" is-hot" if hot else ""}">{e(clean)}</span>')
     return " ".join(words)
@@ -310,14 +315,14 @@ def page() -> str:
     titles = ", ".join(P[i]["title"] for i in ORDER)
     count = len(ORDER)
     words = {3: "Three", 4: "Four", 5: "Five", 6: "Six"}.get(count, str(count))
-    desc = (f"Sherif Morsi builds deep learning systems for finance: portfolios, forecasts and AI agents, "
+    desc = (f"Sherif Morsi builds AI for long-term investing: portfolios, forecasts and AI agents, "
             f"scored on tests fixed in advance. Projects: {titles}.")
     return f"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Sherif Morsi · Deep learning for finance</title>
+  <title>Sherif Morsi · AI for long-term investing</title>
   <meta name="description" content="{e(desc)}">
   <meta name="author" content="Sherif Morsi">
   <meta name="theme-color" content="#000000">
@@ -328,7 +333,7 @@ def page() -> str:
   <meta property="og:site_name" content="Sherif Morsi">
   <meta property="og:locale" content="en_CA">
   <meta property="og:url" content="https://shmorsi.github.io/">
-  <meta property="og:title" content="Sherif Morsi · Deep learning for finance">
+  <meta property="og:title" content="Sherif Morsi · AI for long-term investing">
   <meta property="og:description" content="{tagline} {words} projects, each with its own page and every figure traced to a result file.">
   <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
   <meta property="og:image:type" content="image/png">
@@ -336,7 +341,7 @@ def page() -> str:
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Sherif Morsi. {tagline}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Sherif Morsi · Deep learning for finance">
+  <meta name="twitter:title" content="Sherif Morsi · AI for long-term investing">
   <meta name="twitter:description" content="{tagline}">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/og.png">
   <meta name="twitter:image:alt" content="Sherif Morsi. {tagline}">
@@ -375,7 +380,7 @@ def page() -> str:
           <p class="eyebrow">Computer Science · Concordia University · Montreal</p>
           <h1 id="hero-title">Sherif Morsi</h1>
           <p class="hero-lead">{tagline}</p>
-          <p class="hero-meta">Third-year Computer Science student. Open to 4 to 16 month internships anywhere in Canada from January 2027, in machine learning, quantitative research, portfolio construction and AI agents.</p>
+          <p class="hero-meta">Third-year Computer Science student. Open to 4 to 16 month internships anywhere in Canada from January 2027, with pension funds, asset managers and AI teams: portfolio construction, quantitative research, machine learning and AI agents.</p>
           <div class="actions">
             <a class="button button-solid" href="#work">See the work</a>
             <a class="button" href="{RESUME}" download>Resume</a>
@@ -436,7 +441,7 @@ def page() -> str:
           <p>The same four rules on every project. They are why a number on this site means something.</p>
         </div>
         <ol class="rules" data-reveal>{rules()}</ol>
-        <div class="toolkit" data-reveal>{toolkit()}</div>
+        <div class="toolkit" data-reveal><p class="label">Where I fit</p>{toolkit()}</div>
       </div>
     </section>
 
@@ -494,7 +499,7 @@ def page() -> str:
         <p class="label">Contact</p>
         <h2 id="contact-title">Let's talk</h2>
         <div class="split">
-          <p class="lede">I build deep learning systems for finance, train the models underneath them, and write the measurement down, including when the answer is no.</p>
+          <p class="lede">I build AI for long-term investing, train the models underneath it, and write the measurement down, including when the answer is no.</p>
           <div class="reach">
             <a class="email" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
             <p class="phone"><a href="tel:+14385966468">+1 (438) 596-6468</a></p>

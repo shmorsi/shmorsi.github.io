@@ -1291,3 +1291,7 @@ html:not(.stage) .hero-space { display: none; }
 @media (max-width: 1100px) {
   .hero-space { order: -1; min-height: 0; height: 30svh; }
 }
+
+/* "Where I fit": the label sits above the three columns. */
+.toolkit > .label { grid-column: 1 / -1; padding-top: 22px; margin-bottom: -6px; }
+.toolkit > .label + article { padding-left: 0; border-left: 0; }

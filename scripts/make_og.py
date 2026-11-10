@@ -46,7 +46,7 @@ TITLES = [("TSFM" if p["id"] == "tsfm" else p["title"]) for p in json.loads((ROO
 COUNT = {3: "Three", 4: "Four", 5: "Five", 6: "Six"}.get(len(TITLES), str(len(TITLES)))
 CARDS = {
     ROOT / "assets" / "og.png": f"""
-      <div class="rule"></div><p class="label">Deep learning · quant research · AI agents</p>
+      <div class="rule"></div><p class="label">Long-term investing · deep learning · AI agents</p>
       <h1>Sherif Morsi</h1>
       <p class="lede">{TAGLINE}</p>
       <p class="dim">{COUNT} projects, each with its own page, every figure traced to a result file.</p>
