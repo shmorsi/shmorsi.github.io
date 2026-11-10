@@ -1219,6 +1219,54 @@ void main(){
     });
   });
 
+  /* ---- Stars: two still layers of points behind everything, sliding at different speeds as the page scrolls. */
+  safe(() => {
+    const seeded = (seed) => { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+    const layers = [{ speed: 0.035, count: 430, max: 1.0 }, { speed: 0.09, count: 150, max: 1.7 }];
+    let after = document.querySelector(".fx-field");
+    layers.forEach((L) => {
+      L.c = el("canvas", "fx-stars");
+      L.c.setAttribute("aria-hidden", "true");
+      if (after) after.after(L.c); else body.prepend(L.c);
+      after = L.c;
+    });
+    let seenW = 0, seenH = 0;
+    const paint = () => {
+      const w = window.innerWidth, h = Math.max(window.innerHeight, 480);
+      if (w === seenW && Math.abs(h - seenH) < 140) return; /* a phone's address bar sliding away is not worth a repaint */
+      seenW = w; seenH = h;
+      const d = Math.min(window.devicePixelRatio || 1, 2);
+      layers.forEach((L, li) => {
+        const g = L.c.getContext("2d"), r = seeded(li * 77 + 5);
+        L.c.width = Math.round(w * d); L.c.height = Math.round(h * 2 * d);
+        L.c.style.height = `${h * 2}px`;
+        L.h = h;
+        g.setTransform(d, 0, 0, d, 0, 0);
+        const count = Math.round(L.count * Math.min(1.6, (w * h) / (1440 * 900)));
+        for (let i = 0; i < count; i += 1) {
+          const x = r() * w, y = r() * h, rad = 0.35 + Math.pow(r(), 3) * L.max, a = 0.25 + r() * 0.6, tone = r();
+          const rgb = tone < 0.1 ? "255,214,170" : tone < 0.4 ? "170,205,255" : "235,240,255";
+          [y, y + h].forEach((yy) => { /* drawn twice, one screen apart, so the layer can wrap */
+            g.fillStyle = `rgba(${rgb},${a.toFixed(2)})`;
+            g.beginPath(); g.arc(x, yy, rad, 0, 6.2832); g.fill();
+            if (rad > L.max * 0.75) { g.fillStyle = `rgba(${rgb},0.1)`; g.beginPath(); g.arc(x, yy, rad * 3.2, 0, 6.2832); g.fill(); }
+          });
+        }
+      });
+    };
+    paint();
+    let timer;
+    window.addEventListener("resize", () => { clearTimeout(timer); timer = setTimeout(paint, 200); });
+    if (reduced) return;
+    tasks.push(() => {
+      const y = window.scrollY;
+      layers.forEach((L) => {
+        const off = Math.round(((y * L.speed) % L.h) * 2) / 2;
+        if (L.off !== off) { L.off = off; L.c.style.transform = `translate3d(0, ${-off}px, 0)`; }
+      });
+    });
+  });
+
   if (reduced) { startClock(); return; }
 
   /* ---- Grain, scroll progress, and a header that steps aside while you read down. ------------ */
@@ -1638,17 +1686,18 @@ void main(){
     const gl = canvas.getContext("webgl", { antialias: false, alpha: true, premultipliedAlpha: true, depth: false, powerPreference: "high-performance" });
     if (!gl) return;
     const vs = `attribute vec4 aFrom,aTo,aCF,aCT;attribute vec2 aSeed;
-uniform vec4 uFA,uRA,uDA,uFB,uRB,uDB,uMix,uPtr;uniform vec2 uView,uTime,uFx;uniform mediump float uLight;varying vec4 vC;
+uniform vec4 uFA,uRA,uDA,uFB,uRB,uDB,uMix,uPtr;uniform vec2 uView,uTime,uFx,uOc;uniform mediump float uLight;varying vec4 vC;
 vec3 rot(vec3 p,vec2 a){float c=cos(a.y),s=sin(a.y);p=vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);c=cos(a.x);s=sin(a.x);return vec3(p.x,c*p.y-s*p.z,s*p.y+c*p.z);}
-vec4 place(vec3 p,vec4 F,vec4 R,vec4 D,float t){
+vec4 place(vec3 p,vec4 F,vec4 R,vec4 D,float oc,float t){
   vec3 q=rot(p*F.z,R.xy);float k=F.w/(F.w-q.z);
   vec2 s=F.xy+q.xy*k+D.z*vec2(sin(t*.31+aSeed.x*50.),cos(t*.27+aSeed.y*50.));
-  return vec4(s,k,mix(D.y,1.,clamp(q.z/D.x*.5+.5,0.,1.)));}
+  float seen=(q.z<0.&&length(q.xy*k)<oc)?0.:1.; /* behind the planet's disc */
+  return vec4(s,k,seen*mix(D.y,1.,clamp(q.z/D.x*.5+.5,0.,1.)));}
 void main(){
   float t=uTime.x;
   float o=mix(aSeed.x,aTo.w,uMix.y);
   float m=clamp((uMix.x*(1.+uMix.z)-o)/uMix.z,0.,1.);m=m*m*(3.-2.*m);
-  vec4 a=place(aFrom.xyz,uFA,uRA,uDA,t),b=place(aTo.xyz,uFB,uRB,uDB,t);
+  vec4 a=place(aFrom.xyz,uFA,uRA,uDA,uOc.x,t),b=place(aTo.xyz,uFB,uRB,uDB,uOc.y,t);
   float arc=sin(3.14159265*m);
   vec2 d=b.xy-a.xy;float len=length(d);
   vec2 nrm=len>.5?vec2(-d.y,d.x)/len:vec2(0.);
@@ -1675,11 +1724,52 @@ void main(){float d=length(gl_PointCoord-.5)*2.;float a=max(0.,1.-d*d);a=a*a*vC.
     const prog = gl.createProgram();
     gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs));
     gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+    ["aFrom", "aTo", "aCF", "aCT", "aSeed"].forEach((name, i) => gl.bindAttribLocation(prog, i, name));
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+    /* Worlds: each is one quad shaded as a lit sphere with cloud bands, a soft limb and a little air around it. */
+    const wvs = `attribute vec2 a;uniform vec4 uQ;uniform vec2 uView;varying vec2 vq;
+void main(){vq=vec2(a.x,-a.y)*uQ.w;vec2 p=uQ.xy+a*uQ.z*uQ.w;gl_Position=vec4(p.x/uView.x*2.-1.,1.-p.y/uView.y*2.,0.,1.);}`;
+    const wfs = `precision mediump float;varying vec2 vq;
+uniform vec4 uL,uK;uniform vec3 uCa,uCb;uniform vec2 uAx;uniform float uT,uLight;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
+void main(){
+  float d=length(vq);vec3 Ld=normalize(uL.xyz);
+  float facing=clamp(dot(vq/max(d,.001),Ld.xy)*.5+.5,0.,1.);
+  float air=exp(-max(d-1.,0.)*9.)*step(1.,d)*(.05+.6*facing*facing);
+  vec3 col=uCa*air;float alpha=air*.2;
+  if(d<1.){
+    float z=sqrt(1.-d*d);vec3 nn=vec3(vq,z);
+    float lit=clamp(dot(nn,Ld),0.,1.);
+    float lat=dot(nn.xy,uAx);
+    float b=fbm(vec2(lat*4.+uK.x,atan(nn.x,z)*.9+uK.x*3.+uT*.004));
+    float bands=mix(b,sin(lat*(13.+uK.x*3.)+b*5.)*.5+.5,uK.y);
+    vec3 body=mix(uCb,uCa,bands)*(pow(lit,.8)*1.2+.008);
+    body+=uCa*pow(1.-z,3.)*(.1+.9*facing*lit);
+    if(uLight>.5)body=mix(vec3(.9,.92,.96),mix(uCb,uCa,bands)*.6+.35,.6)*(.82+.18*lit);
+    float e=smoothstep(1.,1.-uK.z,d);
+    col=mix(col,body,e);alpha=mix(alpha,1.,e);
+  }
+  if(uLight>.5&&d>=1.){col=vec3(0.);alpha=0.;}
+  gl_FragColor=vec4(col,alpha)*uL.w;}`;
+    const wprog = gl.createProgram();
+    gl.attachShader(wprog, sh(gl.VERTEX_SHADER, wvs));
+    gl.attachShader(wprog, sh(gl.FRAGMENT_SHADER, wfs));
+    gl.bindAttribLocation(wprog, 5, "a");
+    gl.linkProgram(wprog);
+    if (!gl.getProgramParameter(wprog, gl.LINK_STATUS)) return;
+    const WU = {};
+    ["uQ", "uView", "uL", "uK", "uCa", "uCb", "uAx", "uT", "uLight"].forEach((name) => { WU[name] = gl.getUniformLocation(wprog, name); });
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(5);
+    gl.vertexAttribPointer(5, 2, gl.FLOAT, false, 0, 0);
     gl.useProgram(prog);
-    const fieldCanvas = document.querySelector(".fx-field");
-    if (fieldCanvas) fieldCanvas.after(canvas); else body.prepend(canvas);
+    const before = [...document.querySelectorAll(".fx-stars")].pop() || document.querySelector(".fx-field");
+    if (before) before.after(canvas); else body.prepend(canvas);
 
     const N = window.innerWidth > 900 ? 18000 : 8000;
     const C = { ice: [0.56, 0.77, 1.0], white: [0.93, 0.96, 1.0], violet: [0.66, 0.58, 1.0], amber: [0.97, 0.72, 0.30], teal: [0.42, 0.9, 0.78], rose: [1.0, 0.45, 0.55], deep: [0.2, 0.36, 0.85], dim: [0.40, 0.46, 0.60], faint: [0.20, 0.24, 0.33] };
@@ -1909,31 +1999,21 @@ void main(){float d=length(gl_PointCoord-.5)*2.;float a=max(0.,1.-d*d);a=a*a*vC.
       }));
       Object.keys(items).forEach((name) => BUILD[name](items[name]));
       if (home) {
-        /* The network behind the name. */
-        shapes.net = shape(61, ({ put, r, g, many, n, left }) => {
-          const layers = [6, 9, 12, 9, 5], nodes = [], edges = [];
-          layers.forEach((count, li) => {
-            const x = (-1 + 2 * li / (layers.length - 1)) * 0.96;
-            for (let k = 0; k < count; k += 1) {
-              const a = 6.2831853 * k / count + li * 0.55, rad = count > 8 && k % 2 ? 0.34 : 0.64;
-              nodes.push({ li, p: [x, Math.cos(a) * rad, Math.sin(a) * rad] });
-            }
+        /* The rings around the giant behind the name: dense bright bands, a dark gap, a thin outer strand. In planet radii. */
+        shapes.ring = shape(61, ({ put, r, g, many, n, left }) => {
+          const roll = -0.3, cr = Math.cos(roll), sr = Math.sin(roll);
+          const at = (rho, th, lift) => { const x = rho * Math.cos(th), z = rho * Math.sin(th); return [x * cr - lift * sr, x * sr + lift * cr, z]; };
+          const band = (count, r0, r1, c0, c1, size, k) => many(count, () => {
+            const f = r(), rho = r0 + (r1 - r0) * f, th = r() * 6.2831853, p = at(rho, th, g() * 0.006);
+            put(p[0], p[1], p[2], th / 6.2831853, mixC(c0, c1, f), size * (0.8 + r() * 0.6), k * (0.7 + 0.3 * Math.sin(rho * 60)));
           });
-          nodes.forEach((a) => {
-            const next = nodes.filter((b) => b.li === a.li + 1);
-            for (let k = 0; k < Math.min(4, next.length); k += 1) edges.push({ a: a.p, b: next[(r() * next.length) | 0].p, phase: r() });
-          });
-          many(8, () => put(0, 0, -0.2, r(), mixC(C.deep, C.violet, r()), 230, 0.035));
-          many(nodes.length * 3, (k) => { const nd = nodes[k % nodes.length]; put(nd.p[0], nd.p[1], nd.p[2], r(), mixC(C.ice, C.violet, r()), 20 + r() * 10, 0.2); });
-          many(n(0.26), (k) => {
-            const nd = nodes[k % nodes.length];
-            put(nd.p[0] + g() * 0.02, nd.p[1] + g() * 0.02, nd.p[2] + g() * 0.02, r(), nd.li === 0 ? C.white : nd.li === 4 ? C.amber : mixC(C.ice, C.violet, r()), 1.3 + r() * 1.5, 0.75);
-          });
-          many(left(), (k) => {
-            const e = edges[k % edges.length], t = r();
-            put(e.a[0] + (e.b[0] - e.a[0]) * t + g() * 0.005, e.a[1] + (e.b[1] - e.a[1]) * t + g() * 0.005, e.a[2] + (e.b[2] - e.a[2]) * t + g() * 0.005,
-              (t * 0.55 + e.phase) % 1, r() < 0.3 ? C.violet : C.ice, 1 + r() * 0.8, 0.7);
-          });
+          many(3, () => { const th = r() * 6.2831853, p = at(2.75 + r() * 0.6, th, g() * 0.05); put(p[0], p[1], p[2], r(), C.white, 18, 0.5); });
+          many(n(0.035), () => { const th = r() * 6.2831853, p = at(2.6 + r() * 1.4, th, g() * 0.25); put(p[0], p[1], p[2], r(), C.dim, 1 + r(), 0.5); });
+          band(n(0.14), 1.26, 1.5, C.deep, C.violet, 1.2, 0.5);
+          band(n(0.5), 1.52, 1.94, C.white, C.ice, 1.5, 0.62);
+          band(n(0.03), 1.94, 2.02, C.dim, C.dim, 1, 0.3);
+          band(n(0.22), 2.02, 2.27, C.ice, C.violet, 1.3, 0.55);
+          band(left(), 2.32, 2.36, C.amber, C.rose, 1.2, 0.6);
         });
         /* The last word. */
         nameText = sampleText("SHERIF MORSI", 700, -0.02);
@@ -1956,15 +2036,15 @@ void main(){float d=length(gl_PointCoord-.5)*2.;float a=max(0.,1.-d*d);a=a*a*vC.
       for (let i = 0; i < N * 2; i += 1) seeds[i] = r();
       gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
       gl.bufferData(gl.ARRAY_BUFFER, seeds, gl.STATIC_DRAW);
-      const aSeed = gl.getAttribLocation(prog, "aSeed");
-      gl.enableVertexAttribArray(aSeed);
-      gl.vertexAttribPointer(aSeed, 2, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(4);
+      gl.vertexAttribPointer(4, 2, gl.FLOAT, false, 0, 0);
     };
 
     /* Where each shape stands on screen: a centre, a scale, a tilt and a depth, recomputed every frame. */
-    const A = ["aFrom", "aTo", "aCF", "aCT"].map((name) => { const loc = gl.getAttribLocation(prog, name); gl.enableVertexAttribArray(loc); return loc; });
+    const A = [0, 1, 2, 3];
+    A.forEach((loc) => gl.enableVertexAttribArray(loc));
     const U = {};
-    ["uFA", "uRA", "uDA", "uFB", "uRB", "uDB", "uMix", "uPtr", "uView", "uTime", "uFx", "uLight"].forEach((name) => { U[name] = gl.getUniformLocation(prog, name); });
+    ["uFA", "uRA", "uDA", "uFB", "uRB", "uDB", "uMix", "uPtr", "uView", "uTime", "uFx", "uOc", "uLight"].forEach((name) => { U[name] = gl.getUniformLocation(prog, name); });
     const heroSpace = document.querySelector("[data-hero-stage]");
     const giant = document.querySelector("[data-giant]"), giantLine = document.querySelector(".giant-line");
     const tilt = { x: 0, y: 0 };
@@ -1975,10 +2055,12 @@ void main(){float d=length(gl_PointCoord-.5)*2.;float a=max(0.,1.-d*d);a=a*a*vC.
     const globeFrame = (it, y, t) => ({ ...svgFrame(it, y), cx: it.svgCx + globe.x * it.svgS, cy: stageTop(it, y) + it.svgCy + globe.y * it.svgS, rx: -0.56 + tilt.x * 0.8, ry: 1.52 + tilt.y * 1.3 + Math.sin(t * 0.25) * 0.09, depth: globe.r * it.svgS, back: 0.2 });
     const FRAMES = {
       ambient: (y) => { const s = Math.max(window.innerWidth, vh) * 0.6; return { cx: window.innerWidth / 2, cy: vh / 2, s, d: 1400, rx: tilt.x * 0.5, ry: y * 0.00012 + tilt.y * 0.5, alpha: 0.85, size: 1, depth: s * 0.3, back: 0.5, drift: 5, pulse: 0 }; },
-      net: (y, t) => { const h = lay.hero, s = Math.min(h.w * 0.7, h.h * 0.76); return { cx: h.x + h.w * (wide() ? 0.58 : 0.5), cy: h.top - y + h.h * 0.48, s, d: 1400, rx: 0.24 + tilt.x * 1.4, ry: t * 0.13 + tilt.y * 2.2, alpha: wide() ? 1 : 0.8, size: wide() ? 1.15 : 0.9, depth: s, back: 0.3, drift: 0.4, pulse: 1 }; },
+      ring: (y, t) => { const g = giantAt(y); return { cx: g.x, cy: g.y, s: g.r, d: 1400, rx: 0.42 + tilt.x * 1.2, ry: tilt.y * 1.6 + Math.sin(t * 0.17) * 0.05, alpha: 1, size: wide() ? 1.05 : 0.85, depth: g.r * 2.3, back: 0.4, drift: 0.3, pulse: 0.55, oc: g.r * 0.985 }; },
       name: (y) => { const g = lay.name, s = g.w * 0.985 / nameText.aspect; return { cx: g.x + g.w / 2, cy: g.top - y + g.font * 0.41, s, d: 1400, rx: tilt.x * 0.6, ry: tilt.y * 0.6, alpha: 1, size: clamp(s / 110, 0.7, 1.3), depth: 1e5, back: 1, drift: 0.4, pulse: 0 }; },
     };
     const OWNER = { coin: "dpc", bars: "dpc", seed: "dpc", chart: "dpc", many: "tsfm", hist: "tsfm", fan: "tsfm", gridOff: "tsfm", gridOn: "tsfm", result: "tsfm", msg: "aurvane", slip: "aurvane", idle: "aurvane", landed: "aurvane", guarded: "aurvane" };
+    /* The giant behind the name: it sits in the hero's free space and falls behind the page a little slower than the scroll. */
+    const giantAt = (y) => { const h = lay.hero, r = Math.min(h.w * (wide() ? 0.31 : 0.22), h.h * 0.32); return { x: h.x + h.w * (wide() ? 0.54 : 0.5), y: h.top + h.h * 0.47 - y * 0.62, r }; };
     const frameOf = (name, y, t) => (FRAMES[name] ? FRAMES[name](y, t) : OWNER[name] ? svgFrame(items[OWNER[name]], y) : globeFrame(items.wsl, y, t));
 
     /* The timeline: which two shapes the points are between at each scroll position, and how they travel. */
@@ -2009,12 +2091,12 @@ void main(){float d=length(gl_PointCoord-.5)*2.;float a=max(0.,1.-d*d);a=a*a*vC.
       lay.hero = { x: hr.left, top: hr.top + window.scrollY, w: hr.width, h: hr.height };
       const gr = giantLine.getBoundingClientRect();
       lay.name = { x: gr.left, top: gr.top + window.scrollY, w: gr.width, font: parseFloat(getComputedStyle(giant).fontSize) };
-      intro = { a: "ambient", b: "net", order: 0, w: 0.7, swirl: 0.9, dur: 1.5 };
+      intro = { a: "ambient", b: "ring", order: 0, w: 0.7, swirl: 0.9, dur: 1.6 };
       const at = (it, s) => it.top + (s / it.n) * (it.h - it.stageH);
       const step = (it, s0, s1, a, b, o = {}) => segs.push({ y0: at(it, s0), y1: at(it, s1), a, b, order: 0, w: 0.6, swirl: 0.5, front: 0, ...o });
       const [s1, s2, s3, s4] = [items.dpc, items.tsfm, items.wsl, items.aurvane];
       const heroTop = lay.hero.top, heroH = Math.max(lay.hero.h, vh * 0.6);
-      cross(heroTop + heroH * 0.1, heroTop + heroH * 0.95, "net", "ambient", { swirl: 0.7 });
+      cross(heroTop + heroH * 0.12, heroTop + heroH * 1.0, "ring", "ambient", { swirl: 0.7 });
       cross(s1.top - vh * 0.8, s1.top - vh * 0.04, "ambient", "coin");
       step(s1, 0.5, 0.98, "coin", "bars", { order: 1, w: 0.5 });
       step(s1, 1.72, 1.98, "bars", "seed", { swirl: 0.3 });
@@ -2039,6 +2121,63 @@ void main(){float d=length(gl_PointCoord-.5)*2.;float a=max(0.,1.-d*d);a=a*a*vC.
       const nameStart = Math.max(out + vh, lay.name.top - vh * 1.05);
       cross(nameStart, Math.max(nameStart + 1, end - vh * 0.08), "ambient", "name", { order: 1, w: 0.5, swirl: 0.8 });
       lay.segs = segs.sort((p, q) => p.y0 - q.y0);
+    };
+
+    /* The sky: up to two worlds in view at once. Each chapter has its own, low in the corner; it rises as the chapter
+       arrives, drifts while the chapter plays, and falls away above as the next one comes up. The page ends on a horizon. */
+    const WORLDS = {
+      giant: { ca: [0.66, 0.76, 1.0], cb: [0.13, 0.17, 0.5], bands: 1, seed: 0.3, light: [-0.55, 0.55, 0.62], axis: [0.32, 0.95] },
+      dpc: { ca: [0.5, 0.76, 1.0], cb: [0.05, 0.16, 0.46], bands: 0.85, seed: 1.1, light: [-0.5, 0.45, -0.74], axis: [0.2, 0.98] },
+      tsfm: { ca: [0.78, 0.62, 1.0], cb: [0.2, 0.08, 0.46], bands: 1, seed: 2.3, light: [-0.5, 0.45, -0.74], axis: [-0.25, 0.97] },
+      moon: { ca: [0.78, 0.8, 0.86], cb: [0.26, 0.28, 0.33], bands: 0, seed: 3.7, light: [-0.6, 0.5, 0.55], axis: [0, 1] },
+      aurvane: { ca: [1.0, 0.5, 0.46], cb: [0.36, 0.08, 0.13], bands: 0.3, seed: 4.9, light: [-0.5, 0.45, -0.74], axis: [0.1, 0.99] },
+      home: { ca: [0.5, 0.82, 1.0], cb: [0.03, 0.16, 0.36], bands: 0.35, seed: 6.1, light: [0, 0.56, -0.83], axis: [0, 1] },
+    };
+    const corner = (it, kind, y) => { /* a chapter's world: a back-lit crescent low in the right corner, clear of the picture */
+      const span = it.h + vh, q = (y - (it.top - vh)) / Math.max(1, span), vw = window.innerWidth; /* from the chapter coming into view to its last line leaving */
+      if (!wide() || q <= 0 || q >= 1) return null; /* a phone has no free corner: the words sit there */
+      const lead = vh / Math.max(1, span); /* the share of that spent arriving, and again leaving */
+      const cy = q < lead ? 1.86 - 0.56 * (q / lead) : q > 1 - lead ? 1.14 - 1.9 * inOut((q - (1 - lead)) / lead) : 1.3 - 0.16 * ((q - lead) / (1 - 2 * lead));
+      return { ...WORLDS[kind], x: vw * 1.04, y: vh * cy, r: vh * 0.46, o: 1 };
+    };
+    const sky = (y, t) => {
+      const out = [], vw = window.innerWidth;
+      if (!home) {
+        const kind = { dpc: "dpc", tsfm: "tsfm", wsl: "moon" }[all[0].svg.dataset.scene], o = 1 - seg(y, vh * 0.35, vh * 0.95);
+        if (o > 0) out.push(kind === "moon" ? { ...WORLDS.moon, x: vw * 0.9, y: vh * 0.24 - y * 0.2, r: vh * 0.05, o } : { ...WORLDS[kind], x: vw * 1.0, y: vh * 1.12 - y * 0.25, r: vh * 0.42, o: o * 0.9 });
+        return out;
+      }
+      const g = giantAt(y), open = clamp((t - introStart) / 1.2);
+      if (g.y + g.r * 1.6 > 0) {
+        out.push({ ...WORLDS.giant, x: g.x, y: g.y, r: g.r, o: ease(open) });
+        if (wide()) out.push({ ...WORLDS.moon, x: g.x + g.r * 2.15, y: g.y - g.r * 1.5 + y * 0.25, r: g.r * 0.1, o: ease(open) });
+        return out;
+      }
+      [[items.dpc, "dpc"], [items.tsfm, "tsfm"], [items.aurvane, "aurvane"]].forEach(([it, kind]) => { const w = corner(it, kind, y); if (w && out.length < 2) out.push(w); });
+      const m = items.wsl, mq = (y - (m.top - vh)) / Math.max(1, m.h + vh);
+      if (out.length < 2 && mq > 0 && mq < 1) out.push({ ...WORLDS.moon, x: vw * (wide() ? 0.95 : 0.86), y: vh * (0.42 - 0.3 * mq), r: vh * 0.045, o: seg(mq, 0, 0.12) * (1 - seg(mq, 0.88, 1)) });
+      const end = document.documentElement.scrollHeight - vh, rise = seg(y, end - vh * 1.3, end);
+      if (rise > 0 && out.length < 2) { const r = Math.max(vw * 1.15, vh * 1.2); out.push({ ...WORLDS.home, x: vw * 0.5, y: vh * (1.08 - 0.21 * inOut(rise)) + r, r, o: 1 }); }
+      return out;
+    };
+    const drawWorlds = (y, t, light) => {
+      const list = sky(y, t);
+      if (!list.length) return;
+      gl.useProgram(wprog);
+      gl.uniform2f(WU.uView, window.innerWidth, window.innerHeight);
+      gl.uniform1f(WU.uT, t);
+      gl.uniform1f(WU.uLight, light);
+      list.forEach((w) => {
+        if (w.o <= 0 || w.y - w.r * 1.5 > vh || w.y + w.r * 1.5 < 0) return;
+        gl.uniform4f(WU.uQ, w.x, w.y, w.r, 1.45);
+        gl.uniform4f(WU.uL, w.light[0], w.light[1], w.light[2], w.o);
+        gl.uniform4f(WU.uK, w.seed, w.bands, 2.5 / Math.max(8, w.r * quality.dpr), 0);
+        gl.uniform3f(WU.uCa, w.ca[0], w.ca[1], w.ca[2]);
+        gl.uniform3f(WU.uCb, w.cb[0], w.cb[1], w.cb[2]);
+        gl.uniform2f(WU.uAx, w.axis[0], w.axis[1]);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      });
+      gl.useProgram(prog);
     };
 
     /* Labels that ride on the globe: "Fed" over Washington, and the line out to Toronto's stock index. */
@@ -2100,16 +2239,20 @@ void main(){float d=length(gl_PointCoord-.5)*2.;float a=max(0.,1.-d*d);a=a*a*vC.
       if (sg.ease) mix = inOut(mix);
       const opening = clamp((t - introStart) / intro.dur);
       if (opening < 1 && sg === lay.segs[0] && mix === 0) { a = intro.a; b = intro.b; mix = intro.order ? inOut(opening) : ease(opening); order = intro.order; w = intro.w; swirl = intro.swirl; front = intro.front || 0; }
+      const light = html.dataset.theme === "light" ? 1 : 0;
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      drawWorlds(y, t, light);
       bind(a, b);
-      send(frameOf(a, y, t), "uFA", "uRA", "uDA");
-      send(frameOf(b, y, t), "uFB", "uRB", "uDB");
+      const FA = frameOf(a, y, t), FB = frameOf(b, y, t);
+      send(FA, "uFA", "uRA", "uDA");
+      send(FB, "uFB", "uRB", "uDB");
+      gl.uniform2f(U.uOc, FA.oc || 0, FB.oc || 0);
       gl.uniform4f(U.uMix, mix, order, w, swirl);
       gl.uniform4f(U.uPtr, pointer.x, pointer.y, 95, 42 * ptr);
       gl.uniform2f(U.uView, window.innerWidth, window.innerHeight);
       gl.uniform2f(U.uTime, t, quality.dpr < 1.5 ? 1.8 : quality.dpr * 1.25); /* points stay visible on standard-density screens */
       gl.uniform2f(U.uFx, clamp(scrollV, -2200, 2200) * 0.006, front); /* a fast scroll leaves the points a little behind */
-      gl.uniform1f(U.uLight, html.dataset.theme === "light" ? 1 : 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform1f(U.uLight, light);
       gl.drawArrays(gl.POINTS, 0, quality.count);
 
       /* The words on top lean with the points; the globe carries its own two labels. */

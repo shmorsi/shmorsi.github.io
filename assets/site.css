@@ -1314,3 +1314,10 @@ html:not(.stage) .hero-space { display: none; }
   .cs-hero.has-scene > * { grid-column: 1; }
   .cs-hero.has-scene > .cs-scene { grid-column: 2; grid-row: 2 / span 5; align-self: center; max-width: none; }
 }
+
+/* ---- The sky: still stars behind the page (two layers that slide at different speeds); the worlds are drawn by the stage. */
+.fx-stars { position: fixed; left: 0; top: 0; width: 100%; z-index: 0; pointer-events: none; opacity: 0.9; will-change: transform; }
+:root[data-theme="light"] .fx-stars { display: none; }
+.st-role { color: var(--ink); }
+.stage .site-footer { text-shadow: 0 1px 10px #000, 0 0 2px #000; }
+:root[data-theme="light"].stage .site-footer { text-shadow: none; }

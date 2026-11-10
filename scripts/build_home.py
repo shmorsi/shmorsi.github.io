@@ -411,9 +411,9 @@ def page() -> str:
     <section class="section stories" id="work" aria-labelledby="work-title">
       <div class="wrap">
         <div class="section-head" data-reveal>
-          <p class="label">Work</p>
+          <p class="label">The voyage</p>
           <h2 id="work-title">{words} projects, in plain English</h2>
-          <p>What each one does, why it matters and what it found, in four short steps. Keep scrolling: each picture is built from the project's real results.</p>
+          <p>Investing for decades is a long voyage. It needs an engine to grow the money, a navigator to see what is coming, a weather station to measure the storms, and a shield to keep the crew safe. These {words.lower()} projects are those {words.lower()} machines. Keep scrolling: each picture is built from the project's real results.</p>
         </div>
       </div>
       {"".join(stories.story(P, pid, page_href(P[pid])) for pid in ORDER)}

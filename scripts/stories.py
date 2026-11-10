@@ -182,6 +182,8 @@ def scene_aurvane(P: dict) -> str:
 
 SCENES = {"deep-portfolio-constructor": scene_dpc, "tsfm": scene_tsfm, "world-shock-lab": scene_wsl, "aurvane": scene_aurvane}
 TINT = {"deep-portfolio-constructor": "ice", "tsfm": "violet", "world-shock-lab": "teal", "aurvane": "rose"}
+# The site tells the four projects as one long voyage: what each machine is for, in a word anyone knows.
+ROLE = {"deep-portfolio-constructor": "The engine", "tsfm": "The navigator", "world-shock-lab": "The weather station", "aurvane": "The shield"}
 
 
 def story(P: dict, pid: str, href: str) -> str:
@@ -195,7 +197,7 @@ def story(P: dict, pid: str, href: str) -> str:
       <article class="story" id="story-{pid}" data-story="{pid}" data-tint="{TINT[pid]}" style="--n:{len(plain['steps'])}">
         <div class="story-stage">
           <div class="st-copy">
-            <p class="label"><span class="num">{p["number"]}</span> {e(p["title"])}</p>
+            <p class="label"><span class="num">{p["number"]}</span> <span class="st-role">{e(ROLE[pid])}</span> · {e(p["title"])}</p>
             <h3 class="st-title">{e(plain["title"])}</h3>
             <p class="st-lead">{e(plain["lead"])}</p>
             <ol class="st-tabs" aria-label="Steps">{tabs}</ol>
