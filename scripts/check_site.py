@@ -351,10 +351,18 @@ for gone in ("orbit", "projects/atlas.html", "data/measurements/orbit"):
     if (ROOT / gone).exists():
         errors.append(f"{gone} belongs to a retired project and must not be served")
 
-# Projects are numbered 01, 02, ... in the order of data/projects.json, and each has its own page.
-for i, project in enumerate(DATA["projects"], 1):
-    if project.get("number") != f"{i:02d}":
-        errors.append(f"{project['id']} must be number {i:02d} (data order), not {project.get('number')!r}")
+# Three projects; the first has three studies. Order, numbers (01.1, 01.2, 01.3, 02, 03) and groups follow scripts/groups.py.
+sys.path.insert(0, str(ROOT / "scripts"))
+import groups as _groups  # noqa: E402
+_expected = _groups.apply(json.loads(json.dumps(DATA)))
+if [p["id"] for p in DATA["projects"]] != [p["id"] for p in _expected["projects"]]:
+    errors.append("data/projects.json is not in the order of scripts/groups.py (run python3 scripts/groups.py)")
+for project, want in zip(DATA["projects"], _expected["projects"]):
+    for key in ("number", "group", "study"):
+        if project.get(key) != want[key]:
+            errors.append(f"{project['id']}.{key} must be {want[key]!r}, not {project.get(key)!r} (run python3 scripts/groups.py)")
+if DATA.get("groups") != _expected["groups"]:
+    errors.append("data/projects.json groups do not match scripts/groups.py (run python3 scripts/groups.py)")
 
 # The master page is generated: its <main> must match a fresh build from data/projects.json, charts included.
 import importlib.util  # noqa: E402
@@ -481,4 +489,4 @@ else:
 if errors:
     print("\n".join(errors))
     sys.exit(1)
-print(f"ok: {len(projects)} projects")
+print(f"ok: {len(DATA['groups'])} projects, {len(projects)} studies")

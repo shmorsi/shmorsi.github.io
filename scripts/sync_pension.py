@@ -11,8 +11,8 @@ repository and writes:
                        composed here from the numbers and the pre-registered verdicts so they cannot drift
   data/pension.json    the funded-ratio fans and sample paths the pictures are drawn from
 
-The project's place in the list (its number) is its position in data/projects.json; this script
-inserts it after the Deep Portfolio Constructor the first time and leaves the order alone afterwards.
+The project's place in the list and its number come from scripts/groups.py (it is the second study
+of the first project).
 """
 
 from __future__ import annotations
@@ -20,6 +20,8 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+
+import groups  # scripts/groups.py: the three projects and their studies
 
 ROOT = Path(__file__).resolve().parents[1]
 PID = "pension-lab"
@@ -230,8 +232,7 @@ def main() -> None:
         data["projects"][ids.index(PID)] = project
     else:
         data["projects"].insert(ids.index("deep-portfolio-constructor") + 1, project)
-    for i, p in enumerate(data["projects"], 1):          # numbers follow the order of the file
-        p["number"] = f"{i:02d}"
+    groups.apply(data)                                   # order, numbers and the three projects (scripts/groups.py)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
     (ROOT / "data" / "pension.json").write_text(json.dumps(pictures, separators=(",", ":")) + "\n")
     print(f"synced {export['source']}: {len(stats)} stats; learned vs glide path: {v_sim} (simulated), {v_walk} (no pull to an average), {v_hist} (history)")

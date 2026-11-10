@@ -43,14 +43,14 @@ aurvane = DATA["aurvane"]["stats"]
 dpc = DATA["deep-portfolio-constructor"]["stats"]
 pen = DATA["pension-lab"]["stats"]
 TAGLINE = json.loads((ROOT / "data" / "projects.json").read_text())["tagline"]
-TITLES = [("TSFM" if p["id"] == "tsfm" else p["title"]) for p in json.loads((ROOT / "data" / "projects.json").read_text())["projects"]]
+TITLES = [g["title"] for g in json.loads((ROOT / "data" / "projects.json").read_text())["groups"]]   # the three projects (scripts/groups.py)
 COUNT = {3: "Three", 4: "Four", 5: "Five", 6: "Six"}.get(len(TITLES), str(len(TITLES)))
 CARDS = {
     ROOT / "assets" / "og.png": f"""
       <div class="rule"></div><p class="label">Long-term investing · deep learning · AI agents</p>
       <h1>Sherif Morsi</h1>
       <p class="lede">{TAGLINE}</p>
-      <p class="dim">{COUNT} projects, each with its own page, every figure traced to a result file.</p>
+      <p class="dim">{COUNT} projects, every figure traced to a result file, every test fixed before it was run.</p>
       <p class="foot">{"".join(f"<span>{t}</span>" for t in TITLES)}</p>""",
     ROOT / "assets" / "og-dpc.png": f"""
       <div class="rule"></div><p class="label accent">Deep Portfolio Constructor · deep learning for long-term wealth</p>

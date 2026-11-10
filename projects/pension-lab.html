@@ -43,8 +43,8 @@
         <a href="../#work">Work</a>
         <a href="../projects/deep-portfolio-constructor.html">Portfolio</a>
         <a href="../projects/pension-lab.html" aria-current="page">Pension</a>
-        <a href="../projects/tsfm.html">TSFM</a>
         <a href="../projects/world-shock-lab.html">Shock Lab</a>
+        <a href="../projects/tsfm.html">TSFM</a>
         <a href="../aurvane/">Aurvane</a>
         <a class="nav-resume" href="../resume/Sherif_Morsi_Resume.pdf">Resume</a>
       </nav>
@@ -57,8 +57,9 @@
       <a class="text-link all-link" href="../#work">All projects</a>
       <div class="project-meta">
         <img class="mark" src="../assets/marks/pension-lab.svg" alt="" width="72" height="72">
-        <p class="label"><span class="num">02</span> Pensions and long-term investing · <span class="status">Pre-registered</span></p>
+        <p class="label"><span class="num">01.2</span> Pensions and long-term investing · <span class="status">Pre-registered</span></p>
       </div>
+      <nav class="studies" aria-label="The studies of this project"><span class="label">Deep Portfolio Constructor · 3 studies</span><a href="../projects/deep-portfolio-constructor.html"><span class="num">01.1</span>Wealth study</a><a href="../projects/pension-lab.html" aria-current="page"><span class="num">01.2</span>Pension Lab</a><a href="../projects/world-shock-lab.html"><span class="num">01.3</span>World Shock Lab</a></nav>
       <h1>Keeping a pension promise funded</h1>
       <section class="plain" data-plain aria-label="In plain English"><p class="label">In plain English</p><p class="plain-lead">A pension plan owes its retirees payments for decades. What does it cost to keep that promise, and can an AI manage the money better than the rule most plans follow?</p><ol class="plain-steps"><li><b>The promise</b> A pension plan has promised to pay its retirees every month for the next 60 years, and every payment rises with prices. Today it holds <span class="fig-inline" data-bind="pension-lab.stats.fundedStart.display">90%</span> of what those promises are worth. Whoever stands behind the plan has to make up the rest.</li><li><b>The risk</b> Stocks can close that gap, or blow it open in a crash. Bonds built to match the promise keep the gap where it is. Prices rising faster than anyone expected widen it, whatever the plan holds.</li><li><b>Two ways to decide</b> Most plans follow a rule called a glide path: hold more stocks while the plan is short, fewer as it fills up. I trained a small neural network that starts as that rule and learns where to leave it, by living through thousands of simulated futures.</li><li><b>The honest result</b> Across <span class="fig-inline" data-bind="pension-lab.stats.scenarios.display">10,000</span> simulated futures the learned policy cost <span class="fig-inline" data-bind="pension-lab.stats.costLearned.display">$5.0</span> for every $100 promised, against <span class="fig-inline" data-bind="pension-lab.stats.costGlide.display">$9.9</span> for the glide path. Across <span class="fig-inline" data-bind="pension-lab.stats.starts.display">34</span> real 20-year periods it cost <span class="fig-inline" data-bind="pension-lab.stats.histLearned.display">$6.3</span> against <span class="fig-inline" data-bind="pension-lab.stats.histGlide.display">$6.3</span>: the test written in advance calls that <span class="fig-inline" data-bind="pension-lab.stats.histVerdict.display">no detectable difference</span>. So I took the policy apart to find out why, and <span class="fig-inline is-words" data-bind="pension-lab.stats.edgeSource.display">most of its simulated edge came from patterns the simulator repeats, which no real plan can count on</span>.</li></ol></section>
       <figure class="cs-scene" data-cs-scene>
@@ -224,8 +225,8 @@
       </section>
 
       <nav class="project-switch" aria-label="Other projects">
-        <a href="../projects/deep-portfolio-constructor.html"><span class="label">Previous · 01</span><strong>Deep Portfolio Constructor</strong></a>
-        <a href="../projects/tsfm.html"><span class="label">Next · 03</span><strong>Time-series foundation model</strong></a>
+        <a href="../projects/deep-portfolio-constructor.html"><span class="label">Previous · 01.1</span><strong>Deep Portfolio Constructor</strong></a>
+        <a href="../projects/world-shock-lab.html"><span class="label">Next · 01.3</span><strong>World Shock Lab</strong></a>
       </nav>
     </div>
   </main>

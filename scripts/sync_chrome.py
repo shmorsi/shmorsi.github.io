@@ -133,6 +133,14 @@ def projectize(html: str, pid: str) -> str:
             f'        <img class="mark" src="../assets/marks/{pid}.svg" alt="" width="72" height="72">\n'
             f'        <p class="label"><span class="num">{p["number"]}</span> {p["kicker"]} · <span class="status{live}">{STATUS[pid]}</span></p>\n'
             f'      </div>')
+    # A project with several studies shows them under its label, so a reader can move between them.
+    html = re.sub(r'\s*<nav class="studies".*?</nav>', "", html, count=1, flags=re.S)
+    group = next(g for g in DATA["groups"] if pid in g["projects"])
+    if len(group["projects"]) > 1:
+        links = "".join(f'<a href="../{PATH_OF[x]}"{" aria-current=\"page\"" if x == pid else ""}><span class="num">{PROJECTS[x]["number"]}</span>{PROJECTS[x]["study"]}</a>'
+                        for x in group["projects"])
+        meta += (f'\n      <nav class="studies" aria-label="The studies of this project">'
+                 f'<span class="label">{group["title"]} · {len(group["projects"])} studies</span>{links}</nav>')
     html, n = re.subn(r'<a class="text-link (?:back|all-link)[^"]*" href="[^"]*">[^<]*</a>\s*'
                       r'(?:<p class="label">[^<]*</p>|<div class="(?:mission|project)-meta">.*?</div>)',
                       lambda m: meta, html, count=1, flags=re.S)

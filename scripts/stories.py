@@ -259,7 +259,7 @@ def story(P: dict, pid: str, href: str) -> str:
             <div class="st-foot"><a class="button" href="{e(href)}">Open the project</a><span class="st-bar" aria-hidden="true"><i></i></span></div>
           </div>
           <div class="st-scene">
-            <span class="st-num" aria-hidden="true">{p["number"]}</span>
+            <span class="st-num" aria-hidden="true">{p["number"].split(".")[0]}</span>
             {SCENES[pid](P)}
           </div>
         </div>

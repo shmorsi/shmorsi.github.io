@@ -16,6 +16,7 @@ then build_home.py, build_dpc_page.py and sync_chrome.py.
 
 from __future__ import annotations
 
+import groups  # scripts/groups.py: the three projects and their studies
 import json
 import shutil
 import struct
@@ -339,6 +340,7 @@ def main(src: str) -> None:
     data = json.loads(path.read_text())
     data["projects"] = [p for p in data["projects"] if p["id"] != REPO]
     data["projects"].insert(0, entry)  # the featured project leads the page
+    groups.apply(data)                                   # order, numbers and the three projects (scripts/groups.py)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
     dates = site["dates"]

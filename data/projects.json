@@ -4,7 +4,7 @@
   "projects": [
     {
       "id": "deep-portfolio-constructor",
-      "number": "01",
+      "number": "01.1",
       "code": "DPC",
       "role": "featured",
       "badge": "1960 to 2026",
@@ -1190,7 +1190,9 @@
           "highlightRow": 1,
           "source": "deep-portfolio-constructor reports/wealth/summary.json [schedules] via reports/site_wealth.json"
         }
-      }
+      },
+      "group": "investing",
+      "study": "Wealth study"
     },
     {
       "id": "pension-lab",
@@ -1946,11 +1948,364 @@
       "learned": "It holds less in stocks than the glide path whether the plan is short or funded. Above all it follows the yield: the higher the yield, the more it puts in bonds matched to the promise.",
       "tuned": "The network still costs less than the tuned rule in simulation, so tuning is not the whole story.",
       "why": "Most of the simulated saving came from patterns in the last twelve months that hold inside the runs of history the simulator replays. A plan cannot rely on them: real history, where every network had seen only the past, gave the same answer.",
-      "number": "02"
+      "number": "01.2",
+      "group": "investing",
+      "study": "Pension Lab"
+    },
+    {
+      "id": "world-shock-lab",
+      "number": "01.3",
+      "code": "World Shock Lab",
+      "role": "featured",
+      "badge": "Live site",
+      "kicker": "Macro shocks and machine learning",
+      "title": "World Shock Lab",
+      "summary": "Event studies of Federal Reserve, Bank of Canada, and OPEC surprises across global assets, with a pre-registered test of whether machine learning adds anything, and forecasts published before each decision.",
+      "caveat": "Machine learning did not beat the linear model on the average move in either pre-registered study. Quantile boosting won only on 5% tail pinball loss. None of 80 regime tests survived false-discovery control.",
+      "image": {
+        "src": "assets/img/world-shock-lab-scenario.webp",
+        "alt": "World Shock Lab scenario for a Federal Reserve hike and an oil supply cut, with bands around six Canadian assets.",
+        "width": 1600,
+        "height": 1000
+      },
+      "tags": [
+        "Python",
+        "PyTorch",
+        "statsmodels",
+        "React",
+        "TypeScript"
+      ],
+      "links": [
+        {
+          "label": "Case study",
+          "href": "projects/world-shock-lab.html",
+          "kind": "site"
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/shmorsi/world-shock-lab",
+          "kind": "repo",
+          "external": true
+        },
+        {
+          "label": "Open the lab",
+          "href": "shock-lab/",
+          "kind": "app"
+        }
+      ],
+      "glanceIds": [
+        "tsxFed",
+        "replications",
+        "regime",
+        "announcements"
+      ],
+      "stats": {
+        "tsxFed": {
+          "label": "TSX move on a 10 bp Fed surprise",
+          "display": "−1.10%",
+          "count": -1.1,
+          "decimals": 2,
+          "suffix": "%",
+          "source": "world-shock-lab README headline findings and docs/RESULTS.md: S&P/TSX −1.10% on the day of a Fed move scaled to a 10 bp rise in the US 2-year (90% band −1.59 to −0.61). Resume: −1.10%."
+        },
+        "tsxBoc": {
+          "label": "Same-size Bank of Canada surprise",
+          "display": "−0.19%",
+          "count": -0.19,
+          "decimals": 2,
+          "suffix": "%",
+          "source": "world-shock-lab README: −0.19% after a BoC move of the same size (90% band −0.33 to −0.04), or −0.75% with Rigobon–Sack. Resume: −0.19%."
+        },
+        "assets": {
+          "label": "Global assets",
+          "display": "53",
+          "count": 53,
+          "decimals": 0,
+          "source": "Resume: Fed, Bank of Canada, and OPEC surprise effects estimated on 53 global assets."
+        },
+        "replications": {
+          "label": "Published findings replicated",
+          "display": "11 of 13",
+          "source": "Resume: replicated 11 of 13 published findings. Case study: including 6 of the 7 that are not true almost by construction."
+        },
+        "nonMechanical": {
+          "label": "Replications that are not mechanical",
+          "display": "6 of 7",
+          "source": "World Shock Lab case study: 6 of the 7 published findings that are not true almost by construction."
+        },
+        "regime": {
+          "label": "Regime tests that survive FDR",
+          "display": "0 of 80",
+          "source": "World Shock Lab case study: 0 of 80 pre-registered regime tests survive false-discovery-rate control. 15 of 80 had p ≤ 0.10 before correction."
+        },
+        "regimeRaw": {
+          "label": "Regime tests with p ≤ 0.10 before correction",
+          "display": "15 of 80",
+          "source": "World Shock Lab case study. About 8 would be expected by chance. None survives false-discovery control."
+        },
+        "announcements": {
+          "label": "Held-out announcements",
+          "display": "168",
+          "count": 168,
+          "decimals": 0,
+          "source": "Resume: pre-registered machine-learning test on 168 announcements. The original case-study benchmark and ml-study-v1 (results/mlstudy/final.json, n_test 168, years 2019–2026) both use that held-out count."
+        },
+        "mlGap": {
+          "label": "Neural net minus linear error",
+          "display": "−0.003",
+          "source": "World Shock Lab case study: −0.003 on 168 held-out announcements, 90% interval −0.019 to +0.014, which includes zero."
+        },
+        "mlGapCi": {
+          "label": "90% interval on the ML gap",
+          "display": "−0.019 to +0.014",
+          "source": "World Shock Lab case study. The pre-registered rule says there is no evidence that machine learning adds value."
+        },
+        "pinballQgbm": {
+          "label": "5% pinball, quantile gradient boosting",
+          "display": "1.446",
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20; file git_sha d0dc395c530d37d225381b3bd7391ee54f83c223, protocol ml-study-v1, generated 20261020T183639Z). Quantile gradient boosting (max depth 2) pooled scaled pinball 1.4455223913308346 at tau 0.05, shown as 1.446. Merged in https://github.com/shmorsi/world-shock-lab/pull/1."
+        },
+        "pinballGauss": {
+          "label": "5% pinball, Gaussian linear baseline",
+          "display": "1.558",
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). Gaussian linear baseline pooled scaled pinball 1.5580062579531035, shown as 1.558."
+        },
+        "pinballGap": {
+          "label": "Pinball, boosting minus Gaussian linear",
+          "display": "−0.112",
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_gauss point −0.11248386662226895, shown as −0.112. Verdict in the file: ML adds value on the 5% tail. This is pinball loss, not a calibration claim."
+        },
+        "pinballCi": {
+          "label": "90% interval on the pinball gap",
+          "display": "−0.228 to −0.010",
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_gauss ci90 [−0.2280172224402263, −0.010335754412836245], shown as −0.228 to −0.010."
+        },
+        "tcnMae": {
+          "label": "Mean scaled error, temporal CNN",
+          "display": "1.157",
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). Temporal CNN (16 channels, weight decay 0.001) pooled scaled MAE 1.1571277532978215, shown as 1.157."
+        },
+        "lpMae": {
+          "label": "Mean scaled error, linear projection",
+          "display": "1.142",
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). Pooled scaled MAE for the linear projection baseline 1.1420847324581223, shown as 1.142."
+        },
+        "tcnGap": {
+          "label": "Mean error, temporal CNN minus linear",
+          "display": "+0.015",
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_lp point 0.015043020839699217, shown as +0.015. Verdict in the file: no evidence ML adds value."
+        },
+        "tcnCi": {
+          "label": "90% interval on the mean gap",
+          "display": "−0.006 to +0.037",
+          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_lp ci90 [−0.006025486483002209, 0.03684541655024226], shown as −0.006 to +0.037. The interval includes zero."
+        },
+        "bocDecisions": {
+          "label": "BoC decisions dated from press releases",
+          "display": "195",
+          "count": 195,
+          "decimals": 0,
+          "source": "World Shock Lab case study: 195 scheduled Bank of Canada decisions."
+        },
+        "varianceRatio": {
+          "label": "BoC proxy variance vs control days",
+          "display": "2.82×",
+          "source": "World Shock Lab case study: announcement-day variance of the 2-year Government of Canada yield is 2.82 times matched control days (90% interval 1.99 to 4.00)."
+        },
+        "varianceCi": {
+          "label": "90% interval on that variance ratio",
+          "display": "1.99 to 4.00",
+          "source": "World Shock Lab case study."
+        },
+        "varianceExUs": {
+          "label": "Variance ratio after removing the US move",
+          "display": "5.71×",
+          "source": "World Shock Lab case study: 5.71 times after removing the same-day US move."
+        },
+        "simCoverage": {
+          "label": "Simulation coverage of the event-study bands",
+          "display": "90%",
+          "source": "World Shock Lab case study: in simulation the 90% bands contain the true response 90% of the time."
+        },
+        "simAlt": {
+          "label": "Coverage of the zero-filled alternative",
+          "display": "86%",
+          "source": "World Shock Lab case study: a zero-filled time-series alternative covers the true response 86% of the time in simulation."
+        },
+        "placebos": {
+          "label": "Placebo date sets",
+          "display": "1,000",
+          "source": "World Shock Lab case study: surprises moved to 1,000 sets of random non-announcement days."
+        },
+        "signStable": {
+          "label": "Headline responses stable in robustness checks",
+          "display": "24 of 30",
+          "source": "World Shock Lab case study: 24 of 30 headline responses keep their sign in every pre-registered robustness variant and stay significant in at least two thirds of them."
+        },
+        "fdrAssets": {
+          "label": "Shock-to-asset responses that survive FDR",
+          "display": "126 of 318",
+          "source": "world-shock-lab docs/RESEARCH_NOTE.md: across 318 shock-to-asset responses at one and five days, 126 survive Benjamini–Hochberg control."
+        },
+        "firstStageF": {
+          "label": "First-stage F for monthly macro effects",
+          "display": "3.1",
+          "source": "World Shock Lab case study: monthly macro effects rest on weak instruments (first-stage F of 3.1) and are labelled suggestive."
+        },
+        "tests": {
+          "label": "Automated Python tests in CI",
+          "display": "168",
+          "count": 168,
+          "decimals": 0,
+          "source": "Static count at world-shock-lab main cb7a00c (2026-10-23): 177 test cases (test functions times parametrize cases), 168 selected by the repository's default marker filter (-m 'not data'), which is what CI runs. pytest was not run for this count. The earlier figure, 157, was collected on 2026-10-23."
+        },
+        "rerunMinutes": {
+          "label": "Full rerun time",
+          "display": "11 min",
+          "source": "world-shock-lab commit ef805bb (docs/COMMIT_MAP.md, reproduction check): full pipeline rerun from the pinned cache took 11 min; outputs identical apart from provenance stamps."
+        },
+        "phoneSeconds": {
+          "label": "Scenario tool on a throttled phone",
+          "display": "under 3 s",
+          "source": "Resume: under 3 seconds on a throttled phone. world-shock-lab results/web_perf.json: slowest view 2.703 s on slow 4G with a 4x CPU slowdown at 390x844."
+        },
+        "forecastPublished": {
+          "label": "First forecasts published",
+          "display": "2026-10-13",
+          "source": "world-shock-lab live/forecasts/2026-10-28_boc.json: published_at 2026-10-13T00:36:18Z, decision 2026-10-28."
+        },
+        "forecastDecision": {
+          "label": "First forecasted decision date",
+          "display": "2026-10-28",
+          "source": "World Shock Lab case study."
+        },
+        "forecastStatus": {
+          "label": "Oct 28 Fed and BoC forecasts",
+          "display": "Awaiting data",
+          "source": "world-shock-lab config/live.yaml scoring: score 1 is written once every outcome's h = 5 value is published; FX comes from the weekly H.10 release, typically 6 to 10 days after the decision live/scores/ has no score files at main 22d0bab (checked 2026-11-08), so no decision has been scored yet."
+        },
+        "nextDecision": {
+          "label": "Next forecasted decisions, Fed and BoC",
+          "display": "2026-12-09",
+          "source": "world-shock-lab config/live.yaml calendar: fomc and boc 2026-12-09 (BoC 09:45 America/Toronto, FOMC 14:00 America/New_York). Forecasts publish 10 days before."
+        }
+      },
+      "tables": {
+        "announcement": {
+          "caption": "Announcement-day response. Each surprise is scaled to a 10 basis-point move in that country's 2-year yield. 90% interval in brackets.",
+          "headers": [
+            "Canadian asset",
+            "Fed surprise",
+            "BoC surprise",
+            "BoC, Rigobon–Sack"
+          ],
+          "rows": [
+            [
+              "S&P/TSX Composite (%)",
+              "−1.10 [−1.59, −0.61]",
+              "−0.19 [−0.33, −0.04]",
+              "−0.75 [−1.42, −0.37]"
+            ],
+            [
+              "Big-Six Canadian banks (%)",
+              "−0.76 [−1.32, −0.19]",
+              "0.00 [−0.16, +0.15]",
+              "−0.63 [−1.36, −0.20]"
+            ],
+            [
+              "10-year Government of Canada yield (basis points)",
+              "+4.40 [+2.99, +5.81]",
+              "+4.64 [+3.75, +5.52]",
+              "+2.47 [+0.67, +3.75]"
+            ],
+            [
+              "Canadian dollars per US dollar (%)",
+              "+0.40 [+0.23, +0.57]",
+              "−0.37 [−0.53, −0.21]",
+              "−0.49 [−0.85, −0.24]"
+            ]
+          ],
+          "source": "World Shock Lab case study, generated from committed results."
+        },
+        "ml": {
+          "caption": "168 held-out announcements. Pooled scaled error. Lower is better. The pre-registered verdict is that machine learning does not add value.",
+          "headers": [
+            "Model",
+            "Error"
+          ],
+          "rows": [
+            [
+              "Neural network (multilayer perceptron)",
+              "1.139"
+            ],
+            [
+              "Linear local projection",
+              "1.142"
+            ],
+            [
+              "Gradient boosting",
+              "1.147"
+            ],
+            [
+              "Ridge regression",
+              "1.160"
+            ],
+            [
+              "Predict no move",
+              "1.195"
+            ],
+            [
+              "State-dependent local projection",
+              "1.212"
+            ]
+          ],
+          "source": "World Shock Lab case study. Neural-network error minus linear error is −0.003, and the 90% interval includes zero."
+        },
+        "mlStudy": {
+          "caption": "ml-study-v1 on 168 held-out announcements, 2019–2026. Pooled scaled scores, lower is better. Read from results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). The earlier benchmark above is unchanged.",
+          "headers": [
+            "Target",
+            "Model",
+            "Score",
+            "Difference vs baseline",
+            "90% interval"
+          ],
+          "rows": [
+            [
+              "Mean (scaled MAE)",
+              "Temporal CNN, 16 channels",
+              "1.157",
+              "+0.015 vs linear 1.142",
+              "−0.006 to +0.037"
+            ],
+            [
+              "5% tail (pinball)",
+              "Quantile gradient boosting, depth 2",
+              "1.446",
+              "−0.112 vs Gaussian linear 1.558",
+              "−0.228 to −0.010"
+            ]
+          ],
+          "source": "results/mlstudy/final.json (protocol ml-study-v1, git d0dc395c530d37d225381b3bd7391ee54f83c223, generated 20261020T183639Z) on main at merge commit 638bdb6 (https://github.com/shmorsi/world-shock-lab/commit/638bdb6357bc2c9f627ac4a6569a04995982b961), merged from https://github.com/shmorsi/world-shock-lab/pull/1 on 2026-10-20. File verdicts: no evidence the temporal CNN adds value on the mean; quantile gradient boosting adds value on the 5% tail by pinball loss. Not a calibration claim, and not a comparison to a published model."
+        }
+      },
+      "purpose": "How a central-bank surprise ripples through 53 markets, with forecasts published before each decision.",
+      "headline": {
+        "stat": "tsxFed",
+        "qualifier": "Announcement day, 90% band −1.59 to −0.61. Identified causal."
+      },
+      "factIds": [
+        "tsxBoc",
+        "replications",
+        "assets"
+      ],
+      "proves": "A 10 bp Fed surprise moves the TSX −1.10% on announcement day. The 90% band, −1.59 to −0.61, excludes zero.",
+      "group": "investing",
+      "study": "World Shock Lab"
     },
     {
       "id": "tsfm",
-      "number": "03",
+      "number": "02",
       "code": "TSFM",
       "role": "featured",
       "badge": "Test split",
@@ -2309,360 +2664,13 @@
         "tests"
       ],
       "purposeSource": "tsfm-from-scratch DATA_CARD.md: the upstream pretraining corpus, described upstream as non-leaking, contained exact or rescaled copies of GIFT-Eval series, some inside the test windows. All 801 flagged series were removed.",
-      "proves": "A transformer trained from scratch is better than upstream AutoARIMA on the frozen test: CRPS 0.688×, 95% CI [0.624, 0.757]."
-    },
-    {
-      "id": "world-shock-lab",
-      "number": "04",
-      "code": "World Shock Lab",
-      "role": "featured",
-      "badge": "Live site",
-      "kicker": "Macro shocks and machine learning",
-      "title": "World Shock Lab",
-      "summary": "Event studies of Federal Reserve, Bank of Canada, and OPEC surprises across global assets, with a pre-registered test of whether machine learning adds anything, and forecasts published before each decision.",
-      "caveat": "Machine learning did not beat the linear model on the average move in either pre-registered study. Quantile boosting won only on 5% tail pinball loss. None of 80 regime tests survived false-discovery control.",
-      "image": {
-        "src": "assets/img/world-shock-lab-scenario.webp",
-        "alt": "World Shock Lab scenario for a Federal Reserve hike and an oil supply cut, with bands around six Canadian assets.",
-        "width": 1600,
-        "height": 1000
-      },
-      "tags": [
-        "Python",
-        "PyTorch",
-        "statsmodels",
-        "React",
-        "TypeScript"
-      ],
-      "links": [
-        {
-          "label": "Case study",
-          "href": "projects/world-shock-lab.html",
-          "kind": "site"
-        },
-        {
-          "label": "GitHub",
-          "href": "https://github.com/shmorsi/world-shock-lab",
-          "kind": "repo",
-          "external": true
-        },
-        {
-          "label": "Open the lab",
-          "href": "shock-lab/",
-          "kind": "app"
-        }
-      ],
-      "glanceIds": [
-        "tsxFed",
-        "replications",
-        "regime",
-        "announcements"
-      ],
-      "stats": {
-        "tsxFed": {
-          "label": "TSX move on a 10 bp Fed surprise",
-          "display": "−1.10%",
-          "count": -1.1,
-          "decimals": 2,
-          "suffix": "%",
-          "source": "world-shock-lab README headline findings and docs/RESULTS.md: S&P/TSX −1.10% on the day of a Fed move scaled to a 10 bp rise in the US 2-year (90% band −1.59 to −0.61). Resume: −1.10%."
-        },
-        "tsxBoc": {
-          "label": "Same-size Bank of Canada surprise",
-          "display": "−0.19%",
-          "count": -0.19,
-          "decimals": 2,
-          "suffix": "%",
-          "source": "world-shock-lab README: −0.19% after a BoC move of the same size (90% band −0.33 to −0.04), or −0.75% with Rigobon–Sack. Resume: −0.19%."
-        },
-        "assets": {
-          "label": "Global assets",
-          "display": "53",
-          "count": 53,
-          "decimals": 0,
-          "source": "Resume: Fed, Bank of Canada, and OPEC surprise effects estimated on 53 global assets."
-        },
-        "replications": {
-          "label": "Published findings replicated",
-          "display": "11 of 13",
-          "source": "Resume: replicated 11 of 13 published findings. Case study: including 6 of the 7 that are not true almost by construction."
-        },
-        "nonMechanical": {
-          "label": "Replications that are not mechanical",
-          "display": "6 of 7",
-          "source": "World Shock Lab case study: 6 of the 7 published findings that are not true almost by construction."
-        },
-        "regime": {
-          "label": "Regime tests that survive FDR",
-          "display": "0 of 80",
-          "source": "World Shock Lab case study: 0 of 80 pre-registered regime tests survive false-discovery-rate control. 15 of 80 had p ≤ 0.10 before correction."
-        },
-        "regimeRaw": {
-          "label": "Regime tests with p ≤ 0.10 before correction",
-          "display": "15 of 80",
-          "source": "World Shock Lab case study. About 8 would be expected by chance. None survives false-discovery control."
-        },
-        "announcements": {
-          "label": "Held-out announcements",
-          "display": "168",
-          "count": 168,
-          "decimals": 0,
-          "source": "Resume: pre-registered machine-learning test on 168 announcements. The original case-study benchmark and ml-study-v1 (results/mlstudy/final.json, n_test 168, years 2019–2026) both use that held-out count."
-        },
-        "mlGap": {
-          "label": "Neural net minus linear error",
-          "display": "−0.003",
-          "source": "World Shock Lab case study: −0.003 on 168 held-out announcements, 90% interval −0.019 to +0.014, which includes zero."
-        },
-        "mlGapCi": {
-          "label": "90% interval on the ML gap",
-          "display": "−0.019 to +0.014",
-          "source": "World Shock Lab case study. The pre-registered rule says there is no evidence that machine learning adds value."
-        },
-        "pinballQgbm": {
-          "label": "5% pinball, quantile gradient boosting",
-          "display": "1.446",
-          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20; file git_sha d0dc395c530d37d225381b3bd7391ee54f83c223, protocol ml-study-v1, generated 20261020T183639Z). Quantile gradient boosting (max depth 2) pooled scaled pinball 1.4455223913308346 at tau 0.05, shown as 1.446. Merged in https://github.com/shmorsi/world-shock-lab/pull/1."
-        },
-        "pinballGauss": {
-          "label": "5% pinball, Gaussian linear baseline",
-          "display": "1.558",
-          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). Gaussian linear baseline pooled scaled pinball 1.5580062579531035, shown as 1.558."
-        },
-        "pinballGap": {
-          "label": "Pinball, boosting minus Gaussian linear",
-          "display": "−0.112",
-          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_gauss point −0.11248386662226895, shown as −0.112. Verdict in the file: ML adds value on the 5% tail. This is pinball loss, not a calibration claim."
-        },
-        "pinballCi": {
-          "label": "90% interval on the pinball gap",
-          "display": "−0.228 to −0.010",
-          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_gauss ci90 [−0.2280172224402263, −0.010335754412836245], shown as −0.228 to −0.010."
-        },
-        "tcnMae": {
-          "label": "Mean scaled error, temporal CNN",
-          "display": "1.157",
-          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). Temporal CNN (16 channels, weight decay 0.001) pooled scaled MAE 1.1571277532978215, shown as 1.157."
-        },
-        "lpMae": {
-          "label": "Mean scaled error, linear projection",
-          "display": "1.142",
-          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). Pooled scaled MAE for the linear projection baseline 1.1420847324581223, shown as 1.142."
-        },
-        "tcnGap": {
-          "label": "Mean error, temporal CNN minus linear",
-          "display": "+0.015",
-          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_lp point 0.015043020839699217, shown as +0.015. Verdict in the file: no evidence ML adds value."
-        },
-        "tcnCi": {
-          "label": "90% interval on the mean gap",
-          "display": "−0.006 to +0.037",
-          "source": "results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). difference_ml_minus_lp ci90 [−0.006025486483002209, 0.03684541655024226], shown as −0.006 to +0.037. The interval includes zero."
-        },
-        "bocDecisions": {
-          "label": "BoC decisions dated from press releases",
-          "display": "195",
-          "count": 195,
-          "decimals": 0,
-          "source": "World Shock Lab case study: 195 scheduled Bank of Canada decisions."
-        },
-        "varianceRatio": {
-          "label": "BoC proxy variance vs control days",
-          "display": "2.82×",
-          "source": "World Shock Lab case study: announcement-day variance of the 2-year Government of Canada yield is 2.82 times matched control days (90% interval 1.99 to 4.00)."
-        },
-        "varianceCi": {
-          "label": "90% interval on that variance ratio",
-          "display": "1.99 to 4.00",
-          "source": "World Shock Lab case study."
-        },
-        "varianceExUs": {
-          "label": "Variance ratio after removing the US move",
-          "display": "5.71×",
-          "source": "World Shock Lab case study: 5.71 times after removing the same-day US move."
-        },
-        "simCoverage": {
-          "label": "Simulation coverage of the event-study bands",
-          "display": "90%",
-          "source": "World Shock Lab case study: in simulation the 90% bands contain the true response 90% of the time."
-        },
-        "simAlt": {
-          "label": "Coverage of the zero-filled alternative",
-          "display": "86%",
-          "source": "World Shock Lab case study: a zero-filled time-series alternative covers the true response 86% of the time in simulation."
-        },
-        "placebos": {
-          "label": "Placebo date sets",
-          "display": "1,000",
-          "source": "World Shock Lab case study: surprises moved to 1,000 sets of random non-announcement days."
-        },
-        "signStable": {
-          "label": "Headline responses stable in robustness checks",
-          "display": "24 of 30",
-          "source": "World Shock Lab case study: 24 of 30 headline responses keep their sign in every pre-registered robustness variant and stay significant in at least two thirds of them."
-        },
-        "fdrAssets": {
-          "label": "Shock-to-asset responses that survive FDR",
-          "display": "126 of 318",
-          "source": "world-shock-lab docs/RESEARCH_NOTE.md: across 318 shock-to-asset responses at one and five days, 126 survive Benjamini–Hochberg control."
-        },
-        "firstStageF": {
-          "label": "First-stage F for monthly macro effects",
-          "display": "3.1",
-          "source": "World Shock Lab case study: monthly macro effects rest on weak instruments (first-stage F of 3.1) and are labelled suggestive."
-        },
-        "tests": {
-          "label": "Automated Python tests in CI",
-          "display": "168",
-          "count": 168,
-          "decimals": 0,
-          "source": "Static count at world-shock-lab main cb7a00c (2026-10-23): 177 test cases (test functions times parametrize cases), 168 selected by the repository's default marker filter (-m 'not data'), which is what CI runs. pytest was not run for this count. The earlier figure, 157, was collected on 2026-10-23."
-        },
-        "rerunMinutes": {
-          "label": "Full rerun time",
-          "display": "11 min",
-          "source": "world-shock-lab commit ef805bb (docs/COMMIT_MAP.md, reproduction check): full pipeline rerun from the pinned cache took 11 min; outputs identical apart from provenance stamps."
-        },
-        "phoneSeconds": {
-          "label": "Scenario tool on a throttled phone",
-          "display": "under 3 s",
-          "source": "Resume: under 3 seconds on a throttled phone. world-shock-lab results/web_perf.json: slowest view 2.703 s on slow 4G with a 4x CPU slowdown at 390x844."
-        },
-        "forecastPublished": {
-          "label": "First forecasts published",
-          "display": "2026-10-13",
-          "source": "world-shock-lab live/forecasts/2026-10-28_boc.json: published_at 2026-10-13T00:36:18Z, decision 2026-10-28."
-        },
-        "forecastDecision": {
-          "label": "First forecasted decision date",
-          "display": "2026-10-28",
-          "source": "World Shock Lab case study."
-        },
-        "forecastStatus": {
-          "label": "Oct 28 Fed and BoC forecasts",
-          "display": "Awaiting data",
-          "source": "world-shock-lab config/live.yaml scoring: score 1 is written once every outcome's h = 5 value is published; FX comes from the weekly H.10 release, typically 6 to 10 days after the decision live/scores/ has no score files at main 22d0bab (checked 2026-11-08), so no decision has been scored yet."
-        },
-        "nextDecision": {
-          "label": "Next forecasted decisions, Fed and BoC",
-          "display": "2026-12-09",
-          "source": "world-shock-lab config/live.yaml calendar: fomc and boc 2026-12-09 (BoC 09:45 America/Toronto, FOMC 14:00 America/New_York). Forecasts publish 10 days before."
-        }
-      },
-      "tables": {
-        "announcement": {
-          "caption": "Announcement-day response. Each surprise is scaled to a 10 basis-point move in that country's 2-year yield. 90% interval in brackets.",
-          "headers": [
-            "Canadian asset",
-            "Fed surprise",
-            "BoC surprise",
-            "BoC, Rigobon–Sack"
-          ],
-          "rows": [
-            [
-              "S&P/TSX Composite (%)",
-              "−1.10 [−1.59, −0.61]",
-              "−0.19 [−0.33, −0.04]",
-              "−0.75 [−1.42, −0.37]"
-            ],
-            [
-              "Big-Six Canadian banks (%)",
-              "−0.76 [−1.32, −0.19]",
-              "0.00 [−0.16, +0.15]",
-              "−0.63 [−1.36, −0.20]"
-            ],
-            [
-              "10-year Government of Canada yield (basis points)",
-              "+4.40 [+2.99, +5.81]",
-              "+4.64 [+3.75, +5.52]",
-              "+2.47 [+0.67, +3.75]"
-            ],
-            [
-              "Canadian dollars per US dollar (%)",
-              "+0.40 [+0.23, +0.57]",
-              "−0.37 [−0.53, −0.21]",
-              "−0.49 [−0.85, −0.24]"
-            ]
-          ],
-          "source": "World Shock Lab case study, generated from committed results."
-        },
-        "ml": {
-          "caption": "168 held-out announcements. Pooled scaled error. Lower is better. The pre-registered verdict is that machine learning does not add value.",
-          "headers": [
-            "Model",
-            "Error"
-          ],
-          "rows": [
-            [
-              "Neural network (multilayer perceptron)",
-              "1.139"
-            ],
-            [
-              "Linear local projection",
-              "1.142"
-            ],
-            [
-              "Gradient boosting",
-              "1.147"
-            ],
-            [
-              "Ridge regression",
-              "1.160"
-            ],
-            [
-              "Predict no move",
-              "1.195"
-            ],
-            [
-              "State-dependent local projection",
-              "1.212"
-            ]
-          ],
-          "source": "World Shock Lab case study. Neural-network error minus linear error is −0.003, and the 90% interval includes zero."
-        },
-        "mlStudy": {
-          "caption": "ml-study-v1 on 168 held-out announcements, 2019–2026. Pooled scaled scores, lower is better. Read from results/mlstudy/final.json on main at merge commit 638bdb6 (2026-10-20). The earlier benchmark above is unchanged.",
-          "headers": [
-            "Target",
-            "Model",
-            "Score",
-            "Difference vs baseline",
-            "90% interval"
-          ],
-          "rows": [
-            [
-              "Mean (scaled MAE)",
-              "Temporal CNN, 16 channels",
-              "1.157",
-              "+0.015 vs linear 1.142",
-              "−0.006 to +0.037"
-            ],
-            [
-              "5% tail (pinball)",
-              "Quantile gradient boosting, depth 2",
-              "1.446",
-              "−0.112 vs Gaussian linear 1.558",
-              "−0.228 to −0.010"
-            ]
-          ],
-          "source": "results/mlstudy/final.json (protocol ml-study-v1, git d0dc395c530d37d225381b3bd7391ee54f83c223, generated 20261020T183639Z) on main at merge commit 638bdb6 (https://github.com/shmorsi/world-shock-lab/commit/638bdb6357bc2c9f627ac4a6569a04995982b961), merged from https://github.com/shmorsi/world-shock-lab/pull/1 on 2026-10-20. File verdicts: no evidence the temporal CNN adds value on the mean; quantile gradient boosting adds value on the 5% tail by pinball loss. Not a calibration claim, and not a comparison to a published model."
-        }
-      },
-      "purpose": "How a central-bank surprise ripples through 53 markets, with forecasts published before each decision.",
-      "headline": {
-        "stat": "tsxFed",
-        "qualifier": "Announcement day, 90% band −1.59 to −0.61. Identified causal."
-      },
-      "factIds": [
-        "tsxBoc",
-        "replications",
-        "assets"
-      ],
-      "proves": "A 10 bp Fed surprise moves the TSX −1.10% on announcement day. The 90% band, −1.59 to −0.61, excludes zero."
+      "proves": "A transformer trained from scratch is better than upstream AutoARIMA on the frozen test: CRPS 0.688×, 95% CI [0.624, 0.757].",
+      "group": "forecasting",
+      "study": "Time-Series Foundation Model"
     },
     {
       "id": "aurvane",
-      "number": "05",
+      "number": "03",
       "code": "AURVANE",
       "role": "featured",
       "badge": "Worst-case agent",
@@ -2739,8 +2747,44 @@
           "label": "False alarms on clean tasks",
           "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.clean_friction_events 0."
         }
-      }
+      },
+      "group": "agents",
+      "study": "Aurvane"
     }
   ],
-  "tagline": "AI for long-term investing: portfolios, forecasts and AI agents, built from first principles and measured honestly."
+  "tagline": "AI for long-term investing: portfolios, forecasts and AI agents, built from first principles and measured honestly.",
+  "groups": [
+    {
+      "id": "investing",
+      "number": "01",
+      "title": "Deep Portfolio Constructor",
+      "kicker": "AI for long-term investing",
+      "line": "One question in three studies: can AI help someone who invests for decades, and how would you know? Grow the money, keep a pension promise funded, and measure what a central-bank surprise does to both.",
+      "projects": [
+        "deep-portfolio-constructor",
+        "pension-lab",
+        "world-shock-lab"
+      ]
+    },
+    {
+      "id": "forecasting",
+      "number": "02",
+      "title": "Time-Series Foundation Model",
+      "kicker": "Deep learning from scratch",
+      "line": "A forecasting model built and trained from first principles, and the audit that caught a public benchmark leaking its own test data.",
+      "projects": [
+        "tsfm"
+      ]
+    },
+    {
+      "id": "agents",
+      "number": "03",
+      "title": "Aurvane",
+      "kicker": "Agentic AI",
+      "line": "A trust layer for AI agents that act with real money and data: signed mandates, a check on every action, and a log that cannot be rewritten.",
+      "projects": [
+        "aurvane"
+      ]
+    }
+  ]
 }

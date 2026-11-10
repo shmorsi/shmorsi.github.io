@@ -176,7 +176,8 @@ Computer Science student building \textbf{AI for long-term investing}: \textbf{a
 \resumeSubHeadingListEnd
 
 %-----------PROJECTS-----------
-% Every project links its code (GitHub) and, where there is one, its page on shmorsi.github.io.
+% Three projects. The first has three studies (shmorsi.github.io shows them the same way).
+% Every project links its code (GitHub) and its page on shmorsi.github.io.
 \vspace{-5pt}
 \section{Projects}
 \resumeSubHeadingListStart
@@ -184,46 +185,33 @@ Computer Science student building \textbf{AI for long-term investing}: \textbf{a
 
 % EDIT: {\textbf{Name} $|$ \emph{Tools} $|$ \githubLink{repo url}}{Year}
 \resumeProjectHeading
-{\textbf{Deep Portfolio Constructor (Deep Learning, Investing)} $|$ \emph{Python, PyTorch, pandas} $|$ \githubLink{https://github.com/shmorsi/deep-portfolio-constructor} $|$ \href{https://shmorsi.github.io/projects/deep-portfolio-constructor.html}{\textbf{\underline{Project Page}}}}{2026}
+{\textbf{Deep Portfolio Constructor (AI for Long-Term Investing)} $|$ \emph{Python, PyTorch} $|$ \githubLink{https://github.com/shmorsi/deep-portfolio-constructor} $|$ \href{https://shmorsi.github.io/projects/deep-portfolio-constructor.html}{\textbf{\underline{Project Page}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Long-only portfolio for \textbf{long-term wealth}: a \textbf{transformer} allocates across 30 US industries and learns how much to trade, trained in PyTorch on the \textbf{growth of wealth after costs} through a \textbf{differentiable simulator}}\vspace{-1pt}
-\resumeItem{\textbf{Walk-forward backtest} 1960--2026, \textbf{pre-registered}: \$1 grew to \textbf{\$1,368} vs \$929 for the market (+0.58\% a year, t~=~1.40, not significant); 5 classical baselines incl. risk parity and a Kelly optimizer, ablations over 5 seeds, 106 tests}
-\resumeItemListEnd
-\vspace{1pt}
-
-\resumeProjectHeading
-{\textbf{Pension Lab (Asset-Liability Management)} $|$ \emph{Python, PyTorch, NumPy} $|$ \githubLink{https://github.com/shmorsi/deep-portfolio-constructor/tree/main/src/dpc/pension} $|$ \href{https://shmorsi.github.io/projects/pension-lab.html}{\textbf{\underline{Project Page}}}}{2026}
-\vspace{-2pt}
-\resumeItemListStart
-\resumeItem{Modelled a 90\%-funded \textbf{pension plan} (60 years of \textbf{inflation-indexed liabilities}, duration 14 years); costed 60/40, matched, \mbox{\textbf{liability-driven (LDI)}} and \mbox{glide-path} policies by sponsor contributions and \textbf{CVaR} over 10,000 \textbf{Monte Carlo} scenarios}\vspace{-1pt}
-\resumeItem{Trained a policy through a \textbf{differentiable simulator} (\textbf{pre-registered}): it halved the simulated cost (\$5.0 vs \$9.9 per \$100 promised) but only matched the glide path on 34 real 20-year periods; traced the gap to patterns the simulator repeats}
-\resumeItemListEnd
-\vspace{1pt}
-
-\resumeProjectHeading
-{\textbf{Time-Series Foundation Model (Transformers)} $|$ \emph{Python, PyTorch, GluonTS} $|$ \githubLink{https://github.com/shmorsi/tsfm-from-scratch} $|$ \href{https://shmorsi.github.io/projects/tsfm.html}{\textbf{\underline{Project Page}}}}{2026}
-\vspace{-2pt}
-\resumeItemListStart
-\resumeItem{Pretrained a \textbf{10.1M-parameter} decoder-only transformer from scratch (\textbf{rotary embeddings}, KV cache, quantile head, no model library) on \textbf{443,258} series; on the frozen test, CRPS was \textbf{0.688$\times$} AutoARIMA, 95\% CI [0.624, 0.757]}\vspace{-1pt}
-\resumeItem{A \textbf{data-leakage audit} found benchmark test data in a public corpus and removed \textbf{801 of 447,229} series; 170 tests in CI}
-\resumeItemListEnd
-\vspace{1pt}
-
-\resumeProjectHeading
-{\textbf{World Shock Lab (Econometrics, ML)} $|$ \emph{Python, PyTorch, DuckDB, TypeScript} $|$ \githubLink{https://github.com/shmorsi/world-shock-lab} $|$ \href{https://shmorsi.github.io/shock-lab/}{\textbf{\underline{Live Lab}}}}{2026}
-\vspace{-2pt}
-\resumeItemListStart
-\resumeItem{Estimated how Fed, Bank of Canada, and OPEC surprises move \textbf{53} assets (a 10 bp Fed surprise moves the TSX \textbf{$-$1.10\%}, 90\% band $-$1.59 to $-$0.61), replicated \textbf{11 of 13} published findings, and publishes forecasts before each decision}\vspace{-1pt}
+\resumeItem{\textbf{Wealth study.} A long-only portfolio for \textbf{long-term wealth}: a \textbf{transformer} allocates across 30 US industries and learns how much to trade, trained in PyTorch on the \textbf{growth of wealth after costs} through a \textbf{differentiable simulator}}\vspace{-1pt}\vspace{-1pt}
+\resumeItem{\textbf{Walk-forward backtest} 1960--2026, \textbf{pre-registered}: \$1 grew to \textbf{\$1,368} vs \$929 for the market (+0.58\% a year, t~=~1.40, not significant); 5 classical baselines incl. risk parity and a Kelly optimizer, ablations over 5 seeds, 135 tests}\vspace{-1pt}
+\resumeItem{\href{https://shmorsi.github.io/projects/pension-lab.html}{\textbf{\underline{Pension Lab}}} \textbf{(asset-liability management).} A 90\%-funded pension plan with 60 years of \textbf{inflation-indexed liabilities}; 60/40, \mbox{\textbf{liability-driven (LDI)}} and \mbox{glide-path} policies costed by contributions and \textbf{CVaR} over 10,000 \textbf{Monte Carlo} scenarios}\vspace{-1pt}
+\resumeItem{Trained a policy through a \textbf{differentiable simulator} (\textbf{pre-registered}): it halved the simulated cost (\$5.0 vs \$9.9 per \$100 promised) but only matched the glide path on 34 real 20-year periods; traced the gap to patterns the simulator repeats}\vspace{-1pt}
+\resumeItem{\href{https://shmorsi.github.io/shock-lab/}{\textbf{\underline{World Shock Lab}}} \textbf{(macro shocks,} \href{https://github.com/shmorsi/world-shock-lab}{\textbf{\underline{code}}}\textbf{).} How Fed, Bank of Canada and OPEC surprises move \textbf{53} assets (10 bp Fed surprise: TSX \textbf{$-$1.10\%}, 90\% band $-$1.59 to $-$0.61); replicated \textbf{11 of 13} published findings; live forecasts before decisions}\vspace{-1pt}
 \resumeItem{\textbf{Pre-registered} test of machine learning on 168 held-out announcements: a neural net did not beat the linear model on the mean (gap $-$0.003, 90\% CI includes zero); quantile boosting won only on 5\% tail loss}
 \resumeItemListEnd
 \vspace{1pt}
 
 \resumeProjectHeading
-{\textbf{Aurvane (Agent Security, Delegation)} $|$ \emph{Python, Ed25519, MCP, JavaScript} $|$ \githubLink{https://github.com/shmorsi/aurvane} $|$ \href{https://shmorsi.github.io/aurvane/}{\textbf{\underline{Live Demo}}}}{2026}
+{\textbf{Time-Series Foundation Model (Deep Learning)} $|$ \emph{Python, PyTorch, GluonTS} $|$ \githubLink{https://github.com/shmorsi/tsfm-from-scratch} $|$ \href{https://shmorsi.github.io/projects/tsfm.html}{\textbf{\underline{Project Page}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Trust layer between LLM agents and their tools: \textbf{Ed25519-signed mandates}, four checks per action, Allow/Deny approvals, narrower-only sub-agent mandates, hash-chained log; Python SDK and \textbf{MCP server}; 46 tests}\vspace{-1pt}
+\resumeItem{Pretrained a \textbf{10.1M-parameter} decoder-only transformer from scratch on \textbf{443,258} series across 77 datasets; on the frozen test (97 configurations), CRPS was \textbf{0.688$\times$} AutoARIMA, 95\% CI [0.624, 0.757]}\vspace{-1pt}
+\resumeItem{Wrote RMSNorm, \textbf{rotary embeddings}, SwiGLU, a KV cache and a non-crossing quantile head without a model library; \textbf{mixed-precision} training on one T4 GPU}\vspace{-1pt}
+\resumeItem{A \textbf{data-leakage audit} found benchmark test data in a public corpus and removed \textbf{801 of 447,229} series; 170 tests in CI}
+\resumeItemListEnd
+\vspace{1pt}
+
+\resumeProjectHeading
+{\textbf{Aurvane (Agentic AI Security)} $|$ \emph{Python, Ed25519, MCP, JavaScript} $|$ \githubLink{https://github.com/shmorsi/aurvane} $|$ \href{https://shmorsi.github.io/aurvane/}{\textbf{\underline{Live Demo}}}}{2026}
+\vspace{-2pt}
+\resumeItemListStart
+\resumeItem{Trust layer between LLM agents and their tools: \textbf{Ed25519-signed mandates}, four checks per action, Allow/Deny approvals, narrower-only sub-agent mandates, hash-chained log; Python SDK and \textbf{MCP server}; 46 tests}\vspace{-1pt}\vspace{-1pt}
 \resumeItem{Against a simulated agent that obeys every \textbf{prompt injection} (60 paired tasks), attacks that landed fell from \textbf{30/30 to 7/30} and money lost from 12,135 to \textbf{135 CAD}, with 0 false alarms}
 \resumeItemListEnd
 \vspace{2pt}

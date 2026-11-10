@@ -1362,3 +1362,31 @@ html:not(.stage) .hero-space { display: none; }
   .scene .sc-row { font-size: 21px; }
   .scene .sc-hidden { font-size: 17px; }
 }
+
+/* ---- Three projects at a glance (the first holds three studies). ---- */
+.trio { list-style: none; margin: 34px 0 0; padding: 0; display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 0; border-top: 1px solid var(--line-strong); }
+.trio > li { padding: 22px 26px 26px 0; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.trio > li + li { padding-left: 26px; border-left: 1px solid var(--line); }
+.trio h3 { font-size: clamp(20px, 1.9vw, 27px); font-weight: 550; letter-spacing: 0.01em; line-height: 1.1; }
+.trio-line { color: var(--muted); font-size: 15px; line-height: 1.55; max-width: 46ch; }
+.trio-studies { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 0; }
+.trio-studies a { display: flex; align-items: baseline; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); text-decoration: none; color: var(--ink); font-size: 15px; font-weight: 550; }
+.trio-studies a:hover { color: var(--accent); }
+.trio-studies .num { color: var(--accent); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; font-variant-numeric: tabular-nums; min-width: 34px; }
+.trio-role { margin-left: auto; color: var(--dim); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+@media (max-width: 900px) {
+  .trio { grid-template-columns: minmax(0, 1fr); }
+  .trio > li, .trio > li + li { padding: 20px 0 22px; border-left: 0; }
+  .trio > li + li { border-top: 1px solid var(--line-strong); }
+}
+
+/* ---- The studies of one project, under the label on each of their pages. ---- */
+.studies { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 8px; margin: 14px 0 6px; }
+.studies .label { margin-right: 6px; }
+.studies a { display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 12px; border: 1px solid var(--line-strong); text-decoration: none;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); transition: color 0.2s, border-color 0.2s, background-color 0.2s; }
+.studies a .num { color: var(--accent); font-variant-numeric: tabular-nums; }
+.studies a:hover { color: var(--ink); border-color: var(--ink); }
+.studies a[aria-current] { color: var(--bg); background: var(--ink); border-color: var(--ink); }
+.studies a[aria-current] .num { color: var(--bg); }
+@media (max-width: 640px) { .studies .label { flex-basis: 100%; } }

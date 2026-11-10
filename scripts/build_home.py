@@ -333,10 +333,21 @@ def toolkit() -> str:
     return "".join(out)
 
 
+def trio() -> str:
+    """The three projects at a glance, each with the studies it holds (scripts/groups.py), linked to their chapters."""
+    items = []
+    for g in DATA["groups"]:
+        studies = "".join(f'<li><a href="#story-{pid}"><span class="num">{P[pid]["number"]}</span>{e(P[pid]["study"])}<span class="trio-role">{e(stories.ROLE[pid])}</span></a></li>'
+                          for pid in g["projects"])
+        items.append(f'<li><p class="label"><span class="num">{g["number"]}</span> {e(g["kicker"])}</p><h3>{e(g["title"])}</h3>'
+                     f'<p class="trio-line">{e(g["line"])}</p><ul class="trio-studies">{studies}</ul></li>')
+    return f'<ol class="trio" data-reveal>{"".join(items)}</ol>'
+
+
 def page() -> str:
     tagline = e(DATA["tagline"])
-    titles = ", ".join(P[i]["title"] for i in ORDER)
-    count = len(ORDER)
+    titles = ", ".join(g["title"] + (f" ({', '.join(P[i]['study'] for i in g['projects'])})" if len(g["projects"]) > 1 else "") for g in DATA["groups"])
+    count = len(DATA["groups"])
     words = {3: "Three", 4: "Four", 5: "Five", 6: "Six"}.get(count, str(count))
     desc = (f"Sherif Morsi builds AI for long-term investing: portfolios, forecasts and AI agents, "
             f"scored on tests fixed in advance. Projects: {titles}.")
@@ -436,8 +447,9 @@ def page() -> str:
         <div class="section-head" data-reveal>
           <p class="label">The voyage</p>
           <h2 id="work-title">{words} projects, in plain English</h2>
-          <p>Investing for decades is a long voyage with a promise at the end of it: pensions to pay. It needs an engine to grow the money, a navigator to see what is coming, a weather station to measure the storms, and a shield to keep the crew safe. These {words.lower()} projects are that promise and those four machines. Keep scrolling: each picture is built from the project's real results.</p>
+          <p>The first is about investing for decades, which is a long voyage with a promise at the end of it: pensions to pay. It comes in three studies: the engine that grows the money, the promise and what it costs to keep, and the weather station that measures the storms. The second is the navigator, a forecasting model built from scratch. The third is the shield, a lock that keeps AI agents inside limits a person signed. Keep scrolling: each picture is built from real results.</p>
         </div>
+        {trio()}
       </div>
       {"".join(stories.story(P, pid, page_href(P[pid])) for pid in ORDER)}
     </section>
