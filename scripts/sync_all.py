@@ -11,6 +11,8 @@ It does three things, in order, and stops at the first failure:
 1. Copy what is generated upstream (nothing is typed by hand):
    * deep-portfolio-constructor  reports/site_wealth.json -> scripts/sync_dpc.py
                                  reports/pension/site_pension.json -> scripts/sync_pension.py (the Pension Lab)
+                                 reports/risk/site_risk.json -> scripts/sync_risk.py (the risk study,
+                                 shown on the forecasting model's page)
    * aurvane                     ui/index.html -> aurvane/index.html,
                                  bench/results/*_summary.json -> data/measurements/aurvane/
    * world-shock-lab             web/dist/ (its built app) -> shock-lab/, so the lab is served
@@ -222,6 +224,9 @@ def main() -> int:
     sync_aurvane(repos["aurvane"])
     sync_wsl_app(repos["world-shock-lab"])
     run("sync_wsl_live.py", str(repos["world-shock-lab"]))   # the live-score slot, counted from the project's score files
+    risk = repos["deep-portfolio-constructor"] / "reports" / "risk" / "site_risk.json"
+    if risk.is_file():                                          # the risk study: the forecasting model's page reads it
+        run("sync_risk.py", str(risk))
 
     say("\n## Check hand-written figures against their sources")
     for pid in ("tsfm", "world-shock-lab"):

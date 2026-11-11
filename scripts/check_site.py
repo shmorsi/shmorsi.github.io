@@ -191,6 +191,25 @@ else:
         if "No decision has been scored" not in wsl_text or re.search(r"\d", wsl_loose):
             errors.append("world-shock-lab live-score slot must stay empty, with no number, until a decision is scored")
 tsfm_page = (ROOT / "projects" / "tsfm.html").read_text(encoding="utf-8")
+# The risk study's section is written by scripts/sync_risk.py from deep-portfolio-constructor's export.
+# It must be there once the figures are, say when the rule was fixed, and say so for a checkpoint that was not run.
+risk_block = re.search(r"<!-- risk:start.*?<!-- risk:end -->", tsfm_page, re.S)
+tsfm_stats = tsfm.get("stats", {})
+if not risk_block:
+    errors.append("tsfm page must keep the risk markers")
+elif "riskMonths" in tsfm_stats:
+    risk_text = re.sub(r"<[^>]+>", " ", risk_block.group(0))
+    if 'id="s-risk"' not in risk_block.group(0) or "committed before any forecast was scored" not in risk_text:
+        errors.append("tsfm page must show the risk study and say its rule was committed before any forecast was scored")
+    for table in ("riskAccuracy", "riskPortfolio"):
+        if table not in tsfm.get("tables", {}) or f'data-table="tsfm.tables.{table}"' not in risk_block.group(0):
+            errors.append(f"tsfm page must show the risk study's {table} table from data/projects.json")
+    for sfx in ("CpuS0", "PatchS2"):
+        status = tsfm_stats.get(f"riskStatus{sfx}", {}).get("display")
+        if status == "run" and f"tsfm.stats.riskWqlVerdictFt{sfx}.display" not in risk_block.group(0):
+            errors.append(f"tsfm risk section must state the pre-registered verdict for {sfx}")
+        if status != "run" and "has not been run on this test" not in risk_text:
+            errors.append(f"tsfm risk section must say that {sfx} has not been run")
 tsfm_slot = re.search(r'data-slot="tsfm-patch-test"[^>]*>(.*?)</div>', tsfm_page, re.S)
 tsfm_slot_text = re.sub(r"<[^>]+>", " ", tsfm_slot.group(1)) if tsfm_slot else ""
 if not tsfm_slot or "0.688" not in tsfm_slot_text or "Not scored" in tsfm_slot_text:
