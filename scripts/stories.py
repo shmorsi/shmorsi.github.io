@@ -12,6 +12,7 @@ from __future__ import annotations
 import html
 import json
 import math
+import re
 from pathlib import Path
 
 from plain import PLAIN, render
@@ -240,13 +241,22 @@ TINT = {"deep-portfolio-constructor": "ice", "pension-lab": "amber", "tsfm": "vi
 ROLE = {"deep-portfolio-constructor": "The engine", "pension-lab": "The promise", "tsfm": "The navigator", "world-shock-lab": "The weather station", "aurvane": "The shield"}
 
 
+LONG_STEP = 300  # characters a reader sees; a longer step is set a little smaller so its chapter still fits one screen
+
+
+def step_class(body: str) -> str:
+    """Class of a step's paragraph: the long ones are marked (assets/site.css, "Chapters fit the screen")."""
+    seen = len(re.sub(r"<[^>]+>", "", html.unescape(body)))
+    return "st-text is-long" if seen > LONG_STEP else "st-text"
+
+
 def story(P: dict, pid: str, href: str) -> str:
     p, plain = P[pid], PLAIN[pid]
     stats = p["stats"]
     tabs = "".join(f'<li><button type="button" data-step-go="{i}"><span>{i + 1:02d}</span>{e(h)}</button></li>'
                    for i, (h, _) in enumerate(plain["steps"]))
-    steps = "".join(f'<li class="st-step" data-step="{i}"><p class="st-head">{e(h)}</p><p class="st-text">{render(pid, t, stats)}</p></li>'
-                    for i, (h, t) in enumerate(plain["steps"]))
+    steps = "".join(f'<li class="st-step" data-step="{i}"><p class="st-head">{e(h)}</p><p class="{step_class(body)}">{body}</p></li>'
+                    for i, (h, body) in enumerate((h, render(pid, t, stats)) for h, t in plain["steps"]))
     return f"""
       <article class="story" id="story-{pid}" data-story="{pid}" data-tint="{TINT[pid]}" style="--n:{len(plain['steps'])}">
         <div class="story-stage">

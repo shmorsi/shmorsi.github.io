@@ -1066,10 +1066,23 @@
 (() => {
   const html = document.documentElement;
   const body = document.body;
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const noMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   const wide = () => window.innerWidth > 900;
   const isHome = !!document.querySelector(".hero");
+  /* A pinned chapter is one screen tall. Below this height (a phone on its side) it cannot hold its
+     words and its picture, so the master page stays plain, exactly as under reduced motion.
+     scripts/check_layout.py checks every size above it. */
+  const SHORT_SCREEN = 560;
+  const tooShort = () => isHome && window.innerHeight < SHORT_SCREEN;
+  const short = tooShort();
+  const reduced = noMotion || short;
+  if (isHome && !noMotion) {
+    /* Turning the phone changes which page fits: load the one that does. */
+    window.matchMedia("(orientation: portrait)").addEventListener?.("change", () => {
+      setTimeout(() => { if (tooShort() !== short) window.location.reload(); }, 300);
+    });
+  }
   const safe = (fn) => { try { fn(); } catch (err) { /* decoration only: never break the page */ } };
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const seg = (v, a, b) => clamp((v - a) / (b - a));
