@@ -15,12 +15,14 @@ It does three things, in order, and stops at the first failure:
                                  bench/results/*_summary.json -> data/measurements/aurvane/
    * world-shock-lab             web/dist/ (its built app) -> shock-lab/, so the lab is served
                                  from this repository as one section of the site
+                                 live/scores/ -> scripts/sync_wsl_live.py (the live-score slot
+                                 of its page and the counts behind it)
 2. Check what is hand-written against the files it cites, so a changed result
    upstream cannot leave a stale figure on the site:
    * every stat whose source names a JSON file in a project repository and quotes
      its raw numbers: each quoted number must still be in that file;
-   * world-shock-lab: once live/scores/ holds a score, the page must stop saying
-     "pending" (the check fails and says which page to update).
+   * world-shock-lab: the page shows exactly as many scored decisions as the project's
+     live/scores/ holds.
 3. Rebuild (build_home, build_dpc_page, build_pension_page, sync_chrome) and run check_site.py.
 
 Exit 0: the site matches every project. Exit 1: something needs a hand edit; the
@@ -184,14 +186,15 @@ def check_cited_numbers(project: dict, repo: Path) -> None:
 
 
 def check_wsl_scores(repo: Path) -> None:
-    scores = sorted((repo / "live" / "scores").glob("*.json")) if (repo / "live" / "scores").is_dir() else []
+    """After sync_wsl_live.py: the page's live-score slot counts exactly the score files in the project."""
+    scores = sorted((repo / "live" / "scores").glob("*_score1.json")) if (repo / "live" / "scores").is_dir() else []
     forecasts = sorted((repo / "live" / "forecasts").glob("*.json")) if (repo / "live" / "forecasts").is_dir() else []
-    page = (ROOT / "projects" / "world-shock-lab.html").read_text(encoding="utf-8")
-    say(f"- world-shock-lab: {len(forecasts)} forecast file(s), {len(scores)} score file(s)")
-    if scores and "No decision has been scored" in page:
-        fail("world-shock-lab now has score files in live/scores/ "
-             f"({', '.join(s.name for s in scores)}) but projects/world-shock-lab.html still says no decision has "
-             "been scored. Fill the score slot from those files (and relax the pending rule in check_site.py).")
+    stats = next(p for p in json.loads((ROOT / "data" / "projects.json").read_text())["projects"] if p["id"] == "world-shock-lab")["stats"]
+    shown = int(stats["liveDecisions"]["display"]) if "liveDecisions" in stats else 0
+    say(f"- world-shock-lab: {len(forecasts)} forecast file(s), {len(scores)} scored decision(s), {shown} on the page")
+    if shown != len(scores):
+        fail(f"world-shock-lab has {len(scores)} scored decision(s) in live/scores/ but the site shows {shown}: "
+             "run python3 scripts/sync_wsl_live.py <path to world-shock-lab>.")
 
 
 def main() -> int:
@@ -218,6 +221,7 @@ def main() -> int:
     sync_dpc(repos["deep-portfolio-constructor"])
     sync_aurvane(repos["aurvane"])
     sync_wsl_app(repos["world-shock-lab"])
+    run("sync_wsl_live.py", str(repos["world-shock-lab"]))   # the live-score slot, counted from the project's score files
 
     say("\n## Check hand-written figures against their sources")
     for pid in ("tsfm", "world-shock-lab"):

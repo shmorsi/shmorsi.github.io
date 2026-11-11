@@ -168,13 +168,28 @@ for loc in ("projects/deep-portfolio-constructor.html", "projects/pension-lab.ht
     if f"https://shmorsi.github.io/{loc}</loc>" not in sitemap:
         errors.append(f"sitemap.xml is missing {loc}")
 
-# Pending results stay empty until a committed file exists. No placeholder score.
+# The live-score slot is written by scripts/sync_wsl_live.py from the project's score files. With no
+# score it stays empty and shows no number; with scores every figure in it is a bind to the counts in
+# data/projects.json, and it has to say that two decisions are not a track record.
 wsl_page = (ROOT / "projects" / "world-shock-lab.html").read_text(encoding="utf-8")
-if 'data-slot="wsl-live-score"' not in wsl_page or "No decision has been scored" not in wsl_page:
-    errors.append("world-shock-lab page must keep the October decision score pending")
-wsl_slot = re.search(r'data-slot="wsl-live-score".*?</div>', wsl_page, re.S)
-if wsl_slot and "%" in re.sub(r"<[^>]+>", " ", wsl_slot.group(0)):
-    errors.append("world-shock-lab live-score slot must not show a percentage")
+wsl_stats = projects.get("world-shock-lab", {}).get("stats", {})
+wsl_block = re.search(r"<!-- live-score:start.*?<!-- live-score:end -->", wsl_page, re.S)
+if not wsl_block or 'data-slot="wsl-live-score"' not in wsl_block.group(0):
+    errors.append("world-shock-lab page must keep its live-score slot between the live-score markers")
+else:
+    wsl_text = re.sub(r"<[^>]+>", " ", wsl_block.group(0))
+    wsl_loose = re.sub(r"<span data-bind=[^>]*>.*?</span>", " ", wsl_block.group(0), flags=re.S)
+    wsl_loose = re.sub(r"<[^>]+>", " ", wsl_loose).replace("68%", " ").replace("90%", " ")
+    if "liveDecisions" in wsl_stats:
+        if "No decision has been scored" in wsl_text or "not a track record" not in wsl_text or "not filled in by hand" not in wsl_text:
+            errors.append("world-shock-lab live-score slot must show the scores, say they are not a track record, and say they are not typed by hand")
+        if "liveScores" not in projects["world-shock-lab"].get("tables", {}) or 'data-table="world-shock-lab.tables.liveScores"' not in wsl_block.group(0):
+            errors.append("world-shock-lab live-score slot must show the per-decision table from data/projects.json")
+        if re.search(r"\d", wsl_loose):
+            errors.append("world-shock-lab live-score slot must not state a figure outside a data-bind")
+    else:
+        if "No decision has been scored" not in wsl_text or re.search(r"\d", wsl_loose):
+            errors.append("world-shock-lab live-score slot must stay empty, with no number, until a decision is scored")
 tsfm_page = (ROOT / "projects" / "tsfm.html").read_text(encoding="utf-8")
 tsfm_slot = re.search(r'data-slot="tsfm-patch-test"[^>]*>(.*?)</div>', tsfm_page, re.S)
 tsfm_slot_text = re.sub(r"<[^>]+>", " ", tsfm_slot.group(1)) if tsfm_slot else ""

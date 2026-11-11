@@ -24,7 +24,7 @@ Change a project in its own repository first, merge it to that repository's `mai
 python3 scripts/sync_all.py          # expects the project repos checked out next to this one (--src to point elsewhere)
 ```
 
-It copies what each project generates (the Deep Portfolio Constructor's `reports/site_wealth.json` and, for the Pension Lab that lives in the same repository, `reports/pension/site_pension.json`; Aurvane's `ui/index.html` and benchmark summaries), checks every hand-written TSFM and World Shock Lab figure against the raw numbers in the JSON file it cites, fails if World Shock Lab has scored a decision the page still calls pending, then rebuilds and runs `check_site.py`. Exit 0 means the site matches every project.
+It copies what each project generates (the Deep Portfolio Constructor's `reports/site_wealth.json` and, for the Pension Lab that lives in the same repository, `reports/pension/site_pension.json`; Aurvane's `ui/index.html` and benchmark summaries), checks every hand-written TSFM and World Shock Lab figure against the raw numbers in the JSON file it cites, counts World Shock Lab's live score files into its page (`sync_wsl_live.py`), then rebuilds and runs `check_site.py`. Exit 0 means the site matches every project.
 
 The [Sync projects](.github/workflows/sync.yml) workflow runs the same script daily against each project's `main` (or on demand from the Actions tab) and opens one pull request, `auto/sync-projects`, when anything changed. It never merges by itself. If a hand-written figure went stale it fails instead, and the run summary names the stat and the page to fix. It needs one setting: Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
 
@@ -41,7 +41,7 @@ The project repositories generate their own documents from those result files. C
 | Deep Portfolio Constructor: every figure, the growth of $1, the holdings and the figures | `deep-portfolio-constructor` `reports/site_wealth.json` and `reports/figures/wealth/` | Written by `python -m dpc.cli wealth-site` in that repository from its committed `reports/results/wealth/*.parquet`, then `python3 scripts/sync_dpc.py <path to site_wealth.json>` here, which writes `data/projects.json`, `data/dpc_wealth.json` and `assets/img/dpc-*.png`. Nothing is typed by hand. `check_site.py` fails if the lab's growth of $1 disagrees with the performance table, if any month's holdings are not long-only and fully invested, or if a sentence disagrees with the pre-registered verdict. |
 | Pension Lab: every figure, the tables, the verdicts and the funded-ratio paths in its pictures | `deep-portfolio-constructor` `reports/pension/site_pension.json` | Written by `python -m dpc.cli pension-site` in that repository from `reports/pension/summary.json` and `fans.json`, then `python3 scripts/sync_pension.py <path to site_pension.json>` here, which writes the `pension-lab` project in `data/projects.json` (stats, tables and the sentences that quote them) and `data/pension.json`. Nothing is typed by hand. `check_site.py` fails if a sentence disagrees with a pre-registered verdict or the page is not a fresh build. |
 | TSFM, test split | `tsfm-from-scratch` `results/analysis/headline.json` | patch_s2, one seed, 97 configurations. |
-| World Shock Lab decision scores | `world-shock-lab` `live/scores/` when a decision has been scored | The project page keeps the slot empty until that file exists. As of 2026-11-08 no score file is committed. |
+| World Shock Lab live scores | `world-shock-lab` `live/scores/*_score1.json` | `python3 scripts/sync_wsl_live.py <path to world-shock-lab>` counts the score files and writes the live-score slot of the project page and its figures in `data/projects.json`. With no score file the slot stays empty and shows no number. Forecasts the project's protocol shows but does not score are left out of every count. |
 | Aurvane, worst-case benchmark | `data/measurements/aurvane/worst-case_summary.json` | Copied from the `aurvane` repo `bench/results/`. Simulated worst-case agent, 60 paired tasks, deterministic. Not a real-model score. |
 | TSFM distillation | none on `tsfm-from-scratch` main | Do not invent one. |
 
@@ -52,6 +52,7 @@ The master page, the Deep Portfolio Constructor page and the Pension Lab page ar
 ```sh
 python3 scripts/sync_dpc.py ../deep-portfolio-constructor/reports/site_wealth.json    # project figures, series and holdings, when they change
 python3 scripts/sync_pension.py ../deep-portfolio-constructor/reports/pension/site_pension.json   # the Pension Lab, when its results change
+python3 scripts/sync_wsl_live.py ../world-shock-lab    # World Shock Lab's live scores, when a decision is scored
 python3 scripts/make_marks.py        # one project mark per project (assets/marks/)
 python3 scripts/make_land.py land-110m.json   # data/land_mask.json for the particle globe (only if the map source changes)
 python3 scripts/build_home.py        # index.html, the master page (with scripts/stories.py and scripts/plain.py)

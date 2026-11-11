@@ -2235,10 +2235,10 @@
         },
         "tests": {
           "label": "Automated Python tests in CI",
-          "display": "168",
+          "display": "189",
           "count": 168,
           "decimals": 0,
-          "source": "Static count at world-shock-lab main cb7a00c (2026-10-23): 177 test cases (test functions times parametrize cases), 168 selected by the repository's default marker filter (-m 'not data'), which is what CI runs. pytest was not run for this count. The earlier figure, 157, was collected on 2026-10-23."
+          "source": "pytest -m 'not data' at world-shock-lab main c0d14ee (2026-11-11): 189 passed, 9 deselected, locally and in CI. The earlier figure, 168, was a static count at cb7a00c (2026-10-23)."
         },
         "rerunMinutes": {
           "label": "Full rerun time",
@@ -2261,14 +2261,44 @@
           "source": "World Shock Lab case study."
         },
         "forecastStatus": {
-          "label": "Oct 28 Fed and BoC forecasts",
-          "display": "Awaiting data",
-          "source": "world-shock-lab config/live.yaml scoring: score 1 is written once every outcome's h = 5 value is published; FX comes from the weekly H.10 release, typically 6 to 10 days after the decision live/scores/ has no score files at main 22d0bab (checked 2026-11-08), so no decision has been scored yet."
+          "label": "Live forecasts scored",
+          "display": "2 decisions",
+          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): score 1 of each decision; code_git_sha 37e398a"
         },
         "nextDecision": {
           "label": "Next forecasted decisions, Fed and BoC",
           "display": "2026-12-09",
           "source": "world-shock-lab config/live.yaml calendar: fomc and boc 2026-12-09 (BoC 09:45 America/Toronto, FOMC 14:00 America/New_York). Forecasts publish 10 days before."
+        },
+        "liveDecisions": {
+          "label": "Decisions scored so far",
+          "display": "2",
+          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): one score-1 file per decision"
+        },
+        "liveForecasts": {
+          "label": "Forecasts scored so far",
+          "display": "11",
+          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with mechanical = false, over every score-1 file"
+        },
+        "liveInside68": {
+          "label": "Outcomes inside the 68% band",
+          "display": "9 of 11",
+          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with inside68 = true"
+        },
+        "liveInside90": {
+          "label": "Outcomes inside the 90% band",
+          "display": "10 of 11",
+          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with inside90 = true"
+        },
+        "liveBeatsNoChange": {
+          "label": "Forecasts closer than a forecast of no change",
+          "display": "5 of 11",
+          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with beats_no_change = true"
+        },
+        "liveScoredOn": {
+          "label": "Scored on",
+          "display": "2026-11-11",
+          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): latest scored_at"
         }
       },
       "tables": {
@@ -2368,6 +2398,36 @@
             ]
           ],
           "source": "results/mlstudy/final.json (protocol ml-study-v1, git d0dc395c530d37d225381b3bd7391ee54f83c223, generated 20261020T183639Z) on main at merge commit 638bdb6 (https://github.com/shmorsi/world-shock-lab/commit/638bdb6357bc2c9f627ac4a6569a04995982b961), merged from https://github.com/shmorsi/world-shock-lab/pull/1 on 2026-10-20. File verdicts: no evidence the temporal CNN adds value on the mean; quantile gradient boosting adds value on the 5% tail by pinball loss. Not a calibration claim, and not a comparison to a published model."
+        },
+        "liveScores": {
+          "caption": "Each decision's forecasts, scored once every five-day outcome was published. A forecast is one outcome (the Canadian 2-year yield, the Canadian dollar, Canadian banks) at one horizon (one day, five days).",
+          "headers": [
+            "Decision",
+            "Forecast published",
+            "Forecasts scored",
+            "Inside the 68% band",
+            "Inside the 90% band",
+            "Closer than no change"
+          ],
+          "rows": [
+            [
+              "Bank of Canada, 2026-10-28",
+              "2026-10-13",
+              "5",
+              "4 of 5",
+              "5 of 5",
+              "1 of 5"
+            ],
+            [
+              "Federal Reserve, 2026-10-28",
+              "2026-10-13",
+              "6",
+              "5 of 6",
+              "5 of 6",
+              "4 of 6"
+            ]
+          ],
+          "source": "world-shock-lab live/scores/ at c0d14ee: 2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json. Counted by scripts/sync_wsl_live.py; cells the protocol shows but does not score are left out."
         }
       },
       "purpose": "How a central-bank surprise ripples through 53 markets, with forecasts published before each decision.",
@@ -2490,10 +2550,10 @@
         },
         "tests": {
           "label": "Automated tests in CI",
-          "display": "170",
+          "display": "189",
           "count": 170,
           "decimals": 0,
-          "source": "Static count at tsfm-from-scratch main 1d5f7b4 (2026-10-30): 171 test cases (test functions times parametrize cases), 170 selected by the CI job's filter -m \"not slow and not network and not data\". pytest was not run for this count. The earlier figure, 150, was collected on 2026-10-23 before the notebook tests were added."
+          "source": "pytest -m \"not slow and not network and not data\" at tsfm-from-scratch main a5a8061 (2026-11-11): 189 passed, 1 deselected, locally and in CI. The earlier figure, 170, was a static count at 1d5f7b4 (2026-10-30)."
         },
         "coverage": {
           "label": "80% interval coverage",
