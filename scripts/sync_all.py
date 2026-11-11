@@ -13,7 +13,8 @@ It does three things, in order, and stops at the first failure:
                                  reports/pension/site_pension.json -> scripts/sync_pension.py (the Pension Lab)
                                  reports/risk/site_risk.json -> scripts/sync_risk.py (the risk study,
                                  shown on the forecasting model's page)
-   * aurvane                     ui/index.html -> aurvane/index.html,
+   * aurvane                     ui/site/index.html -> scripts/sync_aurvane.py -> aurvane/index.html
+                                 (its demo, inside this site's header, label, picture and links),
                                  bench/results/*_summary.json -> data/measurements/aurvane/
    * world-shock-lab             web/dist/ (its built app) -> shock-lab/, so the lab is served
                                  from this repository as one section of the site
@@ -135,12 +136,11 @@ def sync_dpc(repo: Path) -> None:
 
 def sync_aurvane(repo: Path) -> None:
     changed = []
-    page = repo / "ui" / "index.html"
+    page = repo / "ui" / "site" / "index.html"   # the page built for this site; ui/index.html is the repository's own one-file copy
     if not page.is_file():
         fail(f"{page} is missing: run `python ui/build.py` in aurvane and commit it")
         return
-    if copy_if_changed(page, ROOT / "aurvane" / "index.html"):
-        changed.append("aurvane/index.html")
+    run("sync_aurvane.py", str(page))             # the demo is Aurvane's; the header, label, picture and links are written here
     for name in AURVANE_SUMMARIES:
         src = repo / "bench" / "results" / name
         if not src.is_file():

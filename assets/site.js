@@ -2156,8 +2156,8 @@ void main(){
       const cross = (y0, y1, a, b, o = {}) => segs.push({ y0, y1, a, b, order: 0, w: 0.6, swirl: 1, front: 0, ...o });
       if (!home) {
         const it = all[0], name = it.svg.dataset.scene;
-        const last = { dpc: "chart", pension: "pLearned", tsfm: "result", wsl: "gLit" }[name];
-        intro = { dpc: { a: "seed", b: "chart", order: 1, w: 0.05, swirl: 0.25, dur: 2.4 }, pension: { a: "ambient", b: "pLearned", order: 1, w: 0.12, swirl: 0.5, dur: 2.4 }, tsfm: { a: "ambient", b: "result", order: 1, w: 0.4, swirl: 0.8, dur: 1.8 }, wsl: { a: "gDim", b: "gLit", order: 1, w: 0.07, swirl: 0.6, front: 1, dur: 2.6 } }[name];
+        const last = { dpc: "chart", pension: "pLearned", tsfm: "result", wsl: "gLit", aurvane: "guarded" }[name];
+        intro = { dpc: { a: "seed", b: "chart", order: 1, w: 0.05, swirl: 0.25, dur: 2.4 }, pension: { a: "ambient", b: "pLearned", order: 1, w: 0.12, swirl: 0.5, dur: 2.4 }, tsfm: { a: "ambient", b: "result", order: 1, w: 0.4, swirl: 0.8, dur: 1.8 }, wsl: { a: "gDim", b: "gLit", order: 1, w: 0.07, swirl: 0.6, front: 1, dur: 2.6 }, aurvane: { a: "landed", b: "guarded", order: 1, w: 0.02, swirl: 0.5, dur: 2.6 } }[name];
         cross(it.top + it.h * 0.3, it.top + it.h * 1.05, last, "ambient", { swirl: 0.8 });
         lay.segs = segs;
         return;
@@ -2206,7 +2206,7 @@ void main(){
     const sky = (y, t) => {
       const out = [], vw = window.innerWidth;
       if (!home) {
-        const kind = { dpc: "dpc", pension: "pension", tsfm: "tsfm", wsl: "moon" }[all[0].svg.dataset.scene], o = 1 - seg(y, vh * 0.35, vh * 0.95);
+        const kind = { dpc: "dpc", pension: "pension", tsfm: "tsfm", wsl: "moon", aurvane: "aurvane" }[all[0].svg.dataset.scene], o = 1 - seg(y, vh * 0.35, vh * 0.95);
         if (o > 0) out.push(kind === "moon" ? { ...WORLDS.moon, x: vw * 0.9, y: vh * 0.24 - y * 0.2, r: vh * 0.05, o } : { ...WORLDS[kind], x: vw * 1.0, y: vh * 1.12 - y * 0.25, r: vh * 0.42, o: o * 0.9 });
         return out;
       }
@@ -2309,7 +2309,7 @@ void main(){
       for (const s of lay.segs) { if (y >= s.y0) sg = s; else break; }
       let a = sg.a, b = sg.b, mix = clamp((y - sg.y0) / Math.max(1, sg.y1 - sg.y0)), order = sg.order, w = sg.w, swirl = sg.swirl, front = sg.front;
       if (sg.ease) mix = inOut(mix);
-      const opening = clamp((t - introStart) / intro.dur);
+      const opening = intro ? clamp((t - introStart) / intro.dur) : 1;
       if (opening < 1 && sg === lay.segs[0] && mix === 0) { a = intro.a; b = intro.b; mix = intro.order ? inOut(opening) : ease(opening); order = intro.order; w = intro.w; swirl = intro.swirl; front = intro.front || 0; }
       const light = html.dataset.theme === "light" ? 1 : 0;
       gl.clear(gl.COLOR_BUFFER_BIT);

@@ -448,6 +448,8 @@ html:not(.motion) .hero-viz { visibility: hidden; } /* the illustration is drawn
 .project-meta .label { margin: 0; }
 .mark { width: 72px; height: 72px; flex: none; }
 .cs-hero h1 { font-size: clamp(40px, 6.2vw, 92px); max-width: 16ch; letter-spacing: 0.04em; line-height: 0.96; }
+/* A long title beside the picture: a size at which it holds four lines, not one word a line. */
+@media (min-width: 1001px) { .cs-hero.has-scene h1.is-long { font-size: clamp(40px, 4.9vw, 70px); max-width: none; } }
 .cs-purpose { max-width: 36em; font-size: clamp(18px, 1.8vw, 24px); line-height: 1.4; }
 .cs-summary { max-width: 64ch; color: var(--muted); }
 .cs-hero .proves { font-size: clamp(17px, 1.4vw, 20px); max-width: 44em; }
@@ -494,6 +496,8 @@ html:not(.motion) .hero-viz { visibility: hidden; } /* the illustration is drawn
   display: flex; align-items: flex-start; gap: 12px;
 }
 .cs-section > h2::before { content: ""; width: 20px; height: 1px; margin-top: 9px; flex: none; background: var(--accent); }
+/* A section reached from the section index stops below that bar, not under it. */
+.cs-section > h2[id], .cs-section[id] { scroll-margin-top: 46px; }
 .prose { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; color: var(--muted); max-width: 72ch; min-width: 0; }
 .prose code, .file-note code, .slot-empty code { overflow-wrap: anywhere; }
 .prose > p:first-child.big { color: var(--ink); font-size: clamp(20px, 2vw, 26px); line-height: 1.35; letter-spacing: 0.005em; }
@@ -539,10 +543,10 @@ a.screen:hover img { transform: scale(1.01); }
 .slot-empty strong { font-size: clamp(22px, 2.8vw, 36px); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; color: var(--ink); line-height: 1.15; }
 
 /* Video slot: a screenshot until a walkthrough video exists. */
-.video-slot { position: relative; }
+.video-slot, .video-slot .screen { position: relative; }
 .video-slot video { width: 100%; height: auto; background: var(--surface); border: 1px solid var(--line); }
-.video-slot .play {
-  position: absolute; left: 16px; bottom: 16px;
+.video-slot .button.play {   /* over the picture's corner; .fx .button (below) would otherwise put it back in the flow */
+  position: absolute; right: 16px; bottom: 16px;
   background: rgba(0, 0, 0, 0.78); color: #f4f5f7; border-color: rgba(255, 255, 255, 0.4);
 }
 

@@ -2263,7 +2263,7 @@
         "forecastStatus": {
           "label": "Live forecasts scored",
           "display": "2 decisions",
-          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): score 1 of each decision; code_git_sha 37e398a"
+          "source": "world-shock-lab live/scores/ (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): score 1 of each decision; code_git_sha 37e398a"
         },
         "nextDecision": {
           "label": "Next forecasted decisions, Fed and BoC",
@@ -2273,32 +2273,32 @@
         "liveDecisions": {
           "label": "Decisions scored so far",
           "display": "2",
-          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): one score-1 file per decision"
+          "source": "world-shock-lab live/scores/ (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): one score-1 file per decision"
         },
         "liveForecasts": {
           "label": "Forecasts scored so far",
           "display": "11",
-          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with mechanical = false, over every score-1 file"
+          "source": "world-shock-lab live/scores/ (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with mechanical = false, over every score-1 file"
         },
         "liveInside68": {
           "label": "Outcomes inside the 68% band",
           "display": "9 of 11",
-          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with inside68 = true"
+          "source": "world-shock-lab live/scores/ (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with inside68 = true"
         },
         "liveInside90": {
           "label": "Outcomes inside the 90% band",
           "display": "10 of 11",
-          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with inside90 = true"
+          "source": "world-shock-lab live/scores/ (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with inside90 = true"
         },
         "liveBeatsNoChange": {
           "label": "Forecasts closer than a forecast of no change",
           "display": "5 of 11",
-          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with beats_no_change = true"
+          "source": "world-shock-lab live/scores/ (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): cells with beats_no_change = true"
         },
         "liveScoredOn": {
           "label": "Scored on",
           "display": "2026-11-11",
-          "source": "world-shock-lab live/scores/ at c0d14ee (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): latest scored_at"
+          "source": "world-shock-lab live/scores/ (2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json): latest scored_at"
         }
       },
       "tables": {
@@ -2427,7 +2427,7 @@
               "4 of 6"
             ]
           ],
-          "source": "world-shock-lab live/scores/ at c0d14ee: 2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json. Counted by scripts/sync_wsl_live.py; cells the protocol shows but does not score are left out."
+          "source": "world-shock-lab live/scores/: 2026-10-28_boc_score1.json, 2026-10-28_fomc_score1.json. Counted by scripts/sync_wsl_live.py; cells the protocol shows but does not score are left out."
         }
       },
       "purpose": "How a central-bank surprise ripples through 53 markets, with forecasts published before each decision.",
