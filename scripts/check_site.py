@@ -227,6 +227,8 @@ for path in html_files:
         if not target.is_file():
             errors.append(f"{path.relative_to(ROOT)} link {raw} does not resolve")
             continue
+        if frag.startswith("/"):                      # a view inside the lab's app (shock-lab/#/map), not an id
+            continue
         if frag and target.suffix == ".html" and f'id="{frag}"' not in target.read_text(encoding="utf-8"):
             errors.append(f"{path.relative_to(ROOT)} link {raw} has no matching id")
 

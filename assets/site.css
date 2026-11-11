@@ -1390,3 +1390,13 @@ html:not(.stage) .hero-space { display: none; }
 .studies a[aria-current] { color: var(--bg); background: var(--ink); border-color: var(--ink); }
 .studies a[aria-current] .num { color: var(--bg); }
 @media (max-width: 640px) { .studies .label { flex-basis: 100%; } }
+
+/* ---- World Shock Lab: its live tool sits inside the project page (an embedded view of shock-lab/). ---- */
+.lab-frame { display: block; width: 100%; height: 1040px; border: 0; background: transparent; margin-top: 8px; }
+@media (max-width: 760px) { .lab-frame { height: 1700px; } }
+.lab-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; }
+.lab-tools .label { margin-right: 6px; }
+.lab-tools a { padding: 9px 13px; border: 1px solid var(--line-strong); text-decoration: none; color: var(--ink);
+  font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+.lab-tools a:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+@media (max-width: 640px) { .lab-tools .label { flex-basis: 100%; } }

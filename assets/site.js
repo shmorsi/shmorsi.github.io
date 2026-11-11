@@ -167,6 +167,16 @@
     (slot.querySelector("[data-video-holder]") || slot).replaceChildren(video, button);
   });
 
+  /* ---- An embedded tool (World Shock Lab's map) reports its own height; the frame takes it. ---- */
+  const labFrame = document.querySelector("[data-lab-frame]");
+  if (labFrame) {
+    window.addEventListener("message", (event) => {
+      if (event.origin !== window.location.origin || event.source !== labFrame.contentWindow) return;
+      const h = event.data && Number(event.data.labHeight);
+      if (h > 200 && h < 6000) labFrame.style.height = `${Math.ceil(h)}px`;
+    });
+  }
+
   /* ---- Figures: every number on the site is read from data/projects.json. ------------------- */
   const esc = (value) => String(value).replace(/[&<>"']/g, (ch) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
