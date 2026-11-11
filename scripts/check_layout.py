@@ -107,6 +107,17 @@ def serve() -> tuple[http.server.ThreadingHTTPServer, str]:
     return server, f"http://127.0.0.1:{server.server_address[1]}"
 
 
+def scroll_to(page, y: float) -> None:
+    """Jump to a scroll position and wait until the page is really there and has drawn.
+
+    The site scrolls smoothly (CSS scroll-behavior and its own easing), so a plain scrollTo
+    is still on its way when the next line runs; a measurement taken then is of some other
+    place on the page."""
+    page.evaluate("(y) => window.scrollTo({top: y, left: 0, behavior: 'instant'})", y)
+    page.wait_for_function("(y) => Math.abs(window.scrollY - y) < 2", arg=y, timeout=10_000)
+    page.wait_for_timeout(260)
+
+
 def check_step(m: dict, verbose: bool) -> list[str]:
     """The problems on one step of one chapter, as short sentences."""
     out: list[str] = []
@@ -167,8 +178,7 @@ def run(only: list[str]) -> int:
             for i, s in enumerate(stories):
                 for k in range(s["n"]):
                     y = s["top"] + (s["h"] - h) * ((k + 0.6) / s["n"])
-                    page.evaluate("(y) => window.scrollTo(0, y)", y)
-                    page.wait_for_timeout(260)
+                    scroll_to(page, y)
                     m = page.evaluate(MEASURE, i)
                     pinned = m["pinned"]
                     if not pinned:
@@ -179,7 +189,7 @@ def run(only: list[str]) -> int:
                 if pinned is False:
                     break
             if pinned is False:  # the plain layout: everything in the flow, nothing to fit
-                page.evaluate("() => window.scrollTo(0, 0)")
+                scroll_to(page, 0)
                 hidden = page.evaluate("""() => [...document.querySelectorAll('.st-step')].filter((e) => Number(getComputedStyle(e).opacity) < 0.99 || e.getBoundingClientRect().height < 8).length""")
                 if hidden:
                     here.append(f"plain layout: {hidden} steps are hidden")
