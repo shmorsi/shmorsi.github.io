@@ -19,7 +19,8 @@ jobs:
   # Every chapter of the master page has to fit the screen it is pinned to. This opens the page
   # in a real browser at phone, tablet and small-laptop sizes and measures each step.
   layout:
-    runs-on: ubuntu-latest
+    # Pinned: the browser installer supports this release (it refused ubuntu-latest once that moved on).
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
