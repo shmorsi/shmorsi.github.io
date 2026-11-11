@@ -11,7 +11,10 @@
   the site never shows a dead GitHub link. Flip the flag to true and re-run
   when a repository goes public.
 
-aurvane/index.html is built in the aurvane repository and is left untouched.
+aurvane/index.html is one of those project pages. Its demo (the sections, their styles and
+scripts) is built in the aurvane repository; everything listed above is written here, as on
+the other project pages, so it cannot drift from them. scripts/sync_aurvane.py brings a new
+build in through dress() below.
 """
 
 from __future__ import annotations
@@ -171,7 +174,22 @@ def projectize(html: str, pid: str) -> str:
 
 
 PAGES = {"index.html": ("", None, True)}  # page -> (prefix to the site root, its own path, is the master page)
-PAGES.update({path: ("../", path, False) for pid, path in PATH_OF.items() if path.endswith(".html")})
+PAGES.update({path + ("index.html" if path.endswith("/") else ""): ("../", path, False) for pid, path in PATH_OF.items()})
+
+
+def dress(html: str, prefix: str, current: str | None, home: bool) -> str:
+    """One page with everything the pages share written into it. Running it twice changes nothing."""
+    html, n = re.subn(r'<header class="site-header">.*?</header>', lambda m: header(prefix, current, home), html, count=1, flags=re.S)
+    html, m = re.subn(r'<footer class="site-footer">.*?</footer>', lambda m: footer(prefix), html, count=1, flags=re.S)
+    if n != 1 or m != 1:
+        raise SystemExit(f"{current or 'index.html'}: the page needs one site header and one site footer")
+    html = re.sub(r'\n[ \t]*<canvas class="stars"[^>]*></canvas>', "", html)  # the old star field
+    html = re.sub(r'<script>try\{var t=localStorage\.getItem\("theme"\).*?</script>', lambda m: THEME_SCRIPT, html, count=1)
+    html = unlink_private(html)
+    pid = next((p for p, own in PATH_OF.items() if own == current), None)
+    if pid:
+        html = projectize(html, pid)
+    return html
 
 
 def main() -> None:
@@ -179,16 +197,7 @@ def main() -> None:
         path = ROOT / rel
         if not path.exists():
             raise SystemExit(f"missing page {rel}")
-        html = path.read_text(encoding="utf-8")
-        html = re.sub(r'<header class="site-header">.*?</header>', header(prefix, current, home), html, count=1, flags=re.S)
-        html = re.sub(r'<footer class="site-footer">.*?</footer>', footer(prefix), html, count=1, flags=re.S)
-        html = re.sub(r'\n[ \t]*<canvas class="stars"[^>]*></canvas>', "", html)  # the old star field
-        html = re.sub(r'<script>try\{var t=localStorage\.getItem\("theme"\).*?</script>', THEME_SCRIPT, html, count=1)
-        html = unlink_private(html)
-        pid = next((p for p, own in PATH_OF.items() if own == current), None)
-        if pid:
-            html = projectize(html, pid)
-        path.write_text(html, encoding="utf-8")
+        path.write_text(dress(path.read_text(encoding="utf-8"), prefix, current, home), encoding="utf-8")
         print(f"synced {rel}")
 
 

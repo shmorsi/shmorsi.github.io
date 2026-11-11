@@ -56,8 +56,9 @@ def figures(repo: Path) -> tuple[dict[str, dict], dict | None]:
     """The live stats and the per-decision table, or no table when nothing is scored."""
     forecasts, scores = read(repo)
     published = {f["event_id"]: f["published_at"][:10] for f in forecasts}
-    commit = head(repo)
-    where = f"world-shock-lab live/scores/ at {commit}"
+    # The score files name themselves and are never edited, so the source cites them, not the repository's
+    # latest commit: a commit there that touches no score must not change this site's data.
+    where = "world-shock-lab live/scores/"
     if not scores:
         status = {"label": "Live forecasts scored", "display": "None yet",
                   "source": f"{where}: no score file. {len(forecasts)} forecast file(s) in live/forecasts/."}

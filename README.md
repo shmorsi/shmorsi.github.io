@@ -24,7 +24,7 @@ Change a project in its own repository first, merge it to that repository's `mai
 python3 scripts/sync_all.py          # expects the project repos checked out next to this one (--src to point elsewhere)
 ```
 
-It copies what each project generates (the Deep Portfolio Constructor's `reports/site_wealth.json` and, for the Pension Lab that lives in the same repository, `reports/pension/site_pension.json`; Aurvane's `ui/index.html` and benchmark summaries), checks every hand-written TSFM and World Shock Lab figure against the raw numbers in the JSON file it cites, counts World Shock Lab's live score files into its page (`sync_wsl_live.py`), then rebuilds and runs `check_site.py`. Exit 0 means the site matches every project.
+It copies what each project generates (the Deep Portfolio Constructor's `reports/site_wealth.json` and, for the Pension Lab that lives in the same repository, `reports/pension/site_pension.json`; Aurvane's page, `ui/site/index.html`, and its benchmark summaries), checks every hand-written TSFM and World Shock Lab figure against the raw numbers in the JSON file it cites, counts World Shock Lab's live score files into its page (`sync_wsl_live.py`), then rebuilds and runs `check_site.py`. Exit 0 means the site matches every project.
 
 The [Sync projects](.github/workflows/sync.yml) workflow runs the same script daily against each project's `main` (or on demand from the Actions tab) and opens one pull request, `auto/sync-projects`, when anything changed. It never merges by itself. If a hand-written figure went stale it fails instead, and the run summary names the stat and the page to fix. It needs one setting: Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
 
@@ -48,12 +48,13 @@ The project repositories generate their own documents from those result files. C
 
 ## Build
 
-The master page, the Deep Portfolio Constructor page and the Pension Lab page are generated from `data/projects.json`, so their fallback text always matches the data. The TSFM and World Shock Lab pages are hand-written; `sync_chrome.py` keeps their shared parts in step.
+The master page, the Deep Portfolio Constructor page and the Pension Lab page are generated from `data/projects.json`, so their fallback text always matches the data. The TSFM and World Shock Lab pages are hand-written, and Aurvane's comes from its own repository; `sync_chrome.py` keeps the shared parts of all of them in step.
 
 ```sh
 python3 scripts/sync_dpc.py ../deep-portfolio-constructor/reports/site_wealth.json    # project figures, series and holdings, when they change
 python3 scripts/sync_pension.py ../deep-portfolio-constructor/reports/pension/site_pension.json   # the Pension Lab, when its results change
 python3 scripts/sync_wsl_live.py ../world-shock-lab    # World Shock Lab's live scores, when a decision is scored
+python3 scripts/sync_aurvane.py ../aurvane/ui/site/index.html   # Aurvane's page, when its demo or results change
 python3 scripts/sync_risk.py ../deep-portfolio-constructor/reports/risk/site_risk.json   # the risk study, when its results change
 python3 scripts/make_marks.py        # one project mark per project (assets/marks/)
 python3 scripts/make_land.py land-110m.json   # data/land_mask.json for the particle globe (only if the map source changes)
@@ -92,7 +93,7 @@ Every interactive piece is rendered as complete static HTML first by `scripts/la
 
 Project pages share one template: a project label with its mark, the headline, a sticky section index built from the page's own headings, the sections, and previous / next project links. Motion is a short fade on scroll and charts that draw in; nothing moves under `prefers-reduced-motion`, and nothing is hidden if the script does not run.
 
-`aurvane/index.html` is built in the `aurvane` repository (`python ui/build.py`) and copied here unchanged. It uses the same tokens and loads this site's Inter Tight from `../assets/fonts/`. It carries this site's header and links back to the other projects, as World Shock Lab's app (`shock-lab/`) does: every page of every project opens under one header.
+`aurvane/index.html` is a project page like the others. The `aurvane` repository builds its demo (`python ui/build.py` there writes `ui/site/index.html`: the replay, the try-it box, the picture suite, the results, with their styles and scripts), and `python3 scripts/sync_aurvane.py <path to ui/site/index.html>` brings it here. The page loads this site's stylesheet and script, so its header, sky, type, colours and themes are the site's own; its styles use this site's tokens and are scoped to the demo. `sync_chrome.py` writes the header, footer, project label, the "In plain English" panel, the picture and the previous / next links into it, as on every project page, and `check_site.py` fails if the page defines a palette of its own or is not dressed. World Shock Lab's app (`shock-lab/`) carries the same header: every page of every project opens under one header.
 
 ## Check
 

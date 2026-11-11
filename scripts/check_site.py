@@ -81,6 +81,7 @@ for project in DATA["projects"]:
 
 bind_re = re.compile(r'data-(?:bind|table)="([^"]+)"')
 html_files = list(ROOT.glob("*.html")) + list((ROOT / "projects").glob("*.html"))
+html_files.append(ROOT / "aurvane" / "index.html")   # a project page like the others; its demo is built in the aurvane repository
 for path in html_files:
     text = path.read_text()
     for raw in bind_re.findall(text):
@@ -167,6 +168,42 @@ sitemap = (ROOT / "sitemap.xml").read_text(encoding="utf-8")
 for loc in ("projects/deep-portfolio-constructor.html", "projects/pension-lab.html", "projects/tsfm.html", "projects/world-shock-lab.html", "shock-lab/", "aurvane/"):
     if f"https://shmorsi.github.io/{loc}</loc>" not in sitemap:
         errors.append(f"sitemap.xml is missing {loc}")
+
+# The lab's app (shock-lab/, built in the world-shock-lab repository) is a section of this site: it carries this
+# site's header and stands on this site's page. Its header must list the projects in this site's order, and
+# its page colours, width and gutter must be this site's values in both themes, so nothing shifts or changes
+# shade when a reader moves between a project page and the lab.
+def _tokens(css: str, light: bool) -> dict[str, str]:
+    """The custom properties of the first :root block (or the light-theme one), with spelling differences removed."""
+    m = re.search(r':root\[data-theme="?light"?\]\s*\{([^}]*)\}' if light else r":root\s*\{([^}]*)\}", css)
+    out = {}
+    for name, value in re.findall(r"(--[\w-]+)\s*:\s*([^;]+)", m.group(1) if m else ""):
+        value = re.sub(r"\s+", "", value.lower())
+        value = re.sub(r"(?<![\d.])0\.", ".", value)                                  # 0.3 and .3 are one number
+        value = re.sub(r"^#([0-9a-f])([0-9a-f])([0-9a-f])$", r"#\1\1\2\2\3\3", value)  # #000 and #000000 are one colour
+        out[name] = value
+    return out
+
+
+_lab = ROOT / "shock-lab" / "assets"
+_lab_js = "".join(f.read_text(errors="ignore") for f in sorted(_lab.glob("index-*.js")))
+_lab_css = "".join(f.read_text(errors="ignore") for f in sorted(_lab.glob("*.css")))
+_site_css = (ROOT / "assets" / "site.css").read_text()
+_order = [p["id"] for p in DATA["projects"]]
+_href = {"deep-portfolio-constructor": "../projects/deep-portfolio-constructor.html", "pension-lab": "../projects/pension-lab.html",
+         "world-shock-lab": "../projects/world-shock-lab.html", "tsfm": "../projects/tsfm.html", "aurvane": "../aurvane/"}
+_at = [_lab_js.find(f'"{_href[pid]}"') for pid in _order]
+if -1 in _at or _at != sorted(_at):
+    errors.append("shock-lab/: the app's header does not list the projects in this site's order "
+                  "(SITE in world-shock-lab web/src/App.tsx; rebuild there, then scripts/sync_all.py)")
+_same = {"--bg": "--bg", "--surface": "--surface", "--surface-2": "--surface-2", "--ink": "--ink", "--muted": "--muted",
+         "--line": "--line", "--line-strong": "--line-2", "--accent": "--accent", "--max": "--max", "--gutter": "--gutter"}
+for _light in (False, True):
+    _mine, _labs = _tokens(_site_css, _light), _tokens(_lab_css, _light)
+    for _name, _theirs in _same.items():
+        if _name in _mine and _labs.get(_theirs) != _mine[_name]:
+            errors.append(f"shock-lab/: {'light' if _light else 'dark'} {_theirs} is {_labs.get(_theirs)!r} but this site's {_name} is {_mine[_name]!r} "
+                          "(web/src/styles.css in world-shock-lab)")
 
 # The live-score slot is written by scripts/sync_wsl_live.py from the project's score files. With no
 # score it stays empty and shows no number; with scores every figure in it is a bind to the counts in
@@ -330,6 +367,31 @@ else:
         phrase = f"{rt['attacks']} smarter attacks: {rt['contained']} contained, {rt['capped']} capped by the budget, {rt['gets through']} get through"
         if phrase not in aurvane.get("summary", ""):
             errors.append("aurvane summary must quote the red-team counts from redteam_summary.json")
+    # Aurvane's page is a page of this site. The aurvane repository builds the demo; scripts/sync_chrome.py writes what
+    # every project page shares. So it must load this site's stylesheet and script, bring no palette or font of its
+    # own (it would stop following the theme, and stop looking like the other pages), and be dressed.
+    av_page = (ROOT / "aurvane" / "index.html").read_text(encoding="utf-8")
+    for needed in ('href="../assets/site.css"', 'src="../assets/site.js"', '<header class="cs-hero wrap has-scene">', "data-plain", "data-cs-scene",
+                   "data-subnav", 'class="project-switch"', 'data-glance="aurvane"', 'id="roomBox"'):
+        if needed not in av_page:
+            errors.append(f"aurvane/index.html is not this site's project page: it has no {needed} (run scripts/sync_aurvane.py on the aurvane build)")
+    av_style = "".join(re.findall(r"<style>(.*?)</style>", av_page, flags=re.S))
+    av_style = re.sub(r":where\(\.av\) \.room \{.*?\}", "", av_style, flags=re.S)   # the replay is a dark screen in both themes
+    for token in ("--bg:", "--ink:", "--muted:", "--accent:", "--surface:", "--line:", "--font:", "@font-face"):
+        if token in av_style:
+            errors.append(f"aurvane/index.html defines {token} itself; it must use this site's tokens (assets/site.css)")
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import sync_chrome as _chrome  # noqa: E402
+    try:
+        _dressed = _chrome.dress(av_page, "../", "aurvane/", False)
+    except SystemExit as exc:   # not a project page of this site at all
+        _dressed = av_page
+        errors.append(f"aurvane/index.html cannot take this site's header and label: {exc}")
+    if _dressed != av_page:
+        errors.append("aurvane/index.html does not carry this site's current header, label, picture or links (run scripts/sync_chrome.py)")
+    quote = f"attacks that landed fell from {off['attacks_landed']} of {off['poisoned_tasks']} to {on['attacks_landed']} of {on['poisoned_tasks']}"
+    if quote not in av_page:
+        errors.append("aurvane/index.html does not quote the copied benchmark summary (sync the page and the summaries from the same aurvane commit)")
     # The old URL stays alive as a tiny redirect; nothing else may carry the old name.
     old = ROOT / "glass" / "index.html"
     if not old.is_file() or "../aurvane/" not in old.read_text():
