@@ -448,6 +448,7 @@ def page() -> str:
           <p class="label">The voyage</p>
           <h2 id="work-title">{words} projects, in plain English</h2>
           <p>The first is about investing for decades, which is a long voyage with a promise at the end of it: pensions to pay. It comes in three studies: the engine that grows the money, the promise and what it costs to keep, and the weather station that measures the storms. The second is the navigator, a forecasting model built from scratch. The third is the shield, a lock that keeps AI agents inside limits a person signed. Keep scrolling: each picture is built from real results.</p>
+          <p class="skip-story"><a class="text-link" href="#explore">In a hurry? Skip to the results you can try</a></p>
         </div>
         {trio()}
       </div>

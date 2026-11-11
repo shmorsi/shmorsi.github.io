@@ -15,3 +15,20 @@ jobs:
           python-version: "3.12"
       - name: Check pages, figures, and internal links
         run: python3 scripts/check_site.py
+
+  # Every chapter of the master page has to fit the screen it is pinned to. This opens the page
+  # in a real browser at phone, tablet and small-laptop sizes and measures each step.
+  layout:
+    # Pinned: the browser installer supports this release (it refused ubuntu-latest once that moved on).
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install a browser
+        run: |
+          pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Chapters fit on phones, tablets and small laptops
+        run: python3 scripts/check_layout.py

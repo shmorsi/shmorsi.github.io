@@ -96,6 +96,9 @@ Project pages share one template: a project label with its mark, the headline, a
 ```sh
 python3 -m http.server 4173      # preview at http://localhost:4173
 python3 scripts/check_site.py    # copy rules, figure binds, charts, pending slots, and internal links
+python3 scripts/check_layout.py  # every chapter fits its screen (needs: pip install playwright && python -m playwright install chromium)
 ```
+
+**Chapters fit the screen they are pinned to.** Each chapter of the master page holds the screen while its steps play, so its words, its button and its picture all have to fit one screen. Type follows the screen's height as well as its width, the picture is fitted into the room that is left, the intro line is dropped on a short laptop screen, and a step longer than 300 characters is set a little smaller (`scripts/stories.py`). A screen under 560 px tall (a phone on its side) gets the plain page, as under reduced motion. `scripts/check_layout.py` opens the built page in a real browser at 14 sizes, from a 360 px phone to a 2560 px desktop, scrolls to every step of every chapter and fails if anything is cut off, overlaps, or squeezes the picture below a sixth of the screen. CI runs it on every pull request.
 
 The resume link points at `resume/Sherif_Morsi_Resume.pdf`. World Shock Lab's interactive app is part of this site, at `shock-lab/`: `scripts/sync_all.py` copies its build (`web/dist/` in the `world-shock-lab` repository, where it carries this site's header) file for file. `world-shock-lab/` holds one page that forwards the app's old address to `shock-lab/`.
