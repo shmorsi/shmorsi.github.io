@@ -20,6 +20,7 @@ from pathlib import Path
 
 import lab  # scripts/lab.py: the interactive pieces, rendered as static HTML first
 import stories  # scripts/stories.py: one pinned, plain-English chapter per project
+import worlds  # scripts/worlds.py: the route, five worlds drawn from the projects' results
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "projects.json").read_text())
@@ -333,17 +334,6 @@ def toolkit() -> str:
     return "".join(out)
 
 
-def trio() -> str:
-    """The three projects at a glance, each with the studies it holds (scripts/groups.py), linked to their chapters."""
-    items = []
-    for g in DATA["groups"]:
-        studies = "".join(f'<li><a href="#story-{pid}"><span class="num">{P[pid]["number"]}</span>{e(P[pid]["study"])}<span class="trio-role">{e(stories.ROLE[pid])}</span></a></li>'
-                          for pid in g["projects"])
-        items.append(f'<li><p class="label"><span class="num">{g["number"]}</span> {e(g["kicker"])}</p><h3>{e(g["title"])}</h3>'
-                     f'<p class="trio-line">{e(g["line"])}</p><ul class="trio-studies">{studies}</ul></li>')
-    return f'<ol class="trio" data-reveal>{"".join(items)}</ol>'
-
-
 def page() -> str:
     tagline = e(DATA["tagline"])
     titles = ", ".join(g["title"] + (f" ({', '.join(P[i]['study'] for i in g['projects'])})" if len(g["projects"]) > 1 else "") for g in DATA["groups"])
@@ -442,6 +432,8 @@ def page() -> str:
       </div>
     </section>
 
+    {worlds.section(P, ORDER, status)}
+
     <section class="section stories" id="work" aria-labelledby="work-title">
       <div class="wrap">
         <div class="section-head" data-reveal>
@@ -450,7 +442,6 @@ def page() -> str:
           <p>The first is about investing for decades, which is a long voyage with a promise at the end of it: pensions to pay. It comes in three studies: the engine that grows the money, the promise and what it costs to keep, and the weather station that measures the storms. The second is the navigator, a forecasting model built from scratch. The third is the shield, a lock that keeps AI agents inside limits a person signed. Keep scrolling: each picture is built from real results.</p>
           <p class="skip-story"><a class="text-link" href="#explore">In a hurry? Skip to the results you can try</a></p>
         </div>
-        {trio()}
       </div>
       {"".join(stories.story(P, pid, page_href(P[pid])) for pid in ORDER)}
     </section>

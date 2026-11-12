@@ -34,7 +34,7 @@ One page to keep track of the whole thing: what lives where, what happens by its
 
 | What | Where | By when |
 |---|---|---|
-| Merge pull requests | The "Merge pull request" button on each one | When you like what you see |
+| Review and merge pull requests | Each repository | When the checks are green |
 | Add the `FRED_API_KEY` secret | `world-shock-lab` → Settings → Secrets and variables → Actions | Before November 29 (the December 9 forecasts publish from then) |
 | Add the `ANTHROPIC_API_KEY` secret and run "real-model benchmark" | `aurvane` → Settings → Secrets, then Actions | Any time; capped at 5 USD |
 | Let the daily sync open its pull request | Website repository → Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests" | Once |
@@ -44,16 +44,15 @@ One page to keep track of the whole thing: what lives where, what happens by its
 ## Branches
 
 - `main`: the real one in every repository. The website shows whatever is on the website repository's `main`.
-- `feature/friendly-hamilton-dspd7f`: the working branch that open pull requests come from. Leave it.
+- `feature/...`: working branches that open pull requests come from. One can go once its pull request is merged.
 - Tags such as `prereg-v1` and `protocol-v4` mark the moment a test was fixed in advance. Never delete those.
 
 ### Old branches that can go
 
-Every one was checked: seven are already fully inside `main`, the other ten are October drafts that later work replaced, and no document cites a commit that lives only on them. To delete one: open the repository's branches page and press the bin icon next to it.
+Every one was checked: each is either fully inside `main` or an October draft that later work replaced, and no document cites a commit that lives only on them. The website's own old branches are already gone.
 
 | Repository | Branches page | Branches to delete |
 |---|---|---|
-| Website | https://github.com/shmorsi/shmorsi.github.io/branches | `claude/fix-everything`, `cursor/portfolio-mission-control-ea96`, `cursor/spacex-portfolio-pass-8796`, `feature/elegant-goldberg-tv9zhr`, `feature/modest-meitner-d1b93p`, `wealth-study` |
 | Portfolio | https://github.com/shmorsi/deep-portfolio-constructor/branches | `feature/modest-meitner-d1b93p`, `wealth-study` |
 | Forecasting model | https://github.com/shmorsi/tsfm-from-scratch/branches | `cursor/harvest-patch-s2-test-318e`, `cursor/readme-recruiter-polish-2a32`, `feature/elegant-goldberg-tv9zhr` |
 | Shock Lab | https://github.com/shmorsi/world-shock-lab/branches | `cursor/landing-perfection-0b07`, `feature/elegant-goldberg-tv9zhr`, `feature/modest-meitner-d1b93p` |
@@ -64,10 +63,3 @@ Once they are gone, this section can be deleted too.
 ## Going back
 
 Every merged pull request has a "Revert" button. Pressing it opens a new pull request that undoes that one; merging it puts things back.
-
-## Words
-
-- **Commit**: a saved snapshot with a note.
-- **Branch**: a separate copy to work in, so `main` stays untouched.
-- **Pull request**: a proposal to put a branch's changes into `main`, with the checks run on it.
-- **Merge**: accepting the proposal.
