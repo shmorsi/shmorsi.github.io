@@ -1580,11 +1580,14 @@ html:not(.fx) .fx-route-train { display: none; }
 .ride-lead > * { transition: opacity 0.5s; }
 .ride-stage.is-live .ride-lead { position: absolute; z-index: 2; inset: 0 auto auto 0; max-width: min(60%, 860px); padding-bottom: 0; text-shadow: 0 0 18px var(--bg), 0 0 6px var(--bg); }
 .ride-stage.is-live .ride-lead .button { text-shadow: none; }
+.ride-stage.is-live .ride-lead { pointer-events: none; } /* the scene can be taken hold of through the words */
+.ride-stage.is-live .ride-lead a { pointer-events: auto; }
 .ride-stage.is-playing .ride-lead > :not(h1) { opacity: 0; pointer-events: none; } /* while the train runs, the scene has the screen */
 .ride-stage.is-playing .ride-lead h1 { opacity: 0.42; }
 
 /* the scene */
-.ride-view { position: relative; display: none; }
+.ride-view { position: relative; display: none; cursor: grab; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
+.ride-view.is-dragging { cursor: grabbing; }
 .ride-stage.is-live .ride-view { display: block; height: clamp(380px, calc(100svh - var(--header) - 176px), 920px); }
 .ride-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .ride-date { position: absolute; right: var(--edge); top: clamp(20px, 3.6vh, 38px); margin: 0; text-align: right; font-size: clamp(20px, 2.1vw, 30px); font-weight: 500; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; text-shadow: 0 0 12px var(--bg); }
