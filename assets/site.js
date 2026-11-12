@@ -2085,6 +2085,10 @@ void main(){
     const when = (i) => { if (i <= 0) return `${MONTH[M0]} ${Y0}`; const n = M0 + i - 1; return `${MONTH[n % 12]} ${Y0 + Math.floor(n / 12)}`; };
     const money = (v) => (v < 10 ? `$${v.toFixed(2)}` : v < 100 ? `$${v.toFixed(1)}` : `$${Math.round(v).toLocaleString("en-US")}`);
 
+    const noise = (x) => { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return hash(i) + (hash(i + 1) - hash(i)) * u; };
+    const passed = {}; /* the first month each train's dollar is worth ten, a hundred, a thousand */
+    KEYS.forEach((k) => { passed[k] = [1, 2, 3].map((d) => S[k].findIndex((v) => v >= d * 10000)); });
+    const smoke = [];
     let W = 0, H = 0, dpr = 1, font = "sans-serif", light = false;
     let sel = (stage.querySelector('input[name="ride-train"]:checked') || {}).value || "deep";
     let month = 0, playing = false, started = false, arrived = false, clock = 0, noteKey = "", shownMonth = -1, dirty = true;
@@ -2136,13 +2140,34 @@ void main(){
       let cam = 0; for (let j = 0; j <= 36; j += 6) cam += lv(sel, month - j); cam /= 7; /* the camera lags the train: a fall is felt */
       const X = (m) => xNow + (m - month) * k, Yl = (l) => yMid - (l - cam) * sc;
       const st = clamp(below(month) / 0.36), m0 = Math.floor(month - span - 3); /* before the first month the line is level at one dollar: the platform */
+      const pr = month / N, mi = Math.floor(clamp(month, 1, N)), drop = (S.market[mi] - S.market[mi - 1]) / 10000, jolt = playing && drop < -0.04 ? (1 - (month - Math.floor(month))) : 0;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      /* the sky: clear, or as dark as the fall is deep */
+      /* the sky: night when the train leaves, first light when it arrives, and as dark as the fall is deep in between */
       const sky = g.createLinearGradient(0, 0, 0, H);
-      const top = light ? mixc([206, 224, 250], [142, 150, 168], st) : mixc([7, 9, 26], [16, 17, 24], st), low = light ? mixc([244, 238, 246], [176, 180, 190], st) : mixc([44, 32, 84], [38, 40, 54], st);
+      const clearTop = light ? mixc([198, 218, 250], [214, 228, 250], pr) : mixc([6, 8, 24], [20, 24, 62], pr), clearLow = light ? mixc([240, 236, 248], [255, 228, 204], pr * pr) : mixc([40, 30, 80], [150, 86, 104], pr * pr);
+      const top = mixc(clearTop, light ? [142, 150, 168] : [15, 16, 23], st), low = mixc(clearLow, light ? [176, 180, 190] : [36, 38, 52], st);
       sky.addColorStop(0, rgba(top, 1)); sky.addColorStop(1, rgba(low, 1));
       g.fillStyle = sky; g.fillRect(0, 0, W, H);
-      if (!light) for (let i = 0; i < 70; i += 1) { g.fillStyle = `rgba(226,234,255,${(0.25 + 0.6 * hash(i + 9)) * (1 - st)})`; g.fillRect(hash(i) * W, hash(i + 40) * H * 0.62, 1.3, 1.3); }
+      if (jolt) g.translate((hash(clock * 31) - 0.5) * 7 * jolt, (hash(clock * 17 + 4) - 0.5) * 5 * jolt);
+      if (!light) for (let i = 0; i < 80; i += 1) { /* stars drift a little as the years pass, and go out toward morning */
+        const sx = ((hash(i) * (W + 60) - month * 0.22) % (W + 60) + W + 60) % (W + 60) - 30;
+        g.fillStyle = `rgba(226,234,255,${(0.25 + 0.6 * hash(i + 9)) * (1 - st) * (1 - pr * 0.75)})`; g.fillRect(sx, hash(i + 40) * H * 0.6, 1.3, 1.3);
+      }
+      if (!light && st < 0.9) { /* the moon, setting slowly over the whole journey */
+        const mx = W * (0.86 - pr * 0.5), my = H * (0.16 + pr * pr * 0.34), mr = Math.max(9, H * 0.036);
+        const halo = g.createRadialGradient(mx, my, mr * 0.6, mx, my, mr * 4); halo.addColorStop(0, `rgba(214,222,250,${0.2 * (1 - st)})`); halo.addColorStop(1, "rgba(214,222,250,0)");
+        g.fillStyle = halo; g.beginPath(); g.arc(mx, my, mr * 4, 0, 6.2832); g.fill();
+        g.fillStyle = `rgba(226,230,246,${0.92 * (1 - st)})`; g.beginPath(); g.arc(mx, my, mr, 0, 6.2832); g.fill();
+      }
+      /* far mountains, two ranges, passing more slowly than the line */
+      [[0.5, 0.62, 0.15, light ? [202, 210, 234] : [24, 21, 56], 37], [0.82, 0.74, 0.13, light ? [184, 194, 224] : [32, 27, 70], 91]].forEach(([par, base, amp, c, seed]) => {
+        g.fillStyle = rgba(mixc(c, light ? [150, 156, 172] : [20, 21, 30], st * 0.7), 1); g.beginPath(); g.moveTo(0, H);
+        for (let x = 0; x <= W + 12; x += 12) {
+          const wx = (x + month * k * par) / (W * 0.16) + seed;
+          g.lineTo(x, H * base - H * amp * (noise(wx) * 0.65 + noise(wx * 2.7 + 9) * 0.35));
+        }
+        g.lineTo(W, H); g.closePath(); g.fill();
+      });
       /* heights: each line is ten times the one below it */
       g.font = `500 11px ${font}`; g.textBaseline = "middle"; g.lineWidth = 1;
       [1, 10, 100, 1000].forEach((v) => {
@@ -2192,13 +2217,28 @@ void main(){
           const rx = (hash(i) * (W + 80) + clock * 90 * (0.7 + hash(i + 3))) % (W + 80) - 40, ry = (hash(i + 7) * H + clock * 520 * (0.7 + hash(i + 5))) % H;
           g.beginPath(); g.moveTo(rx, ry); g.lineTo(rx - 5, ry + 15); g.stroke();
         }
-        const i = Math.floor(clamp(month, 1, N)), drop = (S.market[i] - S.market[i - 1]) / 10000;
-        if (playing && drop < -0.04) { g.fillStyle = `rgba(255,255,255,${(1 - (month - Math.floor(month))) * 0.22})`; g.fillRect(0, 0, W, H); }
+        for (let i = 0; i < 7; i += 1) { /* clouds as heavy as the fall is deep */
+          const cx = ((hash(i + 60) * (W + 300) + clock * 14 * (0.6 + hash(i + 61))) % (W + 300)) - 150, cy = H * (0.04 + hash(i + 62) * 0.16), cw = W * (0.1 + hash(i + 63) * 0.1);
+          g.fillStyle = light ? `rgba(96,102,120,${0.5 * st})` : `rgba(44,46,62,${0.85 * st})`;
+          g.beginPath(); g.ellipse(cx, cy, cw, cw * 0.3, 0, 0, 6.2832); g.ellipse(cx + cw * 0.55, cy + cw * 0.08, cw * 0.7, cw * 0.24, 0, 0, 6.2832); g.ellipse(cx - cw * 0.5, cy + cw * 0.1, cw * 0.6, cw * 0.2, 0, 0, 6.2832); g.fill();
+        }
+        if (jolt > 0.45) { /* lightning in the months the market lost most: the same bolt every time that month is played */
+          let bx = W * (0.18 + hash(mi * 3.1) * 0.5), by = H * 0.1;
+          g.strokeStyle = `rgba(255,250,224,${Math.min(1, jolt * 1.3)})`; g.lineWidth = 2; g.lineJoin = "miter"; g.beginPath(); g.moveTo(bx, by);
+          for (let q = 1; q <= 7; q += 1) { bx += (hash(mi * 7.3 + q) - 0.5) * W * 0.07; by += H * 0.065; g.lineTo(bx, by); }
+          g.stroke();
+          g.fillStyle = `rgba(255,255,255,${jolt * 0.2})`; g.fillRect(-10, -10, W + 20, H + 20);
+        }
       }
       /* what lies ahead is not known */
       const fog = g.createLinearGradient(xNow + 14, 0, W, 0), fc = light ? [236, 238, 244] : [10, 11, 22];
       fog.addColorStop(0, rgba(fc, 0)); fog.addColorStop(0.55, rgba(fc, 0.78)); fog.addColorStop(1, rgba(fc, 0.96));
       g.fillStyle = fog; g.fillRect(xNow + 14, 0, W - xNow - 14, H);
+      if (pr > 0.5) { /* first light, low on the right, as the arrival nears */
+        const dawn = g.createRadialGradient(W * 0.9, H * 0.86, 0, W * 0.9, H * 0.86, H * 0.9), a = Math.pow((pr - 0.5) * 2, 2) * (1 - st) * (light ? 0.5 : 0.42);
+        dawn.addColorStop(0, `rgba(255,196,140,${a})`); dawn.addColorStop(0.5, `rgba(255,150,120,${a * 0.4})`); dawn.addColorStop(1, "rgba(255,150,120,0)");
+        g.fillStyle = dawn; g.fillRect(xNow, 0, W - xNow, H);
+      }
       if (!narrow) { g.font = `500 11px ${font}`; g.textAlign = "left"; g.fillStyle = light ? "rgba(20,22,30,0.5)" : "rgba(206,214,232,0.5)"; g.fillText(month >= N ? "today" : "not yet known", xNow + (W - xNow) * 0.42, H * 0.3); }
       /* the trains */
       const car = clamp(W * 0.022, 13, 24), hgt = car * 0.46, gap = car * 0.16;
@@ -2213,10 +2253,31 @@ void main(){
           g.fill();
           g.fillStyle = mine ? (light ? "#fff4d6" : "#ffe3a0") : (light ? "rgba(255,255,255,0.7)" : "rgba(226,234,255,0.5)");
           for (let q = 0; q < 4; q += 1) g.fillRect(-car / 2 + car * (0.1 + q * 0.2), -hgt * 0.78, car * 0.12, hgt * 0.3);
+          g.fillStyle = light ? "rgba(30,32,44,0.85)" : "rgba(8,9,18,0.9)";
+          [-0.3, 0.3].forEach((q) => { g.beginPath(); g.arc(car * q, 0, hgt * 0.2, 0, 6.2832); g.fill(); });
           g.restore();
         }
       });
       g.globalAlpha = 1;
+      /* smoke behind the reader's engine while it runs */
+      if (playing && dt) {
+        if (smoke.length < 26 && hash(clock * 53) < 0.5) smoke.push({ m: month, up: 0, age: 0, drift: hash(clock * 11) - 0.5 });
+        for (let i = smoke.length - 1; i >= 0; i -= 1) { const q = smoke[i]; q.age += dt; q.up += dt * (26 + q.drift * 14); if (q.age > 1.5) smoke.splice(i, 1); }
+      } else if (!playing && smoke.length) smoke.length = 0;
+      smoke.forEach((q) => {
+        const a = (1 - q.age / 1.5) * (light ? 0.3 : 0.24), r = car * (0.22 + q.age * 0.5);
+        g.fillStyle = light ? `rgba(90,96,116,${a})` : `rgba(220,226,244,${a})`;
+        g.beginPath(); g.arc(X(q.m) + car * 0.2, Yl(lv(sel, q.m)) - hgt * 1.3 - q.up, r, 0, 6.2832); g.fill();
+      });
+      /* a word when the reader's dollar becomes ten, a hundred, a thousand */
+      passed[sel].forEach((at, d) => {
+        const since = month - at;
+        if (at < 0 || since < 0 || since > 34) return;
+        const a = Math.min(1, since / 4) * (1 - Math.max(0, (since - 22) / 12)), lift = Math.min(1, since / 10) * H * 0.07;
+        g.textAlign = "center"; g.font = `600 ${Math.round(clamp(W * 0.02, 15, 24))}px ${font}`;
+        g.fillStyle = light ? `rgba(22,96,176,${a})` : `rgba(238,245,255,${a})`;
+        g.fillText(["Ten dollars", "A hundred dollars", "A thousand dollars"][d], xNow - car, Yl(lv(sel, month)) - hgt * 2.6 - lift);
+      });
       readout(); say();
       dirty = false;
     }
