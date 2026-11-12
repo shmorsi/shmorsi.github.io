@@ -31,7 +31,7 @@ PID = "deep-portfolio-constructor"
 # The three trains: the series in data/dpc_wealth.json, the stat that publishes where it ends, and how the page names it.
 TRAINS = [
     ("market", "market", "wealthMarket", "The market", "Buy everything, and never touch it."),
-    ("momentum", "momentum_tilt", "wealthMomentum", "The momentum rule", "Lean toward what has been rising. A rule from the 1990s."),
+    ("momentum", "momentum_tilt", "wealthMomentum", "The momentum rule", "Lean toward what has been rising. A rule published in the 1990s."),
     ("deep", "deep", "wealthDeep", "The neural network", "My model: it re-reads 30 industries every month."),
 ]
 # Everyday names for the falls, by the year of the low. A fall with no entry is shown by its years alone.
@@ -99,7 +99,7 @@ def section(P: dict) -> str:
         for key, _, _, name, line in TRAINS)
     hud = "".join(
         f'<li data-train="{key}"><span class="rt-dot" aria-hidden="true"></span><span class="rh-name">{e(name)}</span>'
-        f'<span class="rh-you">you</span><output class="rh-val" data-ride-val="{key}">$1.00</output></li>'
+        f'<span class="rh-you">you</span><span class="rh-val" data-ride-val="{key}">$1.00</span></li>'
         for key, _, _, name, _ in TRAINS)
     blob = e(json.dumps(d, separators=(",", ":"), ensure_ascii=False), quote=True)
     return f"""<section class="section ride" id="ride" aria-labelledby="ride-title">
@@ -112,7 +112,7 @@ def section(P: dict) -> str:
         <div class="ride-stage" data-ride="{blob}">
           <div class="ride-view">
             <p class="ride-date" aria-hidden="true"><span data-ride-date>{MONTHS[m0 - 1]} {y0}</span></p>
-            <ol class="ride-hud" aria-label="What one dollar has become on each train">{hud}</ol>
+            <ol class="ride-hud" aria-label="What one dollar has become on each train (drag the slider to read a month)">{hud}</ol>
           </div>
           <p class="ride-note" data-ride-note aria-live="polite"></p>
           <div class="ride-desk">
