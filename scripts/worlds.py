@@ -96,7 +96,7 @@ def cards(P: dict, status) -> dict:
              f'Lit where the sun is right now. The wave leaves Washington. <span data-sky-next>The next forecast is for {_b(P, ws, "nextDecision")}.</span>'),
         ts: ("patchTest",
              f'Forecast error against the standard method, on tests it had never seen. '
-             f'{_b(P, ts, "flagged")} leaked benchmark series found and removed first.',
+             f'{_b(P, ts, "flagged")} series that overlap the benchmark were found and removed first.',
              "The dashed ring is the standard method. The model's ring sits inside it: less error. Its width is the 95% interval."),
         av: ("attacksWith",
              f'Hidden-instruction attacks that got through; without it, {_b(P, av, "attacksWithout")}. '
