@@ -2074,6 +2074,18 @@ void main(){
     view.prepend(canvas);
     stage.classList.add("is-live");
     if (arrival) arrival.classList.add("is-waiting");
+    /* The opening question. The reader answers before the result is shown, the answer is kept (so a return visit is not
+       asked again), and the arrival says how it compares with what the pre-registered test found. */
+    const betBox = stage.querySelector("[data-ride-bet]"), saidEl = document.querySelector("[data-ride-said]");
+    const SAID = {
+      yes: "You said yes. The network did end with more money than the market, and that is where most backtests stop. By the test written down in advance, its lead cannot be told from luck. The honest answer is the third one: nobody could say.",
+      no: "You said no. It did end with more money than the market, but by the test written down in advance its lead cannot be told from luck. The honest answer is the third one: nobody could say.",
+      unknown: "You said nobody could say. That is what the test found: the network ended with more money than the market, and its lead cannot be told from luck."
+    };
+    let bet = null;
+    try { bet = window.localStorage.getItem("ride-bet"); } catch (err) { /* private mode: ask again next time */ }
+    if (betBox && !(bet in SAID) && bet !== "skip") stage.classList.add("is-asking"); else bet = bet in SAID ? bet : null;
+    const tell = () => { if (saidEl && bet && SAID[bet]) { saidEl.textContent = SAID[bet]; saidEl.hidden = false; } };
 
     const N = S.market.length - 1, Y0 = +D.start.slice(0, 4), M0 = +D.start.slice(5, 7) - 1;
     const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -2131,6 +2143,7 @@ void main(){
     const arrive = () => {
       if (arrived) return;
       arrived = true;
+      tell();
       if (arrival) arrival.classList.remove("is-waiting");
       stage.classList.add("is-arrived");
     };
@@ -2373,6 +2386,17 @@ void main(){
       if (on && (playing || dirty || !started || below(month) > 0.04)) paint(dt);
     });
     new MutationObserver(() => { dirty = true; if (reduced) paint(0); }).observe(html, { attributes: true, attributeFilter: ["data-theme"] });
+    if (betBox) betBox.querySelectorAll("[data-bet]").forEach((b) => b.addEventListener("click", () => {
+      const v = b.dataset.bet;
+      bet = v in SAID ? v : null;
+      try { window.localStorage.setItem("ride-bet", v); } catch (err) { /* not kept */ }
+      stage.classList.remove("is-asking");
+      remeasure(); /* the desk takes the question's place */
+      if (!bet) { play.focus({ preventScroll: true }); return; }
+      started = true; /* the answer is in: the ride begins (with no motion, straight to the arrival) */
+      if (reduced) go(N, true); else { playing = true; label(); }
+      play.focus({ preventScroll: true });
+    }));
     label();
   });
 

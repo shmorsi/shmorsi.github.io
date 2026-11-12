@@ -1619,6 +1619,25 @@ html:not(.fx) .fx-route-train { display: none; }
 .ride-scrub input { display: block; width: 100%; accent-color: var(--accent); cursor: pointer; }
 .ride-ends { grid-column: 2; display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
 
+/* the opening question: it stands where the desk will, until it is answered */
+.ride-bet { display: none; }
+.ride-stage.is-live.is-asking .ride-bet { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 6px 40px; align-items: center; padding: 16px var(--edge) 18px; border-top: 1px solid var(--line); }
+.ride-stage.is-asking .ride-note, .ride-stage.is-asking .ride-desk { display: none; }
+.rb-kicker { grid-column: 1 / -1; margin: 0; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.rb-q { margin: 0; font-size: clamp(20px, 2.1vw, 30px); line-height: 1.22; letter-spacing: -0.005em; max-width: 26em; }
+.rb-a { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+.rb-a .button { min-width: 6.5em; justify-content: center; cursor: pointer; }
+.rb-a .button:hover, .rb-a .button:focus-visible { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.rb-why { grid-column: 1 / -1; margin: 2px 0 0; font-size: 13px; color: var(--dim); }
+.rb-skip { padding: 0; border: 0; background: none; font: inherit; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.rb-skip:hover { color: var(--ink); }
+.ride-said { margin: 14px 0 4px; max-width: 62ch; font-size: clamp(18px, 1.7vw, 23px); line-height: 1.45; color: var(--ink); }
+@media (max-width: 899px) {
+  .ride-stage.is-live.is-asking .ride-bet { grid-template-columns: minmax(0, 1fr); }
+  .rb-a { justify-content: flex-start; }
+  .rb-a .button { flex: 1 1 auto; }
+}
+
 /* the arrival */
 .ride-arrival { padding: clamp(26px, 4vh, 44px) 0 clamp(10px, 2vh, 24px); }
 .ride-arrival.is-waiting { display: none; }

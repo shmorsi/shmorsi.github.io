@@ -30,9 +30,9 @@
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preload" href="assets/fonts/inter-tight-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site.css?v=7a72d8383b">
+  <link rel="stylesheet" href="assets/site.css?v=b7a2a00043">
   <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
-  <script src="assets/site.js?v=7a72d8383b" defer></script>
+  <script src="assets/site.js?v=b7a2a00043" defer></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -86,6 +86,16 @@
           <p class="ride-date" aria-hidden="true"><span data-ride-date>January 1960</span></p>
           <ol class="ride-hud" aria-label="What one dollar has become on each train (drag the slider to read a month)"><li data-train="market"><span class="rt-dot" aria-hidden="true"></span><span class="rh-name">The market</span><span class="rh-you">you</span><span class="rh-val" data-ride-val="market">$1.00</span></li><li data-train="momentum"><span class="rt-dot" aria-hidden="true"></span><span class="rh-name">The momentum rule</span><span class="rh-you">you</span><span class="rh-val" data-ride-val="momentum">$1.00</span></li><li data-train="deep"><span class="rt-dot" aria-hidden="true"></span><span class="rh-name">The neural network</span><span class="rh-you">you</span><span class="rh-val" data-ride-val="deep">$1.00</span></li></ol>
         </div>
+        <div class="ride-bet" data-ride-bet>
+          <p class="rb-kicker">Before you see anything</p>
+          <p class="rb-q">Could an AI have grown one dollar faster than the whole stock market, from 1960 to today?</p>
+          <div class="rb-a" role="group" aria-label="Your answer">
+            <button class="button" type="button" data-bet="yes">Yes</button>
+            <button class="button" type="button" data-bet="no">No</button>
+            <button class="button" type="button" data-bet="unknown">Nobody could say</button>
+          </div>
+          <p class="rb-why">Your answer is locked before the result is shown. Every test on this site was run that way. <button class="rb-skip" type="button" data-bet="skip">Skip the question</button></p>
+        </div>
         <p class="ride-note" data-ride-note aria-live="polite">It is January 1960 and you have one dollar. Three trains leave for today: pick one, then board.</p>
         <div class="ride-desk">
           <fieldset class="ride-pick"><legend>Pick your train</legend><label class="ride-train" data-train="market"><input type="radio" name="ride-train" value="market"><span class="rt-dot" aria-hidden="true"></span><span class="rt-name">The market</span><span class="rt-line">Buy everything, and never touch it.</span></label><label class="ride-train" data-train="momentum"><input type="radio" name="ride-train" value="momentum"><span class="rt-dot" aria-hidden="true"></span><span class="rt-name">The momentum rule</span><span class="rt-line">Lean toward what has been rising. A rule published in the 1990s.</span></label><label class="ride-train" data-train="deep"><input type="radio" name="ride-train" value="deep" checked><span class="rt-dot" aria-hidden="true"></span><span class="rt-name">The neural network</span><span class="rt-line">My model: it re-reads 30 industries every month.</span></label></fieldset>
@@ -100,6 +110,7 @@
       <div class="wrap">
         <div class="ride-arrival" data-ride-arrival>
           <p class="label">Arrival, September 2026</p>
+          <p class="ride-said" data-ride-said hidden></p>
           <ol class="ride-results">
             <li data-train="momentum"><span class="rr-name">The momentum rule</span><span class="fig" data-bind="deep-portfolio-constructor.stats.wealthMomentum.display">$1,764</span><span class="rr-line"><span data-bind="deep-portfolio-constructor.stats.vsMktMomentum.display">+0.96%</span> a year over the market, t = <span data-bind="deep-portfolio-constructor.stats.vsMktTMomentum.display">2.93</span>: <span data-bind="deep-portfolio-constructor.stats.vsMktVerdictMomentum.display">better</span>.</span></li>
             <li data-train="deep"><span class="rr-name">The neural network</span><span class="fig" data-bind="deep-portfolio-constructor.stats.wealthDeep.display">$1,368</span><span class="rr-line"><span data-bind="deep-portfolio-constructor.stats.vsMktDeep.display">+0.58%</span> a year over the market, t = <span data-bind="deep-portfolio-constructor.stats.vsMktTDeep.display">1.40</span>: <span data-bind="deep-portfolio-constructor.stats.vsMktVerdictDeep.display">no detectable difference</span>.</span></li>

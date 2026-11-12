@@ -104,6 +104,20 @@ def section(P: dict, links: dict, lead: str) -> str:
         f'<span class="rh-you">you</span><span class="rh-val" data-ride-val="{key}">$1.00</span></li>'
         for key, _, _, name, _ in TRAINS)
     blob = e(json.dumps(d, separators=(",", ":"), ensure_ascii=False), quote=True)
+    # The opening question: the reader commits to an answer before the result is shown, as every test here was run.
+    # What the arrival says back assumes the pre-registered verdict is the one below; with another verdict there is no question.
+    ask = P[PID]["stats"]["vsMktVerdictDeep"]["display"] == "no detectable difference"
+    bet = f'''        <div class="ride-bet" data-ride-bet>
+          <p class="rb-kicker">Before you see anything</p>
+          <p class="rb-q">Could an AI have grown one dollar faster than the whole stock market, from {y0} to today?</p>
+          <div class="rb-a" role="group" aria-label="Your answer">
+            <button class="button" type="button" data-bet="yes">Yes</button>
+            <button class="button" type="button" data-bet="no">No</button>
+            <button class="button" type="button" data-bet="unknown">Nobody could say</button>
+          </div>
+          <p class="rb-why">Your answer is locked before the result is shown. Every test on this site was run that way. <button class="rb-skip" type="button" data-bet="skip">Skip the question</button></p>
+        </div>\n''' if ask else ""
+    said = '          <p class="ride-said" data-ride-said hidden></p>\n' if ask else ""
     return f"""<section class="ride hero hero-lean" id="ride" aria-labelledby="hero-title">
       <h2 class="visually-hidden" id="ride-title">The ride: one dollar from {MONTHS[m0 - 1]} {y0} to today</h2>
       <div class="ride-stage" data-ride="{blob}">
@@ -114,7 +128,7 @@ def section(P: dict, links: dict, lead: str) -> str:
           <p class="ride-date" aria-hidden="true"><span data-ride-date>{MONTHS[m0 - 1]} {y0}</span></p>
           <ol class="ride-hud" aria-label="What one dollar has become on each train (drag the slider to read a month)">{hud}</ol>
         </div>
-        <p class="ride-note" data-ride-note aria-live="polite">It is {MONTHS[m0 - 1]} {y0} and you have one dollar. Three trains leave for today: pick one, then board.</p>
+{bet}        <p class="ride-note" data-ride-note aria-live="polite">It is {MONTHS[m0 - 1]} {y0} and you have one dollar. Three trains leave for today: pick one, then board.</p>
         <div class="ride-desk">
           <fieldset class="ride-pick"><legend>Pick your train</legend>{picks}</fieldset>
           <div class="ride-controls">
@@ -128,7 +142,7 @@ def section(P: dict, links: dict, lead: str) -> str:
       <div class="wrap">
         <div class="ride-arrival" data-ride-arrival>
           <p class="label">Arrival, {MONTHS[end_m]} {end_y}</p>
-          <ol class="ride-results">
+{said}          <ol class="ride-results">
             <li data-train="momentum"><span class="rr-name">The momentum rule</span>{_b(P, "wealthMomentum", "fig")}<span class="rr-line">{_b(P, "vsMktMomentum")} a year over the market, t = {_b(P, "vsMktTMomentum")}: {_b(P, "vsMktVerdictMomentum")}.</span></li>
             <li data-train="deep"><span class="rr-name">The neural network</span>{_b(P, "wealthDeep", "fig")}<span class="rr-line">{_b(P, "vsMktDeep")} a year over the market, t = {_b(P, "vsMktTDeep")}: {_b(P, "vsMktVerdictDeep")}.</span></li>
             <li data-train="market"><span class="rr-name">The market</span>{_b(P, "wealthMarket", "fig")}<span class="rr-line">The one to beat. It needed no decisions at all.</span></li>
