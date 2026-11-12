@@ -1463,6 +1463,40 @@ void main(){
       });
     }
 
+    /* The engine's mountain is its result. The crest of this ridge is the growth of one dollar from 1960 to 2026 (the same
+       line as the chapter's chart, read from the page's own picture, on the same log scale): it climbs to the right, every
+       fall of the crest is a real drawdown and throws a shadow, and the snow line is a round number of dollars. A reader
+       who scrolls the chapter rides along it. S.ridge is [[share of the way across, share of the full height], ...]. */
+    function ridge(V) {
+      const { g, W, U, y0, P, S } = V, pts = S.ridge;
+      if (!pts || pts.length < 8) return;
+      const lay = layer(V, 0.45), xa = 1.0 * 0.45 * Z, xb = 1.84 * 0.45 * Z, base = y0 + 0.03 * U;
+      if (lay.X(xb) < -U * 0.2 || lay.X(xa) > W + U * 0.2) return;
+      const X = (s) => lay.X(xa + (xb - xa) * s), Y = (h) => base - (0.03 + 0.27 * h) * U;
+      const crest = () => { g.beginPath(); g.moveTo(X(0) - U * 0.06, base); pts.forEach(([s, h]) => g.lineTo(X(s), Y(h))); g.lineTo(X(1) + U * 0.1, base); };
+      const fill = g.createLinearGradient(0, Y(1), 0, base);
+      fill.addColorStop(0, rgb(mix(P.farLit, P.midLit, 0.35))); fill.addColorStop(1, rgb(mix(P.midLit, P.haze, 0.5)));
+      g.fillStyle = fill; crest(); g.fill();
+      g.fillStyle = rgb(P.midShade, 0.62); g.beginPath(); /* a gully under every real fall of the crest, as deep as the fall */
+      for (let i = 0; i < pts.length - 1; i++) {
+        let j = i;
+        while (j < pts.length - 1 && pts[j + 1][1] < pts[j][1]) j++;
+        const drop = pts[i][1] - pts[j][1];
+        if (j > i && drop > 0.012) {
+          const x0 = X(pts[i][0]), x1 = X(pts[j][0]), y1 = Y(pts[j][1]);
+          g.moveTo(x0, Y(pts[i][1])); g.lineTo(x1, y1); g.lineTo(x1 + U * 0.012, y1 + (base - y1) * Math.min(0.9, 0.25 + drop * 5)); g.lineTo(x0 + (x1 - x0) * 0.3, Y(pts[i][1]) + U * 0.004); g.closePath();
+        }
+        i = Math.max(i, j);
+      }
+      g.fill();
+      g.save(); g.beginPath(); g.rect(0, 0, W, Y(S.snow == null ? 0.74 : S.snow)); g.clip(); g.fillStyle = rgb(P.snowLit); crest(); g.fill(); g.restore();
+      g.strokeStyle = rgb(P.rim, S.light ? 0.9 : 0.75); g.lineWidth = Math.max(1.2, U * 0.0026); g.lineJoin = "round"; g.beginPath();
+      pts.forEach(([s, h], i) => (i ? g.lineTo(X(s), Y(h)) : g.moveTo(X(s), Y(h)))); g.stroke();
+      g.fillStyle = rgb(S.light ? P.midShade : P.snowLit, 0.9); g.font = `600 ${Math.max(9, U * 0.017)}px ${S.font || "sans-serif"}`; g.textBaseline = "alphabetic";
+      g.textAlign = "left"; g.fillText("1960", X(0) + U * 0.01, Y(pts[0][1]) - U * 0.016);
+      g.textAlign = "right"; g.fillText(S.ridgeNote || "2026", X(1) - U * 0.004, Y(pts[pts.length - 1][1]) - U * 0.02);
+    }
+
     function water(V) {
       const { g, W, H, U, y0, P, S } = V, lay = layer(V, 0.22), gr = g.createLinearGradient(0, y0, 0, y0 + 0.2 * U);
       gr.addColorStop(0, rgb(P.waterTop)); gr.addColorStop(1, rgb(P.waterLow));
@@ -1717,6 +1751,28 @@ void main(){
       g.fillStyle = rgb(P.lamp, S.light ? 0.9 : 1); for (let n = 0; n < 5; n++) { g.beginPath(); g.arc(x - s * 5.5 + n * s * 1.9, y - s * 1.8, s * 0.07, 0, 6.2832); g.fill(); }
     }
 
+    /* A halt for each chapter: a short platform and a board with the place's name and, where the page has it, the
+       project's headline number. S.stops is [{ j, name, value }]. */
+    function halts(V, T) {
+      const { g, U, P, S } = V;
+      (S.stops || []).forEach((st) => {
+        const xl = st.j * 0.8 * Z, x = T.lay.X(xl), y = T.Y(xl), s = U * 0.05;
+        if (x < -U * 0.5 || x > V.W + U * 0.5 || st.j > 6.5) return;
+        g.fillStyle = rgb(P.stoneShade); g.fillRect(x - s * 3.2, y, s * 6.4, s * 0.2);
+        g.fillStyle = rgb(P.stoneLit); g.fillRect(x - s * 3.2, y - s * 0.03, s * 6.4, s * 0.08);
+        g.fillStyle = rgb(P.roof); g.fillRect(x - s * 1.7, y - s * 2.5, s * 0.08, s * 2.5); g.fillRect(x + s * 1.62, y - s * 2.5, s * 0.08, s * 2.5);
+        const w = s * 3.9, h = s * (st.value ? 1.24 : 0.74), bx = x - w / 2, by = y - s * 2.58 - h;
+        g.fillStyle = rgb(S.light ? [252, 248, 238] : [16, 20, 44], 0.96); g.fillRect(bx, by, w, h);
+        g.strokeStyle = rgb(S.light ? P.roof : P.rim, 0.9); g.lineWidth = Math.max(1, U * 0.0018); g.strokeRect(bx, by, w, h);
+        g.fillStyle = rgb(P.band); g.fillRect(bx, by, w, Math.max(2, s * 0.09));
+        g.textAlign = "center"; g.textBaseline = "middle";
+        g.fillStyle = rgb(S.light ? [60, 66, 90] : [176, 186, 220]); g.font = `600 ${Math.max(7, s * 0.27)}px ${S.font || "sans-serif"}`;
+        g.fillText(st.name.toUpperCase().split("").join("\u200a"), x, by + s * 0.42);
+        if (st.value) { g.fillStyle = rgb(S.light ? [17, 18, 22] : [244, 245, 247]); g.font = `600 ${Math.max(10, s * 0.5)}px ${S.font || "sans-serif"}`; g.fillText(st.value, x, by + s * 0.9); }
+        g.fillStyle = rgb(P.lamp, S.light ? 0.9 : 1); g.beginPath(); g.arc(x - s * 1.66, y - s * 2.56, s * 0.09, 0, 6.2832); g.arc(x + s * 1.66, y - s * 2.56, s * 0.09, 0, 6.2832); g.fill();
+      });
+    }
+
     /* The train: an engine and three carriages, cream over red, windows lit at night. */
     function train(V, T) {
       const { g, U, P, S, cam } = V, len = 0.15, gap = 0.008, h = U * 0.036, head = cam * 0.8 + (S.train - 0.5) * V.W / U;
@@ -1777,13 +1833,14 @@ void main(){
       range(V, { p: 0.16, cell: 0.42, seed: 11, min: 0.13, max: 0.36, base: V.y0 + 1, lit: V.P.farLit, shade: V.P.farShade, fade: 0.62, snow: 0.2 });
       balloons(V);
       range(V, { p: 0.3, cell: 0.36, seed: 47, min: 0.06, max: 0.17, base: V.y0 + 0.02 * U, lit: V.P.midLit, shade: V.P.midShade, fade: 0.4, snow: 0 });
+      ridge(V);
       water(V);
       town(V, { p: 0.44, cell: 0.085, seed: 5, min: 0.07, max: 0.36, base: V.y0 + 0.03 * U, fade: 0.38, win: 0.0075, deep: 0 });
       hills(V);
       sights(V);
       town(V, { p: 0.6, cell: 0.1, seed: 23, min: 0.07, max: 0.2, base: V.y0 + 0.1 * U, fade: 0, win: 0.0095, deep: 0.1 });
       const T = track(V);
-      station(V, T); train(V, T);
+      halts(V, T); station(V, T); train(V, T);
       fore(V);
     }
     return { draw, Z };
@@ -1839,6 +1896,24 @@ void main(){
       a.href = s.href;
       el("span", "", a).textContent = s.name;
       return a;
+    });
+    /* What the land shows that is data: each stop's headline number (from the strip under the opening screen), and the
+       engine's ridge (the line of the growth chart in the page's own picture: x is the year, y is dollars on a log scale). */
+    const signs = stops.slice(1, 6).map((s, i) => {
+      const st = stories[i], fig = st && document.querySelector(`[data-headline="${st.dataset.story}"] .fig`);
+      return { j: s.j, name: s.name, value: fig ? fig.textContent.trim() : "" };
+    });
+    let ridge = null, ridgeNote = "";
+    safe(() => {
+      const line = document.querySelector('.scene[data-scene="dpc"] [data-layer="chart"] path.sc-line:not(.is-dim)');
+      const nums = line ? (line.getAttribute("d").match(/-?\d+(\.\d+)?/g) || []).map(Number) : [];
+      if (nums.length < 40) return;
+      const xy = [];
+      for (let i = 0; i + 1 < nums.length; i += 2) xy.push([nums[i], nums[i + 1]]);
+      const x0 = xy[0][0], x1 = xy[xy.length - 1][0], yb = xy[0][1], yt = Math.min(...xy.map((q) => q[1]));
+      ridge = xy.filter((q, i) => i % 2 === 0 || i === xy.length - 1).map(([x, y]) => [(x - x0) / (x1 - x0), clamp((yb - y) / (yb - yt))]);
+      const fig = document.querySelector('[data-headline="deep-portfolio-constructor"] .fig');
+      ridgeNote = fig ? `2026 \u00b7 ${fig.textContent.trim()}` : "2026";
     });
     let nowAt = -1;
     const mark = (J) => {
@@ -1938,7 +2013,7 @@ void main(){
       }
       if (arriving) orb.y += still * H * 0.34; /* moonrise */
       g.setTransform(d, 0, 0, d, 0, 0);
-      Land.draw(g, W, H, { J, horizon, zoom, light, orb, font, train, end: END, tod: isHome ? p : clamp((J - 0.4) / 7), spin: y / Math.max(1, H) * 1.15, ...beat });
+      Land.draw(g, W, H, { J, horizon, zoom, light, orb, font, train, ridge, ridgeNote, stops: signs, end: END, tod: isHome ? p : clamp((J - 0.4) / 7), spin: y / Math.max(1, H) * 1.15, ...beat });
       if (floor) { /* the banner ends in a soft edge, and the page shows through below it */
         const y1 = H * horizon + U * 0.1, cut = g.createLinearGradient(0, y1, 0, y1 + U * 0.13);
         cut.addColorStop(0, "rgba(0,0,0,0)"); cut.addColorStop(1, "rgba(0,0,0,1)");
