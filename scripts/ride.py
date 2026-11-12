@@ -89,7 +89,8 @@ def data(P: dict, links: dict) -> dict:
             "end": {key: P[PID]["stats"][stat]["display"] for key, _, stat, _, _ in TRAINS}}
 
 
-def section(P: dict, links: dict) -> str:
+def section(P: dict, links: dict, lead: str) -> str:
+    """The opening of the home page: `lead` (who, in a few lines) stands in the scene, top left."""
     d = data(P, links)
     y0, m0 = int(d["start"][:4]), int(d["start"][5:7])
     last = len(d["series"]["market"]) - 1
@@ -103,29 +104,28 @@ def section(P: dict, links: dict) -> str:
         f'<span class="rh-you">you</span><span class="rh-val" data-ride-val="{key}">$1.00</span></li>'
         for key, _, _, name, _ in TRAINS)
     blob = e(json.dumps(d, separators=(",", ":"), ensure_ascii=False), quote=True)
-    return f"""<section class="section ride" id="ride" aria-labelledby="ride-title">
+    return f"""<section class="ride hero hero-lean" id="ride" aria-labelledby="hero-title">
+      <h2 class="visually-hidden" id="ride-title">The ride: one dollar from {MONTHS[m0 - 1]} {y0} to today</h2>
+      <div class="ride-stage" data-ride="{blob}">
+        <div class="ride-lead">
+{lead}
+        </div>
+        <div class="ride-view">
+          <p class="ride-date" aria-hidden="true"><span data-ride-date>{MONTHS[m0 - 1]} {y0}</span></p>
+          <ol class="ride-hud" aria-label="What one dollar has become on each train (drag the slider to read a month)">{hud}</ol>
+        </div>
+        <p class="ride-note" data-ride-note aria-live="polite">It is {MONTHS[m0 - 1]} {y0} and you have one dollar. Three trains leave for today: pick one, then board.</p>
+        <div class="ride-desk">
+          <fieldset class="ride-pick"><legend>Pick your train</legend>{picks}</fieldset>
+          <div class="ride-controls">
+            <button class="button button-solid" type="button" data-ride-play>Board</button>
+            <label class="ride-scrub"><span class="visually-hidden">Month of the journey</span>
+              <input type="range" min="0" max="{last}" step="1" value="0" data-ride-scrub></label>
+            <span class="ride-ends" aria-hidden="true"><span>{y0}</span><span>{end_y}</span></span>
+          </div>
+        </div>
+      </div>
       <div class="wrap">
-        <div class="section-head" data-reveal>
-          <p class="label">The ride</p>
-          <h2 id="ride-title">One dollar, 1960</h2>
-          <p>It is {MONTHS[m0 - 1]} {y0} and you have one dollar. Three trains leave for today. Pick one and ride it through {last} months of real markets: every fall on the way happened.</p>
-        </div>
-        <div class="ride-stage" data-ride="{blob}">
-          <div class="ride-view">
-            <p class="ride-date" aria-hidden="true"><span data-ride-date>{MONTHS[m0 - 1]} {y0}</span></p>
-            <ol class="ride-hud" aria-label="What one dollar has become on each train (drag the slider to read a month)">{hud}</ol>
-          </div>
-          <p class="ride-note" data-ride-note aria-live="polite"></p>
-          <div class="ride-desk">
-            <fieldset class="ride-pick"><legend>Pick your train</legend>{picks}</fieldset>
-            <div class="ride-controls">
-              <button class="button button-solid" type="button" data-ride-play>Board</button>
-              <label class="ride-scrub"><span class="visually-hidden">Month of the journey</span>
-                <input type="range" min="0" max="{last}" step="1" value="0" data-ride-scrub></label>
-              <span class="ride-ends" aria-hidden="true"><span>{y0}</span><span>{end_y}</span></span>
-            </div>
-          </div>
-        </div>
         <div class="ride-arrival" data-ride-arrival>
           <p class="label">Arrival, {MONTHS[end_m]} {end_y}</p>
           <ol class="ride-results">

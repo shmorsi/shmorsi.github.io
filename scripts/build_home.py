@@ -343,7 +343,7 @@ def toolkit() -> str:
 
 
 # Which parts of the template each page keeps.
-KEEP = {"home": {"lead", "ride", "stops", "approach", "experience", "contact"},
+KEEP = {"home": {"ride", "stops", "approach", "experience", "contact"},
         "voyage": {"hero", "marquee", "statement", "stories", "explore", "contact"}}
 HEAD = {"home": ("Sherif Morsi · AI for long-term investing", "https://shmorsi.github.io/"),
         "voyage": ("The voyage · Sherif Morsi", "https://shmorsi.github.io/voyage.html")}
@@ -373,6 +373,16 @@ def _template(which: str) -> str:
     count = len(DATA["groups"])
     words = {3: "Three", 4: "Four", 5: "Five", 6: "Six"}.get(count, str(count))
     links = {pid: page_href(P[pid]) for pid in ORDER}
+    lead = f"""          <p class="hero-badge"><span class="pulse" aria-hidden="true"></span>Open to internships from January 2027</p>
+          <h1 id="hero-title">Sherif Morsi</h1>
+          <p class="hero-lead">{tagline}</p>
+          <p class="hero-meta">Third-year Computer Science student at Concordia University, Montreal. Open to 4 to 16 month internships anywhere in Canada, with pension funds, asset managers and AI teams.</p>
+          <div class="actions">
+            <a class="button button-solid" href="{RESUME}" download>Resume</a>
+            <a class="button" href="{GITHUB}" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a class="button" href="{LINKEDIN}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a class="button" href="#contact">Contact</a>
+          </div>"""
     desc = (f"Sherif Morsi builds AI for long-term investing: portfolios, forecasts and AI agents, "
             f"scored on tests fixed in advance. Projects: {titles}.")
     return f"""<!doctype html>
@@ -431,26 +441,6 @@ def _template(which: str) -> str:
   <header class="site-header"></header>
 
   <main id="main">
-<!--part:lead-->
-    <section class="hero hero-lean" aria-labelledby="hero-title">
-      <div class="hl-grid wrap">
-        <div class="hl-name">
-          <p class="hero-badge"><span class="pulse" aria-hidden="true"></span>Open to internships from January 2027</p>
-          <h1 id="hero-title">Sherif Morsi</h1>
-        </div>
-        <div class="hl-say">
-          <p class="hero-lead">{tagline}</p>
-          <p class="hero-meta">Third-year Computer Science student at Concordia University, Montreal. Open to 4 to 16 month internships anywhere in Canada, with pension funds, asset managers and AI teams.</p>
-          <div class="actions">
-            <a class="button button-solid" href="{RESUME}" download>Resume</a>
-            <a class="button" href="{GITHUB}" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a class="button" href="{LINKEDIN}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a class="button" href="#contact">Contact</a>
-          </div>
-        </div>
-      </div>
-    </section>
-<!--/part-->
 <!--part:hero-->
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-grid wrap">
@@ -479,7 +469,7 @@ def _template(which: str) -> str:
     </section>
 <!--/part-->
 <!--part:ride-->
-    {ride.section(P, links)}
+    {ride.section(P, links, lead)}
 <!--/part-->
 <!--part:marquee-->
     {marquee()}
