@@ -1552,3 +1552,84 @@ html:not(.fx) .fx-route-train { display: none; }
   .sky-stage.is-live .sky-world > a > .w-orb { grid-column: 1; grid-row: 1 / span 6; width: 124px; height: 156px; margin: 0; align-self: start; }
   .sky-pause { top: -34px; }
 }
+
+/* ---- The ride: one dollar, 1960 (scripts/ride.py, "The ride" in site.js). -----------------------
+   A picture the reader drives, a desk under it (pick a train, board, drag through the years), and
+   the arrival under that. Without the script there is no picture and no desk: the words and the
+   three results stand on their own. */
+.ride { padding-top: clamp(56px, 8vh, 96px); padding-bottom: clamp(8px, 2vh, 24px); }
+.ride .section-head { margin-bottom: clamp(16px, 3vh, 30px); }
+.ride .section-head h2 { font-size: clamp(38px, 4.6vw, 68px); }
+@media (min-width: 1080px) {
+  .ride .section-head { max-width: none; grid-template-columns: auto minmax(0, 1fr); column-gap: 56px; align-items: end; }
+  .ride .section-head .label { grid-column: 1 / -1; }
+  .ride .section-head p:not(.label) { font-size: 16px; padding-bottom: 8px; max-width: 60ch; }
+}
+.ride [data-train="market"] { --c: #9ea6c2; }
+.ride [data-train="momentum"] { --c: #f7b84d; }
+.ride [data-train="deep"] { --c: #8ec5ff; }
+:root[data-theme="light"] .ride [data-train="market"] { --c: #545c78; }
+:root[data-theme="light"] .ride [data-train="momentum"] { --c: #9e6408; }
+:root[data-theme="light"] .ride [data-train="deep"] { --c: #1660b0; }
+.ride-stage.is-live { border: 1px solid var(--line-strong); border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--bg) 84%, transparent); }
+.ride-view { position: relative; display: none; }
+.ride-stage.is-live .ride-view { display: block; height: clamp(320px, 54vh, 540px); }
+.ride-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ride-date { position: absolute; left: 20px; top: 14px; margin: 0; font-size: clamp(18px, 2vw, 26px); font-weight: 500; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; text-shadow: 0 0 12px var(--bg); }
+.ride-hud { position: absolute; left: 20px; top: clamp(50px, 7vh, 62px); list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; text-shadow: 0 0 10px var(--bg), 0 0 4px var(--bg); }
+.ride-hud li { display: grid; grid-template-columns: 10px minmax(0, auto) auto 1fr; align-items: baseline; gap: 8px; font-size: 13px; color: var(--muted); }
+.rt-dot { width: 9px; height: 9px; border-radius: 50%; align-self: center; background: var(--c); }
+.rh-you { visibility: hidden; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bg); background: var(--c); padding: 1px 6px; border-radius: 2px; text-shadow: none; }
+.ride-hud li.is-you { color: var(--ink); }
+.ride-hud li.is-you .rh-you { visibility: visible; }
+.rh-val { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 15px; color: var(--ink); text-align: right; min-width: 6.5ch; }
+.ride-hud li.is-you .rh-val { font-size: 22px; }
+.ride-note { margin: 0; padding: 11px 20px; min-height: calc(1.5em + 22px); border-top: 1px solid var(--line); font-size: 14px; line-height: 1.5; color: var(--ink); }
+.ride-stage:not(.is-live) .ride-note { display: none; }
+.ride-note a { color: var(--accent); white-space: nowrap; }
+.ride-desk { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 18px 28px; align-items: end; padding: 16px 20px 20px; border-top: 1px solid var(--line); }
+.ride-stage:not(.is-live) .ride-desk { display: none; }
+.ride-pick { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ride-pick legend { padding: 0; margin-bottom: 10px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.ride-train { position: relative; display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 3px 9px; align-content: start; padding: 11px 13px 12px; border: 1px solid var(--line-strong); border-radius: 3px; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+.ride-train input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.ride-train:hover { border-color: var(--c); }
+.ride-train.is-picked { border-color: var(--c); background: color-mix(in srgb, var(--c) 13%, transparent); }
+.ride-train.is-focused { outline: 2px solid var(--accent); outline-offset: 2px; }
+.rt-name { font-size: 14px; font-weight: 600; letter-spacing: 0.04em; }
+.rt-line { grid-column: 2; font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+.ride-controls { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px; align-items: center; }
+.ride-controls .button { min-width: 9.5em; justify-content: center; }
+.ride-scrub input { display: block; width: 100%; accent-color: var(--accent); cursor: pointer; }
+.ride-ends { grid-column: 2; display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.ride-arrival { margin-top: 28px; }
+.ride-arrival.is-waiting { display: none; }
+.ride-results { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line-strong); }
+.ride-results li { display: grid; gap: 7px; align-content: start; padding: 16px 20px 18px 0; min-width: 0; }
+.ride-results li + li { padding-left: 20px; border-left: 1px solid var(--line); }
+.rr-name { font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--c); }
+.ride-results .fig { font-size: clamp(30px, 3vw, 44px); font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+.rr-line { font-size: 14px; line-height: 1.5; color: var(--muted); }
+.rr-line [data-bind] { color: var(--ink); font-weight: 550; }
+.ride-moral { margin: 20px 0 0; max-width: 62ch; font-size: clamp(17px, 1.6vw, 21px); line-height: 1.5; }
+.ride-next { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; margin: 18px 0 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .ride-stage.is-arrived + .ride-arrival { animation: ride-in 0.8s var(--ease) both; }
+  @keyframes ride-in { from { opacity: 0; transform: translateY(18px); } }
+}
+@media (max-width: 899px) {
+  .ride-desk { grid-template-columns: minmax(0, 1fr); }
+  .ride-results { grid-template-columns: minmax(0, 1fr); }
+  .ride-results li, .ride-results li + li { padding: 14px 0; border-left: 0; }
+  .ride-results li + li { border-top: 1px solid var(--line); }
+  .ride-stage.is-live .ride-view { height: clamp(300px, 50vh, 440px); }
+  .ride-date, .ride-hud { left: 14px; }
+  .ride-note { padding: 10px 14px; min-height: calc(3em + 20px); font-size: 13px; }
+  .ride-desk { padding: 14px 14px 16px; }
+  .ride-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .ride-train { grid-template-columns: minmax(0, 1fr); padding: 9px 10px; }
+  .rt-name { font-size: 12.5px; line-height: 1.25; }
+  .rt-line { display: none; }
+  .ride-hud li { font-size: 12px; }
+  .ride-hud li.is-you .rh-val { font-size: 18px; }
+}

@@ -20,6 +20,7 @@ from pathlib import Path
 
 import lab  # scripts/lab.py: the interactive pieces, rendered as static HTML first
 import stories  # scripts/stories.py: one pinned, plain-English chapter per project
+import ride  # scripts/ride.py: one dollar in 1960 and three trains to today, the first thing under the opening screen
 import worlds  # scripts/worlds.py: the route, five worlds drawn from the projects' results
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -406,7 +407,7 @@ def page() -> str:
           <p class="hero-lead">{tagline}</p>
           <p class="hero-meta">Third-year Computer Science student. Open to 4 to 16 month internships anywhere in Canada from January 2027, with pension funds, asset managers and AI teams: portfolio construction, quantitative research, machine learning and AI agents.</p>
           <div class="actions">
-            <a class="button button-solid" href="#work">See the work</a>
+            <a class="button button-solid" href="#ride">Take the ride</a>
             <a class="button" href="{RESUME}" download>Resume</a>
             <a class="button" href="{GITHUB}" target="_blank" rel="noopener noreferrer">GitHub</a>
             <a class="button" href="{LINKEDIN}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
@@ -422,6 +423,8 @@ def page() -> str:
         </ol>
       </div>
     </section>
+
+    {ride.section(P)}
 
     {marquee()}
 
