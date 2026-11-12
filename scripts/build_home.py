@@ -513,7 +513,7 @@ def page() -> str:
             <h3>Bachelor of Computer Science</h3>
             <ul>
               <li>Available Winter 2027 (January to April 2027) for 4, 8, 12, or 16 months, anywhere in Canada. Willing to relocate within Canada.</li>
-              <li>Coursework includes data structures and algorithms, object-oriented programming, artificial intelligence, machine learning, linear algebra, and multivariable calculus.</li>
+              <li>Coursework includes probability, linear algebra, multivariable calculus, machine learning, artificial intelligence, data structures and algorithms, and object-oriented programming.</li>
               <li>Quantitative Research and Competitions Club (QUARCC), member.</li>
             </ul>
           </div>
@@ -522,8 +522,6 @@ def page() -> str:
           <p class="label">Certifications</p>
           <div class="certs">
             <article><h3>Building with the Claude API</h3><p>Anthropic</p></article>
-            <article><h3>Claude Code 101</h3><p>Anthropic</p></article>
-            <article><h3>Claude 101</h3><p>Anthropic</p></article>
             <article><h3>Machine Learning with Python</h3><p>IBM</p></article>
           </div>
         </div>
