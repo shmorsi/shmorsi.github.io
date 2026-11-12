@@ -1406,22 +1406,29 @@ void main(){
     }
 
     function clouds(V) {
-      const { g, U, y0, P, S } = V, lay = layer(V, 0.07);
+      const { g, W, U, y0, P, S } = V, lay = layer(V, 0.07), wild = S.storm || 0, coast = B.sea(V.cam / Z) > 0.5; /* clouds are far and slow: the weather is the camera's, not theirs */
       cells(lay, 0.62, 0.5, (i, xc) => {
-        const k = hash(i * 3.17 + 5), j = lay.j(xc), storm = B.sea(j) > 0.5 && hash(i * 7.7) > 0.35;
+        const k = hash(i * 3.17 + 5), storm = coast && hash(i * 7.7) > 0.35 - 0.3 * wild;
         if (k < 0.38 && !storm) return;
-        const x = lay.X(xc + (hash(i * 1.3) - 0.5) * 0.3), y = y0 - (storm ? 0.4 : 0.46 + 0.3 * hash(i * 9.1)) * U, s = (0.09 + 0.1 * hash(i * 5.3)) * U * (storm ? 1.5 : 1);
-        const c = storm ? mix(P.cloud, P.midShade, 0.6) : P.cloud;
-        g.fillStyle = rgb(c, S.light ? (storm ? 0.9 : 0.86) : storm ? 0.6 : 0.3);
+        const x = lay.X(xc + (hash(i * 1.3) - 0.5) * 0.3), y = y0 - (storm ? 0.4 + 0.04 * wild : 0.46 + 0.3 * hash(i * 9.1)) * U, s = (0.09 + 0.1 * hash(i * 5.3)) * U * (storm ? 1.2 + 0.7 * wild : 1);
+        const c = !storm ? P.cloud : S.light ? mix(P.cloud, P.midShade, 0.45 + 0.4 * wild) : mix(P.cloud, P.snowShade, 0.3 + 0.25 * wild); /* by day a storm is dark; by night the moon lights it */
+        g.fillStyle = rgb(c, S.light ? (storm ? 0.9 : 0.86) : storm ? 0.42 + 0.3 * wild : 0.3);
         g.beginPath();
         [[-1.1, 0.1, 0.62], [-0.45, -0.22, 0.8], [0.3, -0.34, 0.92], [0.95, -0.02, 0.66], [0, 0.16, 1.25]].forEach(([dx, dy, r], n) => { g.ellipse(x + dx * s, y + dy * s, r * s * (n === 4 ? 1.1 : 0.72), r * s * (n === 4 ? 0.34 : 0.56), 0, 0, 6.2832); });
         g.fill();
-        if (storm) { /* rain, leaning with the wind */
-          g.strokeStyle = rgb(P.spark, S.light ? 0.5 : 0.28); g.lineWidth = Math.max(1, U * 0.0016); g.beginPath();
-          for (let n = 0; n < 16; n++) { const rx = x + (hash(i * 31 + n) - 0.5) * 2.4 * s, ry = y + 0.32 * s + hash(i * 17 + n) * 0.5 * s; g.moveTo(rx, ry); g.lineTo(rx - 0.09 * s, ry + 0.3 * s); }
+        if (storm) { /* rain, leaning with the wind: a shower, or a downpour when the storm is on */
+          g.strokeStyle = rgb(S.light ? P.midShade : P.snowLit, (S.light ? 0.55 : 0.4) * (0.55 + 0.7 * wild)); g.lineWidth = Math.max(1, U * 0.0016); g.beginPath();
+          for (let n = 0, m = 10 + 30 * wild; n < m; n++) { const rx = x + (hash(i * 31 + n) - 0.5) * 2.4 * s, ry = y + 0.32 * s + hash(i * 17 + n) * (0.5 + 0.5 * wild) * s; g.moveTo(rx, ry); g.lineTo(rx - (0.09 + 0.06 * wild) * s, ry + (0.3 + 0.25 * wild) * s); }
           g.stroke();
         }
       });
+      if (S.flash > 0.01) { /* lightning over the bay: one bolt, and the sky answers */
+        const x = W * 0.68, top = y0 - 0.44 * U;
+        g.fillStyle = rgb([255, 255, 255], 0.16 * S.flash); g.fillRect(0, 0, W, y0);
+        g.strokeStyle = rgb(P.lamp, S.flash); g.lineWidth = Math.max(1.5, U * 0.004); g.lineJoin = "miter"; g.beginPath(); g.moveTo(x, top);
+        [[0.03, 0.1], [-0.015, 0.17], [0.045, 0.27], [0.005, 0.34], [0.04, 0.44]].forEach(([dx, dy]) => g.lineTo(x + dx * U, top + dy * U));
+        g.stroke(); g.lineJoin = "round";
+      }
     }
 
     /* One mountain: a lit face and a shaded face meeting on a ridge, with snow on the high ones. */
@@ -1472,7 +1479,7 @@ void main(){
       const far = layer(V, 0.3);
       cells(far, 0.34, 0.2, (i, xc) => {
         if (B.sea(far.j(xc)) < 0.6 || hash(i * 4.4) > 0.6) return;
-        const x = far.X(xc), y = y0 + (0.02 + 0.016 * hash(i * 2.2)) * U, s = (0.016 + 0.01 * hash(i * 8.8)) * U;
+        const x = far.X(xc), y = y0 + (0.02 + 0.016 * hash(i * 2.2)) * U + Math.sin(S.spin * 2.6 + i * 1.7) * U * 0.004 * (1 + 4 * (S.storm || 0)), s = (0.016 + 0.01 * hash(i * 8.8)) * U;
         g.fillStyle = rgb(P.body); g.beginPath(); g.moveTo(x, y - s * 2.3); g.lineTo(x + s * 1.1, y - s * 0.3); g.lineTo(x, y - s * 0.3); g.fill();
         g.fillStyle = rgb(P.band); g.beginPath(); g.moveTo(x - s * 0.15, y - s * 1.8); g.lineTo(x - s * 0.9, y - s * 0.3); g.lineTo(x - s * 0.15, y - s * 0.3); g.fill();
         g.fillStyle = rgb(P.tree); g.beginPath(); g.moveTo(x - s * 1.1, y - s * 0.2); g.lineTo(x + s * 1.2, y - s * 0.2); g.lineTo(x + s * 0.8, y + s * 0.2); g.lineTo(x - s * 0.8, y + s * 0.2); g.fill();
@@ -1503,7 +1510,7 @@ void main(){
       const { g, P, S } = V, wall = S.light ? WALLS[3] : mix(WALLS[3], P.hillLow, 0.62), roofc = S.light ? WALLS[0] : mix(WALLS[0], P.hillLow, 0.6);
       g.fillStyle = rgb(wall); g.fillRect(x - s * 0.5, y - s * 0.62, s, s * 0.64);
       g.fillStyle = rgb(roofc); g.beginPath(); g.moveTo(x - s * 0.62, y - s * 0.6); g.lineTo(x, y - s * 1.08); g.lineTo(x + s * 0.62, y - s * 0.6); g.fill();
-      g.fillStyle = rgb(P.pane, S.light ? 0.85 : 0.95); g.fillRect(x - s * 0.3, y - s * 0.45, s * 0.2, s * 0.22);
+      g.fillStyle = rgb(P.pane, S.light ? 0.85 : k < (S.lit == null ? 1 : S.lit) ? 0.95 : 0.14); g.fillRect(x - s * 0.3, y - s * 0.45, s * 0.2, s * 0.22); /* at night the windows come on as the chapter is read */
       if (k > 0.4) g.fillRect(x + s * 0.1, y - s * 0.45, s * 0.2, s * 0.22);
     }
 
@@ -1533,6 +1540,13 @@ void main(){
       } },
       { j: 4.62, draw(V, x, y, s) { /* the observatory: a dome with its slit open to the sky */
         const { g, P, S } = V;
+        if (S.beam > 0.01) { /* what it sees ahead: one line that widens into a range, like a forecast */
+          const a = -0.6, len = s * (3 + 12 * S.beam), half = 0.03 + 0.2 * S.beam, ox = x + s * 0.34, oy = y - s * 0.98, ink = S.light ? [40, 110, 200] : P.lamp;
+          const fan = g.createLinearGradient(ox, oy, ox + Math.cos(a) * len, oy + Math.sin(a) * len);
+          fan.addColorStop(0, rgb(ink, S.light ? 0.32 : 0.44)); fan.addColorStop(1, rgb(ink, 0));
+          g.fillStyle = fan; g.beginPath(); g.moveTo(ox, oy); g.lineTo(ox + Math.cos(a - half) * len, oy + Math.sin(a - half) * len); g.lineTo(ox + Math.cos(a + half) * len, oy + Math.sin(a + half) * len); g.fill();
+          g.strokeStyle = rgb(ink, S.light ? 0.75 : 0.9); g.lineWidth = Math.max(1.2, s * 0.03); g.setLineDash([s * 0.14, s * 0.12]); g.beginPath(); g.moveTo(ox, oy); g.lineTo(ox + Math.cos(a) * len * 0.92, oy + Math.sin(a) * len * 0.92); g.stroke(); g.setLineDash([]);
+        }
         g.fillStyle = rgb(S.light ? WALLS[3] : mix(WALLS[3], P.hillLow, 0.55)); g.fillRect(x - s * 0.62, y - s * 0.5, s * 1.24, s * 0.52);
         g.fillStyle = rgb(S.light ? [236, 240, 248] : mix([236, 240, 248], P.hillLow, 0.45)); g.beginPath(); g.arc(x, y - s * 0.5, s * 0.6, Math.PI, 0); g.fill();
         g.fillStyle = rgb(S.light ? P.roof : P.lamp, S.light ? 1 : 0.9); g.beginPath(); g.moveTo(x + s * 0.05, y - s * 0.5); g.arc(x, y - s * 0.5, s * 0.6, -1.25, -0.95); g.fill();
@@ -1579,7 +1593,7 @@ void main(){
 
     /* The city: blocks of colour with lit windows. Two rows, the far one paler. */
     function town(V, o) {
-      const { g, U, P, S } = V, lay = layer(V, o.p);
+      const { g, U, P, S } = V, lay = layer(V, o.p), share = 0.1 + 0.44 * (S.lit == null ? 1 : S.lit); /* how many windows are lit */
       cells(lay, o.cell, 0.3, (i, xc) => {
         const c = B.city(lay.j(xc));
         if (c < 0.06) return;
@@ -1597,7 +1611,7 @@ void main(){
         const inks = S.light ? [rgb(P.pane, 0.4), rgb(P.pane, 0.62)] : [rgb(P.pane, 0.95), rgb(P.pane, 0.62), "rgba(140,220,255,0.9)", "rgba(255,150,190,0.9)"], panes = inks.map(() => []);
         for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) {
           const lit = hash(i * 131 + r * 17 + q * 7.3 + o.seed);
-          if (S.light) panes[lit > 0.5 ? 1 : 0].push(q, r); else if (lit < 0.52) panes[lit < 0.06 ? 2 : lit < 0.1 ? 3 : lit < 0.32 ? 1 : 0].push(q, r);
+          if (S.light) panes[lit > 0.5 ? 1 : 0].push(q, r); else if (lit < share) panes[lit < 0.03 ? 2 : lit < 0.055 ? 3 : lit < share * 0.6 ? 1 : 0].push(q, r);
         }
         panes.forEach((list, n) => { /* one path for each shade of window, not one fill for each window */
           if (!list.length) return;
@@ -1644,7 +1658,7 @@ void main(){
       cells(lay, 0.8, 0.3, (i, xc0) => {
         const k = hash(i * 6.13 + 2), xc = xc0 + (k - 0.5) * 0.4;
         if (k > 0.55 || B.city(lay.j(xc)) > 0.3) return;
-        const x = lay.X(xc), y = y0 - (0.3 + 0.26 * hash(i * 2.9)) * U - Math.sin(S.spin + i) * U * 0.012, s = U * (0.022 + 0.014 * hash(i * 4.1)), c = WALLS[Math.floor(hash(i * 8.7) * WALLS.length)];
+        const x = lay.X(xc), y = y0 - (0.3 + 0.26 * hash(i * 2.9)) * U - Math.sin(S.spin + i) * U * 0.012 - (S.rise || 0) * U * 0.14, s = U * (0.022 + 0.014 * hash(i * 4.1)), c = WALLS[Math.floor(hash(i * 8.7) * WALLS.length)];
         const tint = (col) => (S.light ? col : mix(col, P.farShade, 0.5));
         g.fillStyle = rgb(tint(c)); g.beginPath(); g.arc(x, y, s, Math.PI * 0.86, Math.PI * 0.14); g.lineTo(x + s * 0.2, y + s * 1.18); g.lineTo(x - s * 0.2, y + s * 1.18); g.fill();
         g.fillStyle = rgb(tint(WALLS[3])); g.beginPath(); g.ellipse(x, y, s * 0.36, s, 0, Math.PI, 0); g.lineTo(x + s * 0.09, y + s * 1.18); g.lineTo(x - s * 0.09, y + s * 1.18); g.fill();
@@ -1778,9 +1792,17 @@ void main(){
   /* The land follows the scroll. Each stretch of a page is a stretch of the journey: the master page
      rides the whole line (a place for each chapter, the city for the work below them, the station at
      the end); a project page stays in its own country. Between two marks the camera eases, so it
-     slows as a chapter arrives. The train keeps a little ahead of the camera, the moon or the sun
-     climbs out of the opening screen, and the last screen of every page lifts the horizon: the land
-     is the footer. Under reduced motion one still frame is drawn. */
+     slows as a chapter arrives.
+
+     While a chapter is pinned, the page stands still and its place answers the scroll: the train
+     crosses the viaduct; windows come on in the farmhouses and a balloon climbs; a storm builds over
+     the bay, breaks, and clears; the observatory throws a line that widens into a range; the city
+     lights up floor by floor. The land also arrives once when the page opens (it comes up, the moon
+     rises, the train rolls in), leans a little with the pointer, and takes the last screen of every
+     page: the footer stands on the ground. Under reduced motion one still frame is drawn.
+
+     The route on the right edge is the whole line at a glance: a stop for each place, a marker where
+     the reader is, and a link on each stop (to its chapter here, to its page from a project page). */
   const land = { on: false };
   safe(() => {
     const canvas = el("canvas", "fx-land");
@@ -1795,7 +1817,39 @@ void main(){
     const ZONE = { dpc: 1, pension: 2, wsl: 3, tsfm: 4, aurvane: 5 };
     const END = 7.4; /* where the station stands */
     const font = getComputedStyle(body).fontFamily;
-    let W = 0, H = 0, d = 1, soft = 0, keys = [], end = 1, seen = "", cost = 0, heroBox = null, stacked = false;
+    const stories = [...document.querySelectorAll("[data-story]")];
+    const scene = document.querySelector("[data-cs-scene] .scene"), here = ZONE[scene && scene.dataset.scene] || 0;
+    let W = 0, H = 0, d = 1, soft = 0, keys = [], chapters = [], end = 1, seen = "", cost = 0, heroBox = null, stacked = false, born = 0, lx = 0, ly = 0;
+
+    /* The route: seven stops on a rail. */
+    const root = body.dataset.root || "", pages = [...document.querySelectorAll("[data-site-nav] a")].filter((a) => /projects\/|aurvane\//.test(a.getAttribute("href") || ""));
+    const ROLES = ["The engine", "The promise", "The weather station", "The navigator", "The shield"];
+    const stops = [{ j: 0.32, name: "The start", href: isHome ? "#main" : root || "./" }];
+    ROLES.forEach((role, i) => {
+      const st = stories[i], said = st && st.querySelector(".st-role");
+      stops.push({ j: i + 1.4, name: said ? said.textContent : role, href: isHome ? (st ? `#${st.id}` : "#work") : pages[i] ? pages[i].getAttribute("href") : root });
+    });
+    stops.push({ j: 7.36, name: "Montréal", href: isHome ? "#contact" : `${root}#contact` });
+    const route = el("nav", "fx-route", body), rail = el("ol", "", route), car = el("i", "fx-route-train", rail);
+    route.setAttribute("aria-label", "The journey, stop by stop");
+    car.setAttribute("aria-hidden", "true");
+    const links = stops.map((s, i) => {
+      const li = el("li", "", rail), a = el("a", "", li);
+      li.style.top = `${(i / (stops.length - 1)) * 100}%`;
+      a.href = s.href;
+      el("span", "", a).textContent = s.name;
+      return a;
+    });
+    let nowAt = -1;
+    const mark = (J) => {
+      let i = 0;
+      while (i < stops.length - 2 && J > stops[i + 1].j) i++;
+      const f = (i + clamp((J - stops[i].j) / (stops[i + 1].j - stops[i].j))) / (stops.length - 1);
+      car.style.top = `${(f * 100).toFixed(2)}%`;
+      const at = Math.round(f * (stops.length - 1));
+      if (at !== nowAt) { if (links[nowAt]) links[nowAt].removeAttribute("aria-current"); links[at].setAttribute("aria-current", "step"); nowAt = at; }
+    };
+
     const size = () => {
       W = window.innerWidth; H = window.innerHeight;
       d = Math.max(0.75, Math.min(window.devicePixelRatio || 1, W > 900 ? 1.5 : 2) - soft);
@@ -1805,26 +1859,27 @@ void main(){
     const plan = () => {
       size();
       end = Math.max(1, document.documentElement.scrollHeight - H);
-      const narrow = W < 760, k = [], HIDE = [1.3, 0.5, 0, 0, 0];
+      const narrow = W < 760, k = [], HIDE = [1.3, 0.5, 0, 0, 0, 0];
       stacked = false;
-      /* For each kind of screen: the horizon (the share of the screen above the land), the zoom, a veil from the left
-         (where a chapter's words are), a wash over everything (where words run the full width), and whether the moon is out. */
-      const OPEN = narrow ? [0.86, 0.6, 0, 0.3, 1] : [0.78, 0.9, 0.8, 0, 1], STORY = narrow ? [0.95, 0.5, 0, 0.6, 0] : [0.9, 0.66, 0.86, 0.12, 0];
-      const FLOW = narrow ? [0.95, 0.5, 0, 0.66, 0] : [0.9, 0.66, 0, 0.64, 0], LAST = narrow ? [0.74, 0.62, 0, 0, 1] : [0.66, 0.96, 0, 0, 1];
+      /* For each kind of screen: the horizon (the share of the screen above the land), the zoom, a veil from the left (where
+         a chapter's words are), a wash over everything (where words run the full width), whether the moon is out, and a
+         lighter sky above the land (behind the name on the last screen). A mark adds where the train is across the screen. */
+      const OPEN = [0.78, 0.9, 0.8, 0, 1, 0], STORY = narrow ? [0.95, 0.5, 0, 0.6, 0, 0] : [0.9, 0.66, 0.86, 0.12, 0, 0];
+      const FLOW = narrow ? [0.95, 0.5, 0, 0.66, 0, 0] : [0.9, 0.66, 0, 0.64, 0, 0], LAST = narrow ? [0.74, 0.62, 0, 0, 1, 0.4] : [0.66, 0.96, 0, 0, 1, 0.5];
+      const T0 = narrow ? 0.5 : 0.5, T1 = narrow ? 0.76 : 0.78; /* a chapter moves the train from here to there */
       if (isHome) {
-        const hero = document.querySelector(".hero"), stories = [...document.querySelectorAll("[data-story]")];
-        const heroEnd = hero ? docTop(hero) + hero.offsetHeight : H;
-        const space = document.querySelector(".hero-space");
-        const r = space ? space.getBoundingClientRect() : null;
+        const hero = document.querySelector(".hero"), heroEnd = hero ? docTop(hero) + hero.offsetHeight : H;
+        const space = document.querySelector(".hero-space"), r = space ? space.getBoundingClientRect() : null;
         heroBox = r && r.width > 40 && r.height > 40 ? { x: r.left, top: r.top + window.scrollY, w: r.width, h: r.height } : null; /* no box when the stage is not running */
         stacked = !!heroBox && !reduced && heroBox.w > W * 0.7;
-        k.push([0, 0.32, ...(stacked ? HIDE : OPEN)], [heroEnd - H * 0.75, 0.6, ...(stacked ? HIDE : OPEN)], [heroEnd + H * 0.15, 0.9, ...FLOW]);
-        stories.forEach((st, i) => { const top = docTop(st); k.push([top - H * 0.15, i + 1.06, ...STORY], [top + st.offsetHeight - H, i + 1.74, ...STORY]); });
-        const last = stories[stories.length - 1], after = last ? docTop(last) + last.offsetHeight : heroEnd;
-        k.push([after + H * 0.4, 6.0, ...FLOW], [end - H * 0.95, 7.02, ...FLOW], [end, 7.36, ...LAST]);
+        k.push([0, 0.32, ...(stacked ? HIDE : OPEN), 0.76], [heroEnd - H * 0.75, 0.6, ...(stacked ? HIDE : OPEN), 0.8], [heroEnd + H * 0.15, 0.9, ...FLOW, 0.66]);
+        chapters = stories.map((st, i) => ({ top: docTop(st), h: st.offsetHeight, zone: i + 1 }));
+        chapters.forEach((c) => k.push([c.top - H * 0.15, c.zone + 0.06, ...STORY, T0], [c.top + c.h - H, c.zone + 0.74, ...STORY, T1]));
+        const last = chapters[chapters.length - 1], after = last ? last.top + last.h : heroEnd;
+        k.push([after + H * 0.4, 6.0, ...FLOW, 0.6], [end - H * 0.95, 7.02, ...FLOW, 0.66], [end, 7.36, ...LAST, 0.7]);
       } else {
-        const scene = document.querySelector("[data-cs-scene] .scene"), z = (ZONE[scene && scene.dataset.scene] || 0) + 0.12;
-        k.push([0, z, ...(narrow ? HIDE : [0.82, 0.84, 0.8, 0, 1])], [H * 0.9, z + 0.12, ...FLOW], [end - H * 0.95, z + 0.5, ...FLOW], [end, z + 0.62, ...LAST]);
+        const z = here + 0.12;
+        k.push([0, z, ...(narrow ? HIDE : [0.82, 0.84, 0.8, 0, 1, 0]), 0.62], [H * 0.9, z + 0.12, ...FLOW, 0.64], [end - H * 0.95, z + 0.5, ...FLOW, 0.68], [end, z + 0.62, ...LAST, 0.7]);
       }
       keys = k;
       for (let i = 1; i < keys.length; i++) keys[i][0] = Math.max(keys[i][0], keys[i - 1][0] + 1);
@@ -1834,21 +1889,46 @@ void main(){
       let i = 0;
       while (i < keys.length - 2 && y > keys[i + 1][0]) i++;
       const a = keys[i], b = keys[i + 1], t = inOut(clamp((y - a[0]) / (b[0] - a[0])));
-      return [1, 2, 3, 4, 5, 6].map((n) => mixn(a[n], b[n], t));
+      return [1, 2, 3, 4, 5, 6, 7, 8].map((n) => mixn(a[n], b[n], t));
     };
-    const paint = () => {
+    const blink = (t, at0) => Math.max(0, 1 - Math.abs(t - at0) / 0.008);
+    const paint = (dt, now = 0) => {
       if (keys.length < 2) return;
-      const y = reduced ? 0 : Math.max(0, window.scrollY), light = html.dataset.theme === "light", stamp = `${Math.round(y * 2)}|${light}`;
+      const y = reduced ? 0 : Math.max(0, window.scrollY), light = html.dataset.theme === "light", narrow = W < 760;
+      if (!born) born = now || 0.001;
+      const come = reduced ? 1 : ease(clamp((now - born) / 1.8)); /* the arrival, once: 0 to 1 over the first seconds */
+      if (!reduced && !narrow && pointer.active) { lx += (pointer.x / W - 0.5 - lx) * 0.06; ly += (pointer.y / H - 0.5 - ly) * 0.06; }
+      const stamp = `${Math.round(y * 2)}|${light}|${come.toFixed(3)}|${Math.round(lx * 300)}|${Math.round(ly * 300)}`;
       if (stamp === seen) return;
       seen = stamp;
-      const t0 = performance.now(), p = clamp(y / end), narrow = W < 760;
-      let [J, horizon, zoom, veil, wash, out] = at(y), floor = false;
-      if (reduced) { horizon = narrow ? 0.95 : 0.9; zoom = narrow ? 0.5 : 0.66; veil = 0; wash = 0.5; out = 0; } /* one quiet strip of land that stays put */
+      const t0 = performance.now(), p = clamp(y / end);
+      let [J, horizon, zoom, veil, wash, out, crown, train] = at(y), floor = false;
+      if (reduced) { horizon = narrow ? 0.95 : 0.9; zoom = narrow ? 0.5 : 0.66; veil = 0; wash = 0.5; out = 0; crown = 0; } /* one quiet strip of land that stays put */
       if (stacked && heroBox) { /* the box above the words holds the land, and leaves with it */
         const edge = heroBox.top + heroBox.h - y;
-        if (edge > -H * 0.12) { horizon = (edge - heroBox.h * 0.12) / H; zoom = (heroBox.h * 1.45) / H; veil = wash = 0; out = 1; floor = true; }
+        if (edge > -H * 0.12) { horizon = (edge - heroBox.h * 0.12) / H; zoom = (heroBox.h * 1.45) / H; veil = wash = crown = 0; out = 1; floor = true; }
       }
+      mark(J);
+      const still = 1 - come, arriving = still > 0.001 && y < H;
+      if (arriving) { horizon += still * (floor ? 0.1 : 0.22); train -= still * 0.55; } /* the land comes up and the train rolls in */
+      J += lx * 0.022; horizon += floor ? 0 : ly * 0.006; /* a little depth under the pointer */
       const U = H * zoom;
+      /* what the place does while its chapter is read */
+      const beat = { storm: 0, flash: 0, beam: 0, lit: 1, rise: 0 };
+      if (isHome) {
+        chapters.forEach((c) => {
+          if (y < c.top - H * 0.6 || y > c.top + c.h - H * 0.4) return;
+          const t = clamp((y - c.top) / Math.max(1, c.h - H));
+          if (c.zone === 2) { beat.lit = 0.08 + 0.92 * inOut(seg(t, 0.05, 0.8)); beat.rise = t; }
+          if (c.zone === 3) { beat.storm = Math.pow(Math.sin(Math.PI * t), 0.7); beat.flash = Math.max(blink(t, 0.42), blink(t, 0.47), blink(t, 0.63)); }
+          if (c.zone === 4) beat.beam = inOut(seg(t, 0.1, 0.8));
+          if (c.zone === 5) beat.lit = 0.08 + 0.92 * inOut(seg(t, 0.05, 0.85));
+        });
+      } else {
+        if (here === 3) beat.storm = 0.12 + 0.3 * Math.sin(Math.PI * p);
+        if (here === 4) beat.beam = inOut(seg(p, 0, 0.3));
+        beat.rise = p;
+      }
       /* the moon, or the sun: large behind the name on the opening screen, then small and high for the rest of the way */
       const orb = { x: W * mixn(0.86, 0.74, p), y: Math.max(H * 0.2, 120), r: Math.max(16, U * 0.06), a: out };
       if (isHome && heroBox && !reduced) {
@@ -1856,8 +1936,9 @@ void main(){
         const t = inOut(seg(y, H * 0.3, H * 1.25));
         orb.x = mixn(big.x, orb.x, t); orb.y = mixn(big.y, orb.y, t); orb.r = mixn(big.r, orb.r, t);
       }
+      if (arriving) orb.y += still * H * 0.34; /* moonrise */
       g.setTransform(d, 0, 0, d, 0, 0);
-      Land.draw(g, W, H, { J, horizon, zoom, light, orb, font, end: END, tod: isHome ? p : clamp((J - 0.4) / 7), spin: y / Math.max(1, H) * 1.15, train: mixn(narrow ? 0.5 : 0.76, narrow ? 0.74 : 0.7, p) });
+      Land.draw(g, W, H, { J, horizon, zoom, light, orb, font, train, end: END, tod: isHome ? p : clamp((J - 0.4) / 7), spin: y / Math.max(1, H) * 1.15, ...beat });
       if (floor) { /* the banner ends in a soft edge, and the page shows through below it */
         const y1 = H * horizon + U * 0.1, cut = g.createLinearGradient(0, y1, 0, y1 + U * 0.13);
         cut.addColorStop(0, "rgba(0,0,0,0)"); cut.addColorStop(1, "rgba(0,0,0,1)");
@@ -1871,13 +1952,18 @@ void main(){
         gr.addColorStop(0, `rgba(${ink},${veil})`); gr.addColorStop(0.55, `rgba(${ink},${veil * 0.55})`); gr.addColorStop(1, `rgba(${ink},0)`);
         g.fillStyle = gr; g.fillRect(0, 0, W, H);
       }
+      if (crown > 0.01) { /* and the sky above the last skyline clears for the name */
+        const gr = g.createLinearGradient(0, 0, 0, H * horizon);
+        gr.addColorStop(0, `rgba(${ink},${crown})`); gr.addColorStop(0.7, `rgba(${ink},${crown * 0.4})`); gr.addColorStop(1, `rgba(${ink},0)`);
+        g.fillStyle = gr; g.fillRect(0, 0, W, H * horizon);
+      }
       /* a slow device gets a softer picture, never a slower page */
       cost += (performance.now() - t0 - cost) * 0.12;
       if (cost > 13 && d > 0.76) { soft += 0.25; cost = 0; size(); }
     };
     measures.push(plan);
     new MutationObserver(() => { seen = ""; if (reduced) paint(); }).observe(html, { attributes: true, attributeFilter: ["data-theme"] });
-    if (!reduced) tasks.push(() => { if (!document.hidden) paint(); });
+    if (!reduced) tasks.push((dt, now) => { if (!document.hidden) paint(dt, now); });
   });
 
   if (reduced) { startClock(); return; }

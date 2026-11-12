@@ -205,6 +205,15 @@ for _light in (False, True):
             errors.append(f"shock-lab/: {'light' if _light else 'dark'} {_theirs} is {_labs.get(_theirs)!r} but this site's {_name} is {_mine[_name]!r} "
                           "(web/src/styles.css in world-shock-lab)")
 
+# The route down the right edge names each stop by its role in the story. On a project page those names come from
+# assets/site.js, so they must be the roles scripts/stories.py gives the chapters, in the same order.
+_roles = re.search(r"const ROLES = \[([^\]]*)\];", (ROOT / "assets" / "site.js").read_text())
+sys.path.insert(0, str(ROOT / "scripts"))
+import stories as _stories  # noqa: E402
+_want = [_stories.ROLE[p["id"]] for p in DATA["projects"]]
+if not _roles or re.findall(r'"([^"]+)"', _roles.group(1)) != _want:
+    errors.append(f"assets/site.js ROLES must list the chapters' roles in order: {_want} (scripts/stories.py ROLE)")
+
 # The live-score slot is written by scripts/sync_wsl_live.py from the project's score files. With no
 # score it stays empty and shows no number; with scores every figure in it is a bind to the counts in
 # data/projects.json, and it has to say that two decisions are not a track record.

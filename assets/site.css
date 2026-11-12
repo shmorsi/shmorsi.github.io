@@ -1445,6 +1445,28 @@ html:not(.stage) .hero-space { display: none; }
    its sky is clear, so the field and the stars are the sky; by day (the light theme) it paints
    its own. The last screen of every page is left to it: the footer stands on the ground. */
 .fx-land { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
+/* The route: the whole line at a glance, on the right edge of a wide screen. A stop for each place, the train where
+   the reader is. Names show when the rail is pointed at, or a stop has the focus. */
+.fx-route { position: fixed; z-index: 20; top: 50%; right: max(12px, calc((100vw - var(--max)) / 2 - 70px)); transform: translateY(-50%); display: none; }
+@media (min-width: 1100px) and (min-height: 600px) { .land .fx-route { display: block; } }
+.fx-route ol { position: relative; list-style: none; margin: 0; padding: 0; width: 18px; height: min(44vh, 360px); }
+.fx-route ol::before { content: ""; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: linear-gradient(var(--line-strong), var(--line-strong)) 0 0 / 2px 100% no-repeat; opacity: 0.8; }
+.fx-route li { position: absolute; left: 0; width: 18px; height: 18px; margin-top: -9px; }
+.fx-route a { position: relative; display: block; width: 18px; height: 18px; text-decoration: none; }
+.fx-route a::before { content: ""; position: absolute; left: 4px; top: 4px; width: 10px; height: 10px; border-radius: 50%; box-sizing: border-box; background: var(--bg); border: 2px solid var(--muted); transition: border-color 0.25s, background-color 0.25s, transform 0.25s var(--ease); }
+.fx-route a:hover::before, .fx-route a:focus-visible::before { border-color: var(--ink); transform: scale(1.25); }
+.fx-route a[aria-current]::before { border-color: var(--accent); background: var(--accent); }
+.fx-route a span {
+  position: absolute; right: 26px; top: 50%; transform: translate(6px, -50%); white-space: nowrap; pointer-events: none; opacity: 0;
+  padding: 6px 9px; color: var(--ink); background: color-mix(in srgb, var(--bg) 84%, transparent); border: 1px solid var(--line);
+  font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; line-height: 1;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: opacity 0.25s, transform 0.35s var(--ease);
+}
+.fx-route:hover a span, .fx-route:focus-within a span { opacity: 0.72; transform: translate(0, -50%); }
+.fx-route a:hover span, .fx-route a:focus-visible span, .fx-route:hover a[aria-current] span { opacity: 1; }
+.fx-route-train { position: absolute; left: 4px; width: 10px; height: 20px; margin-top: -10px; border-radius: 3px; background: var(--warm); box-shadow: 0 0 12px color-mix(in srgb, var(--warm) 70%, transparent); pointer-events: none; z-index: 1; }
+.fx-route-train::before { content: ""; position: absolute; left: 2px; right: 2px; top: 3px; height: 4px; border-radius: 1px; background: color-mix(in srgb, var(--bg) 70%, transparent); }
+html:not(.fx) .fx-route-train { display: none; }
 /* The words and numbers of a picture stay readable over mountains and lit windows. */
 .land .scene text { paint-order: stroke; stroke: var(--bg); stroke-width: 3.2px; stroke-linejoin: round; stroke-opacity: 0.82; }
 .land .site-footer {
