@@ -1948,6 +1948,8 @@ void main(){
         heroBox = r && r.width > 40 && r.height > 40 ? { x: r.left, top: r.top + window.scrollY, w: r.width, h: r.height } : null; /* no box when the stage is not running */
         stacked = !!heroBox && !reduced && heroBox.w > W * 0.7;
         k.push([0, 0.32, ...(stacked ? HIDE : OPEN), 0.76], [heroEnd - H * 0.75, 0.6, ...(stacked ? HIDE : OPEN), 0.8], [heroEnd + H * 0.15, 0.9, ...FLOW, 0.66]);
+        const route = document.querySelector(".sky"); /* the five worlds: the land stays washed back until they have passed */
+        if (route) k.push([docTop(route) + route.offsetHeight - H * 0.85, 0.97, ...FLOW, 0.7]);
         chapters = stories.map((st, i) => ({ top: docTop(st), h: st.offsetHeight, zone: i + 1 }));
         chapters.forEach((c) => k.push([c.top - H * 0.15, c.zone + 0.06, ...STORY, T0], [c.top + c.h - H, c.zone + 0.74, ...STORY, T1]));
         const last = chapters[chapters.length - 1], after = last ? last.top + last.h : heroEnd;
@@ -2039,6 +2041,434 @@ void main(){
     measures.push(plan);
     new MutationObserver(() => { seen = ""; if (reduced) paint(); }).observe(html, { attributes: true, attributeFilter: ["data-theme"] });
     if (!reduced) tasks.push((dt, now) => { if (!document.hidden) paint(dt, now); });
+  });
+
+  /* ---- The route: five worlds on one line, each drawn from its project's results. ---------------
+     Under the opening screen the reader sees the whole voyage at once: five worlds hanging over the
+     land, a railway running past them, and the train on it, wherever the page is. Nothing on a
+     world is decoration. The ridge around the first is the growth of one dollar from 1960 (the dim
+     ridge is the market's). The rings of the second are simulated pension plans, each placed by
+     where it stands after twenty years. The third is the Earth, lit where the sun is at this
+     minute, with a wave leaving Washington. The fourth's ring sits inside the standard method's
+     by exactly its forecast error, and is as wide as its interval. Thirty attacks fall on the
+     fifth, and the ones that land are the ones the benchmark says land. The numbers arrive in the
+     page (data-sky, written by scripts/worlds.py from the files the chapters use). It is one 2D
+     canvas, drawn only while it is on screen, with a pause button; under reduced motion it is one
+     still frame, and without it the section is five cards. */
+  safe(() => {
+    const stage = document.querySelector("[data-sky]");
+    if (!stage) return;
+    const D = JSON.parse(stage.dataset.sky);
+    const worlds = [...stage.querySelectorAll(".sky-world")].map((li) => ({ li, kind: li.dataset.world, orb: li.querySelector(".w-orb"), x: 0, y: 0, r: 0, hot: 0, u: 0 }));
+    if (worlds.length !== 5 || worlds.some((w) => !w.orb)) return;
+    const canvas = el("canvas", "sky-canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    const g = canvas.getContext("2d");
+    if (!g) return;
+    stage.prepend(canvas);
+    stage.classList.add("is-live");
+
+    const TAU = Math.PI * 2, RAD = Math.PI / 180;
+    const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+    const mixc = (a, b, t) => [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)];
+    const INK = { ice: [142, 197, 255], white: [238, 245, 255], violet: [168, 148, 255], amber: [247, 184, 77], teal: [107, 230, 199], rose: [255, 118, 142], night: [6, 8, 22] };
+    const rnd = (seed) => { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+    /* How much of its box a world's body takes: the rest is for what surrounds it (a ridge, rings, orbits, a shield). */
+    const BODY = { dpc: 0.52, pension: 0.38, wsl: 0.66, tsfm: 0.44, aurvane: 0.5 };
+    const ARC = [0.13, 0.01, -0.09, 0.01, 0.13]; /* in a row, the five sit on a shallow arch */
+    let W = 0, H = 0, dpr = 1, mode = "row", top = 0, light = false, font = "sans-serif";
+    let rail = [], railLen = 1;
+
+    /* The railway: one smooth line that passes behind the lower edge of every world. */
+    const layRail = () => {
+      const stops = worlds.map((w) => [w.x, w.y + w.r * 0.62]);
+      const first = stops[0], last = stops[stops.length - 1];
+      const pts = mode === "stack"
+        ? [[first[0], first[1] - worlds[0].r * 3.2], ...stops, [last[0], last[1] + worlds[4].r * 3.2]]
+        : [[-60, first[1] + worlds[0].r * 0.9], ...stops, [W + 60, last[1] + worlds[4].r * 0.9]];
+      const P = [pts[0], ...pts, pts[pts.length - 1]];
+      rail = [];
+      for (let i = 1; i < P.length - 2; i += 1) {
+        const [p0, p1, p2, p3] = [P[i - 1], P[i], P[i + 1], P[i + 2]];
+        const n = Math.max(8, Math.ceil(Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) / 6));
+        for (let k = 0; k < n; k += 1) {
+          const t = k / n, t2 = t * t, t3 = t2 * t;
+          rail.push([
+            0.5 * (2 * p1[0] + (p2[0] - p0[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (3 * p1[0] - p0[0] - 3 * p2[0] + p3[0]) * t3),
+            0.5 * (2 * p1[1] + (p2[1] - p0[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (3 * p1[1] - p0[1] - 3 * p2[1] + p3[1]) * t3), 0]);
+        }
+      }
+      rail.push([pts[pts.length - 1][0], pts[pts.length - 1][1], 0]);
+      for (let i = 1; i < rail.length; i += 1) rail[i][2] = rail[i - 1][2] + Math.hypot(rail[i][0] - rail[i - 1][0], rail[i][1] - rail[i - 1][1]);
+      railLen = rail[rail.length - 1][2] || 1;
+      worlds.forEach((w, n) => { /* where along the line each world is */
+        let best = 0, bd = Infinity;
+        rail.forEach((p, i) => { const d = Math.hypot(p[0] - stops[n][0], p[1] - stops[n][1]); if (d < bd) { bd = d; best = i; } });
+        w.u = rail[best][2] / railLen;
+      });
+    };
+    const onRail = (u) => {
+      const d = clamp(u) * railLen;
+      let lo = 0, hi = rail.length - 1;
+      while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (rail[mid][2] <= d) lo = mid; else hi = mid; }
+      const a = rail[lo], b = rail[hi], f = (d - a[2]) / Math.max(1e-6, b[2] - a[2]);
+      return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, Math.atan2(b[1] - a[1], b[0] - a[0])];
+    };
+
+    const measure = () => {
+      const box = stage.getBoundingClientRect();
+      if (box.width < 10) return;
+      W = box.width; H = box.height; top = box.top + window.scrollY;
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      const cs = getComputedStyle(stage);
+      mode = cs.getPropertyValue("--sky-mode").trim() || "row";
+      font = cs.fontFamily || font;
+      worlds.forEach((w, i) => {
+        const b = w.orb.getBoundingClientRect(), size = Math.min(b.width, b.height);
+        w.x = b.left - box.left + b.width / 2;
+        w.y = b.top - box.top + b.height / 2 + (mode === "row" ? ARC[i] * b.height : 0);
+        w.r = size * 0.5 * BODY[w.kind];
+      });
+      layRail();
+      if (reduced) paint(0);
+    };
+
+    /* ---------------------------------------------------------------- the pieces every world shares */
+    const body = (x, y, r, hi, mid, lo, glow) => {
+      if (!light) { /* a little air around it */
+        const air = g.createRadialGradient(x, y, r * 0.86, x, y, r * 1.55);
+        air.addColorStop(0, rgba(glow, 0.3)); air.addColorStop(1, rgba(glow, 0));
+        g.fillStyle = air; g.beginPath(); g.arc(x, y, r * 1.55, 0, TAU); g.fill();
+      }
+      const gr = g.createRadialGradient(x - r * 0.42, y - r * 0.46, r * 0.08, x - r * 0.1, y - r * 0.1, r * 1.12);
+      gr.addColorStop(0, rgba(hi, 1)); gr.addColorStop(0.5, rgba(mid, 1)); gr.addColorStop(1, rgba(lo, 1));
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+    };
+    const bands = (x, y, r, list, drift) => { /* latitude bands, seen from a little above */
+      g.save(); g.beginPath(); g.arc(x, y, r, 0, TAU); g.clip();
+      list.forEach(([lat, thick, c, a]) => {
+        const yy = y + lat * r + Math.sin(drift + lat * 7) * r * 0.012, half = Math.sqrt(Math.max(0, 1 - lat * lat)) * r;
+        g.fillStyle = rgba(c, a); g.beginPath(); g.ellipse(x, yy, half * 1.04, thick * r, 0, 0, TAU); g.fill();
+      });
+      g.restore();
+    };
+    const shade = (x, y, r, a = 0.5) => { /* the night side, lower right, and a thin lit rim upper left */
+      g.save(); g.beginPath(); g.arc(x, y, r, 0, TAU); g.clip();
+      const sh = g.createRadialGradient(x - r * 0.5, y - r * 0.55, r * 0.7, x - r * 0.2, y - r * 0.25, r * 1.5);
+      sh.addColorStop(0, rgba(INK.night, 0)); sh.addColorStop(1, rgba(INK.night, light ? a * 0.5 : a));
+      g.fillStyle = sh; g.fillRect(x - r, y - r, r * 2, r * 2);
+      g.restore();
+      g.strokeStyle = rgba(INK.white, light ? 0.5 : 0.34); g.lineWidth = Math.max(1, r * 0.022);
+      g.beginPath(); g.arc(x, y, r - g.lineWidth / 2, 195 * RAD, 300 * RAD); g.stroke();
+    };
+    const label = (text, x, y, align, a = 0.75, size = 10.5) => {
+      g.font = `500 ${size}px ${font}`; g.textAlign = align; g.textBaseline = "middle";
+      g.fillStyle = light ? `rgba(20,22,30,${a})` : `rgba(206,214,232,${a})`;
+      const wd = g.measureText(text).width; /* a label never leaves the picture */
+      g.fillText(text, align === "center" ? clamp(x, wd / 2 + 4, W - wd / 2 - 4) : align === "left" ? Math.min(x, W - wd - 4) : Math.max(x, wd + 4), y);
+    };
+    /* Things that go round a world lie on tilted circles: an ellipse on the screen, half of it behind the world. */
+    const tilted = (x, y, rot, k) => ({
+      at: (rho, th) => { const ex = rho * Math.cos(th), ey = rho * k * Math.sin(th), c = Math.cos(rot), s = Math.sin(rot); return [x + ex * c - ey * s, y + ex * s + ey * c]; },
+      arc: (rho, a0, a1) => { g.beginPath(); g.ellipse(x, y, rho, rho * k, rot, a0, a1); },
+    });
+
+    /* ---------------------------------------------------------------- 01.1 the engine: a dollar's growth is its ridge */
+    const dpc = (() => {
+      const top2000 = Math.log10(2000), A0 = 112 * RAD, A1 = 318 * RAD, n = D.dpc.deep.length;
+      const ridge = (x, y, r, series, upto, lift) => {
+        const m = Math.max(2, Math.round((n - 1) * upto) + 1), pts = [];
+        for (let i = 0; i < m; i += 1) {
+          const a = A0 + (A1 - A0) * i / (n - 1), rho = r * (1.035 + lift * Math.max(0, Math.log10(Math.max(series[i], 0.5))) / top2000);
+          pts.push([x + rho * Math.cos(a), y + rho * Math.sin(a), a]);
+        }
+        return pts;
+      };
+      const fill = (x, y, r, pts) => {
+        g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
+        pts.forEach((p) => g.lineTo(p[0], p[1]));
+        g.arc(x, y, r * 0.99, pts[pts.length - 1][2], pts[0][2], true); g.closePath();
+      };
+      return (w, t, app) => {
+        const { x, y } = w, r = w.r * (1 + w.hot * 0.07), upto = reduced ? 1 : ease(seg(app, 0.05, 0.95));
+        const mk = ridge(x, y, r, D.dpc.market, upto, 0.74), dp = ridge(x, y, r, D.dpc.deep, upto, 0.74);
+        const tip = dp[dp.length - 1], far = g.createRadialGradient(x, y, r, x, y, r * 1.78);
+        far.addColorStop(0, "rgba(74,60,168,0.96)"); far.addColorStop(0.45, "rgba(104,128,232,0.96)"); far.addColorStop(1, rgba(INK.ice, 0.98));
+        fill(x, y, r, dp); g.fillStyle = far; g.fill();
+        g.strokeStyle = rgba(INK.night, 0.34); g.lineWidth = 1; /* a seam every ten years */
+        for (let i = 40; i < dp.length; i += 40) { g.beginPath(); g.moveTo(x + r * Math.cos(dp[i][2]), y + r * Math.sin(dp[i][2])); g.lineTo(dp[i][0], dp[i][1]); g.stroke(); }
+        g.strokeStyle = light ? "rgba(20,22,30,0.7)" : rgba(INK.white, 0.7); g.lineWidth = 1.1; g.setLineDash([3, 3.5]); /* the market, just inside */
+        g.beginPath(); mk.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]))); g.stroke(); g.setLineDash([]);
+        g.strokeStyle = rgba(INK.white, 0.9); g.lineWidth = Math.max(1, r * 0.02); g.lineJoin = "round";
+        g.beginPath(); dp.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]))); g.stroke();
+        body(x, y, r, [176, 160, 240], [104, 86, 190], [38, 30, 92], INK.ice);
+        bands(x, y, r, [[-0.42, 0.07, INK.white, 0.1], [0.08, 0.11, INK.night, 0.14], [0.5, 0.06, INK.white, 0.07]], t * 0.2);
+        shade(x, y, r);
+        if (!reduced && upto >= 1) { /* a light runs the crest, from 1960 to today */
+          const k = Math.floor(((t * 0.11) % 1) * (dp.length - 1)), p = dp[k];
+          const sp = g.createRadialGradient(p[0], p[1], 0, p[0], p[1], r * 0.2);
+          sp.addColorStop(0, rgba(INK.white, 0.9)); sp.addColorStop(1, rgba(INK.white, 0));
+          g.fillStyle = sp; g.beginPath(); g.arc(p[0], p[1], r * 0.2, 0, TAU); g.fill();
+        }
+        g.fillStyle = rgba(INK.white, 1); g.beginPath(); g.arc(tip[0], tip[1], Math.max(1.6, r * 0.045), 0, TAU); g.fill();
+        const s0 = dp[0];
+        label(D.dpc.from, s0[0] - r * 0.1, s0[1] + r * 0.2, "center", 0.7);
+        if (upto > 0.97) label(D.dpc.to, tip[0] + r * 0.13, tip[1] - r * 0.02, "left", 0.9);
+      };
+    })();
+
+    /* ---------------------------------------------------------------- 01.2 the promise: its rings are simulated futures */
+    const pension = (() => {
+      const lo = Math.log(0.6), hi = Math.log(5), place = (f) => 1.22 + 1.25 * clamp((Math.log(f) - lo) / (hi - lo));
+      const r0 = rnd(712), FULL = place(1);
+      const plans = [];
+      [["glide", 0], ["learned", 1]].forEach(([key, bright]) => D.pension[key].forEach((f) => plans.push({ rho: place(f) + (r0() - 0.5) * 0.012, th: r0() * TAU, short: f < 1, bright })));
+      return (w, t) => {
+        const { x, y } = w, r = w.r * (1 + w.hot * 0.07), T = tilted(x, y, -15 * RAD, 0.3);
+        const pass = (front) => {
+          g.lineCap = "round";
+          g.strokeStyle = light ? "rgba(20,22,30,0.5)" : rgba(INK.white, 0.6); g.lineWidth = Math.max(1, r * 0.014);
+          T.arc(r * FULL, front ? 0 : Math.PI, front ? Math.PI : TAU); g.stroke();
+          plans.forEach((p) => {
+            const th = (p.th + t * 0.22 * Math.pow(1.5 / p.rho, 1.5)) % TAU;
+            if ((Math.sin(th) >= 0) !== front) return;
+            const c = p.short ? INK.amber : p.bright ? (light ? [26, 92, 170] : INK.white) : (light ? [110, 96, 190] : INK.violet);
+            g.strokeStyle = rgba(c, p.bright ? 0.95 : 0.6); g.lineWidth = Math.max(1.1, r * (p.bright ? 0.036 : 0.028));
+            T.arc(r * p.rho, th - 0.11, th); g.stroke();
+          });
+        };
+        pass(false);
+        body(x, y, r, [250, 220, 160], [224, 160, 72], [96, 56, 20], INK.amber);
+        bands(x, y, r, [[-0.55, 0.06, [120, 70, 20], 0.26], [-0.2, 0.1, INK.white, 0.16], [0.16, 0.07, [120, 70, 20], 0.24], [0.46, 0.09, INK.white, 0.1]], t * 0.15);
+        shade(x, y, r);
+        pass(true);
+        const ly = y + r * 1.34; /* a sample of the line, and its name, under the world */
+        g.strokeStyle = light ? "rgba(20,22,30,0.5)" : rgba(INK.white, 0.6); g.lineWidth = Math.max(1, r * 0.014);
+        g.beginPath(); g.moveTo(x - 44, ly); g.lineTo(x - 30, ly); g.stroke();
+        label("fully funded", x - 24, ly, "left", 0.78);
+      };
+    })();
+
+    /* ---------------------------------------------------------------- 01.3 the weather station: the Earth, as it is lit now */
+    const wsl = (() => {
+      const raw = atob(D.wsl.bits), lw = D.wsl.w, lh = D.wsl.h, r0 = rnd(53), cells = [];
+      const vec = (lon, lat) => { const f = lat * RAD, l = lon * RAD; return [Math.cos(f) * Math.sin(l), Math.sin(f), Math.cos(f) * Math.cos(l)]; };
+      const dc = vec(-77.04, 38.9), ottawa = vec(-75.7, 45.42);
+      for (let j = 0; j < lh; j += 1) for (let i = 0; i < lw; i += 1) {
+        const k = j * lw + i;
+        if (!((raw.charCodeAt(k >> 3) >> (7 - (k & 7))) & 1)) continue;
+        const lat = 90 - (j + 0.5) * 180 / lh;
+        if (r0() > Math.cos(lat * RAD) + 0.08) continue; /* the grid crowds the poles: keep the dots even */
+        const v = vec(-180 + (i + 0.5) * 360 / lw, lat);
+        cells.push([v[0], v[1], v[2], Math.acos(clamp(v[0] * dc[0] + v[1] * dc[1] + v[2] * dc[2], -1, 1))]);
+      }
+      /* Where the sun is overhead at this moment: its latitude from the day of the year, its longitude from the hour. */
+      const sunNow = () => {
+        const d = new Date(), start = Date.UTC(d.getUTCFullYear(), 0, 0), day = (d.getTime() - start) / 864e5;
+        const b = TAU * (day - 81) / 364, eot = 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b); /* minutes */
+        const hours = d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600;
+        return vec(-15 * (hours - 12 + eot / 60), -23.44 * Math.cos(TAU * (day + 10) / 365.24));
+      };
+      let sun = sunNow(), read = 0;
+      return (w, t) => {
+        const { x, y } = w, r = w.r * (1 + w.hot * 0.07);
+        if (t - read > 20 || t < read) { sun = sunNow(); read = t; }
+        const lon0 = (-60 + 24 * Math.sin(t * 0.07)) * RAD, lat0 = 22 * RAD, cl = Math.cos(lon0), sl = Math.sin(lon0), cp = Math.cos(lat0), sp = Math.sin(lat0);
+        const view = (v) => { const x1 = v[0] * cl - v[2] * sl, z1 = v[0] * sl + v[2] * cl; return [x1, v[1] * cp - z1 * sp, v[1] * sp + z1 * cp]; };
+        body(x, y, r, [92, 156, 240], [36, 84, 184], [10, 24, 78], INK.teal);
+        const S = view(sun), front = ((t % 7.5) / 7.5) * 2.9, dot = Math.max(1.1, r * 0.03);
+        cells.forEach((c) => {
+          const p = view(c);
+          if (p[2] <= 0.02) return;
+          const lit = c[0] * sun[0] + c[1] * sun[1] + c[2] * sun[2], wave = reduced ? 0 : Math.max(0, 1 - Math.abs(c[3] - front) / 0.085) * (1 - front / 2.9);
+          const col = wave > 0.02 ? mixc(lit > 0 ? [176, 246, 224] : [120, 150, 214], INK.amber, Math.min(1, wave * 1.4)) : lit > 0.06 ? [176, 246, 224] : lit > -0.06 ? [150, 200, 222] : [120, 150, 214];
+          const s = dot * (0.7 + 0.5 * p[2]) * (1 + wave * 0.7);
+          g.fillStyle = rgba(col, lit > 0 || wave > 0.02 ? 0.97 : 0.82);
+          g.fillRect(x + p[0] * r - s / 2, y - p[1] * r - s / 2, s, s);
+        });
+        /* night falls on the side away from the sun; the edge of it is half an ellipse */
+        const al = Math.atan2(-S[1], S[0]), sz = Math.abs(S[2]);
+        g.fillStyle = rgba(INK.night, light ? 0.3 : 0.4); g.beginPath();
+        g.arc(x, y, r, al + Math.PI / 2, al + Math.PI * 1.5);
+        if (S[2] > 0) g.ellipse(x, y, r * sz, r, al, Math.PI * 1.5, Math.PI / 2, true); else g.ellipse(x, y, r * sz, r, al, Math.PI * 1.5, Math.PI * 2.5, false);
+        g.closePath(); g.fill();
+        [[dc, 1], [ottawa, 0.7]].forEach(([v, k], i) => {
+          const p = view(v);
+          if (p[2] <= 0.05) return;
+          const px = x + p[0] * r, py = y - p[1] * r, beat = reduced ? 0.4 : (t * 0.5 + i * 0.5) % 1;
+          g.strokeStyle = rgba(INK.amber, (1 - beat) * 0.9); g.lineWidth = 1.2;
+          g.beginPath(); g.arc(px, py, r * (0.04 + beat * 0.16) * k, 0, TAU); g.stroke();
+          g.fillStyle = rgba(INK.amber, 1); g.beginPath(); g.arc(px, py, Math.max(1.6, r * 0.032 * k), 0, TAU); g.fill();
+        });
+        g.strokeStyle = rgba(INK.white, light ? 0.5 : 0.3); g.lineWidth = Math.max(1, r * 0.018);
+        g.beginPath(); g.arc(x, y, r - g.lineWidth / 2, 0, TAU); g.stroke();
+      };
+    })();
+
+    /* ---------------------------------------------------------------- 02 the navigator: its ring sits inside the standard's */
+    const tsfm = (w, t) => {
+      const { x, y } = w, r = w.r * (1 + w.hot * 0.07), T = tilted(x, y, 13 * RAD, 0.36), R1 = r * 2.12;
+      const pass = (front) => {
+        const a0 = front ? 0 : Math.PI, a1 = front ? Math.PI : TAU;
+        g.lineCap = "butt";
+        g.strokeStyle = light ? "rgba(20,22,30,0.5)" : "rgba(206,214,232,0.55)"; g.lineWidth = Math.max(1, r * 0.016); g.setLineDash([r * 0.09, r * 0.08]);
+        T.arc(R1, a0, a1); g.stroke(); g.setLineDash([]);
+        g.strokeStyle = rgba(INK.violet, light ? 0.28 : 0.3); g.lineWidth = R1 * (D.tsfm.hi - D.tsfm.lo); /* as wide as the 95% interval */
+        T.arc(R1 * (D.tsfm.hi + D.tsfm.lo) / 2, a0, a1); g.stroke();
+        g.strokeStyle = light ? "rgba(70,52,170,0.95)" : rgba(INK.white, 0.92); g.lineWidth = Math.max(1.2, r * 0.026);
+        T.arc(R1 * D.tsfm.ratio, a0, a1); g.stroke();
+        [[R1 * D.tsfm.ratio, t * 0.5 + 1, INK.white, 0.075], [R1, t * 0.27 + 3.6, [150, 156, 180], 0.05]].forEach(([rho, th0, c, size]) => {
+          const th = th0 % TAU;
+          if ((Math.sin(th) >= 0) !== front) return;
+          const p = T.at(rho, th);
+          if (!light) { const gl = g.createRadialGradient(p[0], p[1], 0, p[0], p[1], r * size * 3.4); gl.addColorStop(0, rgba(c, 0.55)); gl.addColorStop(1, rgba(c, 0)); g.fillStyle = gl; g.beginPath(); g.arc(p[0], p[1], r * size * 3.4, 0, TAU); g.fill(); }
+          g.fillStyle = light ? rgba(mixc(c, INK.night, 0.55), 1) : rgba(c, 1); g.beginPath(); g.arc(p[0], p[1], Math.max(1.8, r * size), 0, TAU); g.fill();
+        });
+      };
+      pass(false);
+      body(x, y, r, [206, 190, 255], [128, 104, 226], [40, 28, 104], INK.violet);
+      bands(x, y, r, [[-0.6, 0.05, INK.white, 0.16], [-0.3, 0.09, [60, 40, 150], 0.3], [0.02, 0.06, INK.white, 0.14], [0.3, 0.1, [60, 40, 150], 0.26], [0.62, 0.05, INK.white, 0.1]], t * 0.25);
+      shade(x, y, r);
+      pass(true);
+      const ly = y + r * 1.42;
+      g.strokeStyle = light ? "rgba(20,22,30,0.5)" : "rgba(206,214,232,0.55)"; g.lineWidth = Math.max(1, r * 0.016); g.setLineDash([3, 3]);
+      g.beginPath(); g.moveTo(x - 58, ly); g.lineTo(x - 40, ly); g.stroke(); g.setLineDash([]);
+      label("standard method", x - 34, ly, "left", 0.78);
+    };
+
+    /* ---------------------------------------------------------------- 03 the shield: thirty attacks, and the ones that land */
+    const aurvane = (() => {
+      const r0 = rnd(303), list = [];
+      D.aurvane.attacks.forEach(([, n, landed]) => { for (let i = 0; i < n; i += 1) list.push({ lands: i < landed }); });
+      for (let i = list.length - 1; i > 0; i -= 1) { const j = Math.floor(r0() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; }
+      const FROM = 214 * RAD, SPAN = 60 * RAD, SHIELD = 1.56, GAP = 0.25, FLY = 1.15, LOOP = list.length * GAP + FLY + 2.6;
+      list.forEach((m, i) => { m.a = FROM + (r0() - 0.5) * 2 * SPAN; m.at = 0.5 + i * GAP; });
+      const total = list.length;
+      return (w, t) => {
+        const { x, y } = w, r = w.r * (1 + w.hot * 0.07), tt = reduced ? LOOP - 0.01 : t % LOOP;
+        let stopped = 0, landed = 0, flash = 0;
+        body(x, y, r, [255, 170, 186], [214, 78, 112], [70, 20, 44], INK.rose);
+        bands(x, y, r, [[-0.44, 0.08, INK.white, 0.12], [0.1, 0.1, [90, 20, 50], 0.24], [0.52, 0.06, INK.white, 0.08]], t * 0.2);
+        shade(x, y, r);
+        list.forEach((m) => {
+          const k = (tt - m.at) / FLY, ca = Math.cos(m.a), sa = Math.sin(m.a), far = 3.5, stop = m.lands ? 1.0 : SHIELD;
+          if (k <= 0) return;
+          const hit = [x + ca * r * stop, y + sa * r * stop];
+          if (k < 1) { /* on its way in */
+            const d = far - (far - stop) * k * k, hx = x + ca * r * d, hy = y + sa * r * d, tail = Math.min(0.75, far - d), c = m.lands ? INK.amber : INK.ice;
+            const tr = g.createLinearGradient(hx + ca * r * tail, hy + sa * r * tail, hx, hy);
+            tr.addColorStop(0, rgba(c, 0)); tr.addColorStop(1, rgba(c, 0.9));
+            g.strokeStyle = tr; g.lineWidth = Math.max(1.2, r * 0.03); g.lineCap = "round";
+            g.beginPath(); g.moveTo(hx + ca * r * tail, hy + sa * r * tail); g.lineTo(hx, hy); g.stroke();
+            g.fillStyle = rgba(light ? mixc(c, INK.night, 0.4) : INK.white, 1); g.beginPath(); g.arc(hx, hy, Math.max(1.4, r * 0.035), 0, TAU); g.fill();
+            return;
+          }
+          if (m.lands) { /* it got through: a mark that stays until the next round */
+            landed += 1;
+            const age = (tt - m.at - FLY), ring = Math.min(1, age / 0.5);
+            g.strokeStyle = rgba(INK.amber, (1 - ring) * 0.9); g.lineWidth = 1.4; g.beginPath(); g.arc(hit[0], hit[1], r * 0.26 * ring, 0, TAU); g.stroke();
+            g.fillStyle = rgba(INK.amber, 1); g.beginPath(); g.arc(hit[0], hit[1], Math.max(2, r * 0.05), 0, TAU); g.fill();
+          } else { /* stopped at the shield */
+            stopped += 1;
+            const age = (tt - m.at - FLY) / 0.5;
+            if (age < 1) {
+              flash = Math.max(flash, 1 - age);
+              g.strokeStyle = rgba(light ? [30, 90, 170] : INK.white, (1 - age) * 0.95); g.lineWidth = 1.4;
+              g.beginPath(); g.arc(hit[0], hit[1], r * 0.3 * age, 0, TAU); g.stroke();
+            }
+          }
+        });
+        g.lineCap = "round";
+        g.strokeStyle = rgba(light ? [30, 90, 170] : INK.ice, 0.16 + flash * 0.3); g.lineWidth = r * 0.16;
+        g.beginPath(); g.arc(x, y, r * SHIELD, FROM - SPAN - 0.22, FROM + SPAN + 0.22); g.stroke();
+        g.strokeStyle = rgba(light ? [30, 90, 170] : INK.white, 0.6 + flash * 0.4); g.lineWidth = Math.max(1.2, r * 0.028);
+        g.beginPath(); g.arc(x, y, r * (SHIELD + 0.08), FROM - SPAN - 0.22, FROM + SPAN + 0.22); g.stroke();
+        label(`${stopped + landed} of ${total} arrived · ${stopped} stopped · ${landed} landed`, x + r * 0.1, y + r * 1.78, "center", 0.8);
+      };
+    })();
+    const DRAW = { dpc, pension, wsl, tsfm, aurvane };
+
+    /* ---------------------------------------------------------------- the line and the train on it */
+    const line = () => {
+      g.strokeStyle = light ? "rgba(20,22,30,0.26)" : "rgba(206,214,232,0.26)"; g.lineWidth = 1.2; g.setLineDash([2, 7]); g.lineCap = "round";
+      g.beginPath(); rail.forEach((p, i) => (i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]))); g.stroke(); g.setLineDash([]);
+    };
+    const train = (u) => {
+      const car = clamp(W * 0.021, 15, 26), hgt = car * 0.44, gap = car * 0.16;
+      for (let i = 3; i >= 0; i -= 1) {
+        const [px, py, a] = onRail(u - (i * (car + gap)) / railLen);
+        g.save(); g.translate(px, py); g.rotate(a);
+        if (i === 0 && !light) { /* the lamp */
+          const beam = g.createLinearGradient(car * 0.5, 0, car * 3.4, 0);
+          beam.addColorStop(0, "rgba(255,226,150,0.5)"); beam.addColorStop(1, "rgba(255,226,150,0)");
+          g.fillStyle = beam; g.beginPath(); g.moveTo(car * 0.5, -hgt * 0.2); g.lineTo(car * 3.4, -hgt * 1.5); g.lineTo(car * 3.4, hgt * 1.1); g.closePath(); g.fill();
+        }
+        g.fillStyle = "#c8443c"; g.beginPath();
+        if (g.roundRect) g.roundRect(-car / 2, -hgt, car, hgt, [hgt * 0.34, i === 0 ? hgt * 0.9 : hgt * 0.34, 2, 2]); else g.rect(-car / 2, -hgt, car, hgt);
+        g.fill();
+        g.fillStyle = "#f3e2c0"; g.fillRect(-car / 2 + 1, -hgt * 0.88, car - (i === 0 ? car * 0.2 : 2), hgt * 0.4);
+        g.fillStyle = light ? "#6c7890" : "#ffd98a";
+        for (let k = 0; k < 4; k += 1) g.fillRect(-car / 2 + car * (0.1 + k * 0.2), -hgt * 0.8, car * 0.12, hgt * 0.26);
+        g.restore();
+      }
+    };
+
+    /* ---------------------------------------------------------------- one frame */
+    let clock = 0, paused = false, pick = -1, at = 0.04, shown = false, nextDone = false;
+    function paint(dt) {
+      if (!W || !rail.length) return;
+      const y = window.scrollY, on = y + vh > top - 80 && y < top + H + 80;
+      if (!on && !reduced) return;
+      if (!paused) clock += dt;
+      light = html.dataset.theme === "light";
+      const p = reduced ? 1 : clamp((y + vh * 0.86 - top) / (H + vh * 0.42)), app = reduced ? 1 : seg(p, 0.03, 0.42);
+      const goal = pick >= 0 ? worlds[pick].u - (worlds[pick].r * 1.5) / railLen : reduced ? (worlds[3].u + worlds[4].u) / 2 : 0.05 + 0.9 * seg(p, 0.1, 0.92); /* still: between two stops, in full view */
+      at += (goal - at) * (reduced ? 1 : 1 - Math.pow(1 - 0.07, dt * 60));
+      worlds.forEach((w, i) => { w.hot += ((i === pick ? 1 : 0) - w.hot) * (reduced ? 1 : 1 - Math.pow(1 - 0.14, dt * 60)); });
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, W, H);
+      g.globalAlpha = app;
+      line(); train(at);
+      const lx = reduced || !pointer.active ? 0 : (pointer.x / window.innerWidth - 0.5), ly = reduced || !pointer.active ? 0 : (pointer.y / vh - 0.5);
+      worlds.forEach((w, i) => {
+        const rise = (1 - ease(seg(app, i * 0.1, 0.6 + i * 0.1))) * 46, depth = [0.7, 1, 1.4, 1, 0.7][i];
+        g.globalAlpha = ease(seg(app, i * 0.1, 0.5 + i * 0.1)) * (pick >= 0 && pick !== i ? 0.5 + 0.5 * w.hot : 1);
+        g.save(); g.translate(-lx * 9 * depth, rise - ly * 6 * depth);
+        DRAW[w.kind](w, clock, app);
+        g.restore();
+      });
+      g.globalAlpha = 1;
+      if (!shown) { shown = true; stage.classList.add("is-drawn"); }
+      if (!nextDone) { /* the next decision, counted in days from today */
+        nextDone = true;
+        const slot = stage.querySelector("[data-sky-next]"), m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(D.wsl.next || "");
+        if (slot && m) {
+          const day = Date.UTC(+m[1], +m[2] - 1, +m[3]), now = new Date(), today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()), n = Math.round((day - today) / 864e5);
+          const when = new Date(day).toLocaleDateString("en-CA", { day: "numeric", month: "long", timeZone: "UTC" });
+          if (n > 0) slot.textContent = `The next forecast is for ${when}, in ${n} day${n === 1 ? "" : "s"}.`;
+          else if (n === 0) slot.textContent = `The next forecast is for today, ${when}.`;
+          else slot.textContent = "";
+        }
+      }
+    }
+
+    worlds.forEach((w, i) => {
+      const a = w.li.querySelector("a");
+      const set = (v) => { pick = v; if (reduced) paint(0); };
+      a.addEventListener("pointerenter", () => set(i));
+      a.addEventListener("pointerleave", () => { if (pick === i) set(-1); });
+      a.addEventListener("focus", () => set(i));
+      a.addEventListener("blur", () => { if (pick === i) set(-1); });
+    });
+    const pause = stage.querySelector("[data-sky-pause]");
+    if (pause && !reduced) {
+      pause.hidden = false;
+      pause.addEventListener("click", () => { paused = !paused; pause.setAttribute("aria-pressed", String(paused)); pause.textContent = paused ? "Play" : "Pause"; });
+    }
+    measures.push(measure);
+    tasks.push((dt) => paint(dt));
+    if (reduced) new MutationObserver(() => paint(0)).observe(html, { attributes: true, attributeFilter: ["data-theme"] });
   });
 
   if (reduced) { startClock(); return; }
