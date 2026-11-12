@@ -100,7 +100,8 @@ def cards(P: dict, status) -> dict:
              "The dashed ring is the standard method. The model's ring sits inside it: less error. Its width is the 95% interval."),
         av: ("attacksWith",
              f'Hidden-instruction attacks that got through; without it, {_b(P, av, "attacksWithout")}. '
-             f'A simulated worst-case agent: real models not run yet.',
+             f'On the public AgentDojo benchmark, {_b(P, av, "dojoWith")} of {_b(P, av, "dojoPairs")} attacks land, from {_b(P, av, "dojoWithout")}. '
+             f'A worst-case agent with no model.',
              f"Thirty attacks arrive. The shield stops {stopped}; the {summary['attacks_landed']} that land are the two kinds it does not claim to stop."),
     }
 

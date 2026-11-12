@@ -55,6 +55,7 @@ REPOS = {
     "aurvane": "aurvane",
 }
 AURVANE_SUMMARIES = ["worst-case_summary.json", "redteam_summary.json"]
+AURVANE_DOJO = "agentdojo_summary.json"  # the guard on the public benchmark; absent from an aurvane checkout older than that run
 FLOAT = re.compile(r"(?<![\w.])-?\d+\.\d{6,}")  # raw numbers quoted from a file, not rounded displays
 JSON_PATH = re.compile(r"\b((?:results|bench|reports|live)/[\w./-]+\.json)\b")
 
@@ -148,7 +149,40 @@ def sync_aurvane(repo: Path) -> None:
             continue
         if copy_if_changed(src, ROOT / "data" / "measurements" / "aurvane" / name):
             changed.append(f"data/measurements/aurvane/{name}")
+    dojo = repo / "bench" / "results" / AURVANE_DOJO
+    if dojo.is_file() and copy_if_changed(dojo, ROOT / "data" / "measurements" / "aurvane" / AURVANE_DOJO):
+        changed.append(f"data/measurements/aurvane/{AURVANE_DOJO}")
     say(f"- aurvane: {'copied ' + ', '.join(changed) if changed else 'no change'}")
+    aurvane_dojo_stats()
+
+
+def aurvane_dojo_stats() -> None:
+    """Aurvane's AgentDojo figures in data/projects.json, written from the copied summary: nothing is typed."""
+    src = ROOT / "data" / "measurements" / "aurvane" / AURVANE_DOJO
+    if not src.is_file():
+        return
+    cond = json.loads(src.read_text())["conditions"]
+    off, on = cond["none"]["total"], cond["A"]["total"]
+    where = f"data/measurements/aurvane/{AURVANE_DOJO}"
+    note = "AgentDojo v1.2.2, worst-case agent (ground-truth replay, no model), AgentDojo's own checks; protocol in aurvane bench/agentdojo/PROTOCOL.md."
+    stats = {
+        "dojoWithout": {"display": f"{off['attack_success_pct']}%", "label": "Attacks that landed on AgentDojo, without Aurvane",
+                        "source": f"{where} conditions.none.total: attack_success {off['attack_success']} of pairs {off['pairs']}. {note}"},
+        "dojoWith": {"display": f"{on['attack_success_pct']}%", "label": "Attacks that landed on AgentDojo, with Aurvane",
+                     "source": f"{where} conditions.A.total: attack_success {on['attack_success']} of pairs {on['pairs']}. {note}"},
+        "dojoPairs": {"display": f"{on['pairs']}", "label": "AgentDojo attack cases replayed",
+                      "source": f"{where} conditions.A.total.pairs {on['pairs']}; pairs_not_replayable {on['pairs_not_replayable']} have no attacker ground truth in the benchmark."},
+        "dojoApproval": {"display": f"{on['clean_need_approval']} of {on['user_tasks']}", "label": "Honest AgentDojo tasks that needed an approval, with Aurvane",
+                         "source": f"{where} conditions.A.total: clean_need_approval {on['clean_need_approval']} of user_tasks {on['user_tasks']}."},
+    }
+    path = ROOT / "data" / "projects.json"
+    data = json.loads(path.read_text())
+    project = next(p for p in data["projects"] if p["id"] == "aurvane")
+    if all(project["stats"].get(k) == v for k, v in stats.items()):
+        return
+    project["stats"].update(stats)
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    say("- aurvane: AgentDojo figures written to data/projects.json")
 
 
 def sync_wsl_app(repo: Path) -> None:
