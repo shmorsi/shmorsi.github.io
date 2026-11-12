@@ -30,9 +30,9 @@
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preload" href="assets/fonts/inter-tight-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/site.css">
+  <link rel="stylesheet" href="assets/site.css?v=9d512ad0b7">
   <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
-  <script src="assets/site.js" defer></script>
+  <script src="assets/site.js?v=9d512ad0b7" defer></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -51,7 +51,20 @@
 <body data-root="" data-metrics="data/projects.json">
   <a class="skip" href="#main">Skip to content</a>
 
-  <header class="site-header"></header>
+  <header class="site-header">
+    <a class="wordmark" href="./">Sherif Morsi</a>
+    <div class="header-tools">
+      <nav class="site-nav" id="site-nav" aria-label="Main" data-site-nav>
+        <a href="#work" data-section="work">Work</a>
+        <a href="#approach" data-section="approach">Approach</a>
+        <a href="#experience" data-section="experience">Experience</a>
+        <a href="#contact" data-section="contact">Contact</a>
+        <a class="nav-resume" href="resume/Sherif_Morsi_Resume.pdf">Resume</a>
+      </nav>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.75a7.25 7.25 0 0 1 0 14.5Z" fill="currentColor"/></svg></button>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-button>Menu</button>
+    </div>
+  </header>
 
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
@@ -572,7 +585,16 @@
     </section>
   </main>
 
-  <footer class="site-footer"></footer>
+  <footer class="site-footer">
+    <span>© 2026 Sherif Morsi, Montreal</span>
+    <span>
+      <a href="mailto:shmorsi@outlook.com">Email</a>
+      <a href="https://github.com/shmorsi" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.linkedin.com/in/sherif-morsi-a17628295/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a href="resume/Sherif_Morsi_Resume.pdf">Resume</a>
+      <a href="#work">All projects</a>
+    </span>
+  </footer>
   <div class="copy-status" role="status" aria-live="polite" data-copy-status></div>
 </body>
 </html>

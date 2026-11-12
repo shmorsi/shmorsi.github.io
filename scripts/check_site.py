@@ -380,7 +380,7 @@ else:
     # every project page shares. So it must load this site's stylesheet and script, bring no palette or font of its
     # own (it would stop following the theme, and stop looking like the other pages), and be dressed.
     av_page = (ROOT / "aurvane" / "index.html").read_text(encoding="utf-8")
-    for needed in ('href="../assets/site.css"', 'src="../assets/site.js"', '<header class="cs-hero wrap has-scene">', "data-plain", "data-cs-scene",
+    for needed in ('href="../assets/site.css', 'src="../assets/site.js', '<header class="cs-hero wrap has-scene">', "data-plain", "data-cs-scene",
                    "data-subnav", 'class="project-switch"', 'data-glance="aurvane"', 'id="roomBox"'):
         if needed not in av_page:
             errors.append(f"aurvane/index.html is not this site's project page: it has no {needed} (run scripts/sync_aurvane.py on the aurvane build)")
@@ -457,6 +457,18 @@ for path in ROOT.rglob("*"):
 for gone in ("orbit", "projects/atlas.html", "data/measurements/orbit"):
     if (ROOT / gone).exists():
         errors.append(f"{gone} belongs to a retired project and must not be served")
+
+# Every page addresses the stylesheet and the script by their current version (scripts/sync_chrome.py stamps it). Without
+# it a returning browser keeps the old files for a while and shows a new page half dressed.
+sys.path.insert(0, str(ROOT / "scripts"))
+import sync_chrome as _chrome  # noqa: E402
+_version = _chrome.asset_version()
+for path in sorted(ROOT.rglob("*.html")):
+    if ".git" in path.parts or path.is_relative_to(ROOT / "shock-lab") or path.is_relative_to(ROOT / "scripts"):
+        continue
+    for ref in re.findall(r'(?:href|src)="[^"]*assets/site\.(?:css|js)[^"]*"', path.read_text(encoding="utf-8", errors="ignore")):
+        if not ref.endswith(f'?v={_version}"'):
+            errors.append(f"{path.relative_to(ROOT)} loads {ref.split(chr(34))[1]} without the current version stamp (run scripts/sync_chrome.py)")
 
 # Three projects; the first has three studies. Order, numbers (01.1, 01.2, 01.3, 02, 03) and groups follow scripts/groups.py.
 sys.path.insert(0, str(ROOT / "scripts"))

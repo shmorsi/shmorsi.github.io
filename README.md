@@ -63,7 +63,7 @@ python3 scripts/make_land.py land-110m.json   # data/land_mask.json for the part
 python3 scripts/build_home.py        # index.html, the master page (with scripts/stories.py, scripts/worlds.py and scripts/plain.py)
 python3 scripts/build_dpc_page.py    # projects/deep-portfolio-constructor.html
 python3 scripts/build_pension_page.py   # projects/pension-lab.html
-python3 scripts/sync_chrome.py       # header, footer, project label, plain-English panel, previous / next links, private-repo notes
+python3 scripts/sync_chrome.py       # header, footer, project label, plain-English panel, previous / next links, private-repo notes, and the version stamp on site.css and site.js (run it after editing either)
 python3 scripts/make_og.py           # share images (needs Playwright's Chromium)
 python3 scripts/check_site.py        # copy rules, figure binds, charts, pending slots, internal links
 ```
