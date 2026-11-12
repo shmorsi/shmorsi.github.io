@@ -1298,6 +1298,588 @@ void main(){
     });
   });
 
+  /* ---- The land: an illustrated Earth, drawn in code. --------------------------------------------
+     One long journey by train, left to right: high mountains and a stone viaduct, farmland, a coast
+     with a lighthouse, a plain of wind turbines under an observatory, then a colourful city and its
+     station. Nothing is an image: every ridge, tree, arch, carriage and window is a shape placed by
+     a seeded rule, so the whole world weighs a few kilobytes and is sharp at any size.
+
+     draw(g, W, H, S) paints one frame. S says where the journey is (J, in stops), how much of the
+     screen the land takes (horizon, zoom), the time of day (tod), which palette (light: day; dark:
+     night) and how far things that turn have turned (spin). All of S comes from the scroll. */
+  const Land = (() => {
+    const Z = 3.2; /* screen heights of world between two stops of the journey */
+    const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const ss = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+    const bump = (j, a, b, s = 0.3) => ss(a - s, a + s, j) * (1 - ss(b - s, b + s, j));
+    const hash = (n) => { const s = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return s - Math.floor(s); };
+    const mix = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+    const rgb = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+    const hex = (s) => [parseInt(s.slice(1, 3), 16), parseInt(s.slice(3, 5), 16), parseInt(s.slice(5, 7), 16)];
+
+    /* What the land is made of at each point of the journey (j, in stops). */
+    const B = {
+      alp: (j) => bump(j, -9, 1.72) + 0.4 * bump(j, 1.72, 2.8) + 0.2 * bump(j, 3.95, 4.9) + 0.12 * ss(5.2, 6, j),
+      hill: (j) => 0.6 + 0.4 * bump(j, 1.8, 2.9) - 0.42 * bump(j, 3.0, 3.9) - 0.3 * ss(5.3, 6.2, j),
+      sea: (j) => bump(j, 2.95, 3.95, 0.2),
+      city: (j) => ss(5.05, 5.75, j),
+      span: (j) => bump(j, -9, 1.68, 0.18),
+      farm: (j) => bump(j, 1.95, 2.85, 0.2),
+      plain: (j) => bump(j, 4.05, 4.9, 0.2),
+    };
+
+    /* Colours: three moments of the night (blue hour, deep night, the lit city) and three of the day
+       (morning, midday, golden hour). The time of day slides between them. */
+    const TABLE = {
+      skyTop: ["#0a0c1c", "#05060f", "#0b0a18", "#e6f0fc", "#dfedfc", "#f6e9e0"],
+      skyLow: ["#3a2a66", "#16204c", "#3c2452", "#fdebd8", "#f0f6ff", "#ffd3a8"],
+      glow: ["#ff8f7a", "#4a6ad8", "#ff9a6a", "#fff4e2", "#ffffff", "#ffb07a"],
+      farLit: ["#7c6ec4", "#5c68b4", "#8c64aa", "#f6bcc8", "#f2c4d4", "#ffb09a"],
+      farShade: ["#3a3274", "#28306e", "#442a60", "#9c9ade", "#90a2e2", "#b27caa"],
+      snowLit: ["#eee4ff", "#d8deff", "#ffdbd2", "#ffffff", "#ffffff", "#fff2e2"],
+      snowShade: ["#9c90da", "#808cd2", "#b28cc2", "#d6dcf8", "#ced9f9", "#eabaca"],
+      midLit: ["#48528f", "#36467f", "#543c76", "#9cc0e4", "#8fc0d8", "#e29c8a"],
+      midShade: ["#272b5c", "#1d2752", "#31214c", "#6a8fc8", "#6098ba", "#a26c8a"],
+      haze: ["#9a78c8", "#3c56a8", "#b0688a", "#ffe9dc", "#eef4ff", "#ffc9a0"],
+      hillTop: ["#2e3e70", "#202e5a", "#36325e", "#b6da8c", "#a0d47e", "#dac272"],
+      hillLow: ["#171f42", "#111938", "#1d193a", "#64ac72", "#50a06a", "#8c9c5a"],
+      rim: ["#8c7cd2", "#526aba", "#c27c92", "#e8f4b2", "#daf2aa", "#ffe2a2"],
+      tree: ["#0e1630", "#0a1228", "#140f28", "#2f6e52", "#2a6a4c", "#4a6a40"],
+      treeLit: ["#26386a", "#1c2c58", "#3a2c58", "#5c9c6a", "#5aa266", "#8c9c52"],
+      stoneLit: ["#7064a2", "#585c96", "#7c5c8c", "#f2d2aa", "#eed6b2", "#f6ba8a"],
+      stoneShade: ["#3b3369", "#2d3161", "#43315b", "#ca9c72", "#c2a27a", "#c27c62"],
+      body: ["#aaa2c6", "#9094b8", "#b096ae", "#fcf2de", "#fcf4e4", "#ffeaca"],
+      band: ["#c84a40", "#b04248", "#d05040", "#dc4a3c", "#de4c3e", "#e04a30"],
+      roof: ["#4a4870", "#3c4068", "#503e60", "#8c8ca2", "#8a92aa", "#a27c82"],
+      pane: ["#ffd98a", "#ffd98a", "#ffcf80", "#34486c", "#30486c", "#5a4460"],
+      waterTop: ["#5c5eb2", "#364a9c", "#7c5092", "#a8daf4", "#90d2f2", "#f2ba92"],
+      waterLow: ["#1f2359", "#151d4b", "#2b1b49", "#5caae2", "#4ca0de", "#b27c9a"],
+      spark: ["#ffc8b0", "#a8c0ff", "#ffc0a0", "#ffffff", "#ffffff", "#fff0c0"],
+      fore: ["#0b1024", "#080c1c", "#0e0a1c", "#3c7e5c", "#357a56", "#5a6e40"],
+      foreRim: ["#2a3668", "#1e2a58", "#3a2a58", "#7cba7c", "#72ba76", "#aaaa62"],
+      cloud: ["#6a5aa8", "#34407a", "#7a4a80", "#ffffff", "#ffffff", "#ffe2c8"],
+      orb: ["#f6eeda", "#eef0ff", "#ffe8c2", "#fff2b8", "#fff8d8", "#ffc070"],
+      lamp: ["#ffd98a", "#ffd98a", "#ffcf80", "#fff6d8", "#ffffff", "#ffe6b0"],
+    };
+    const KEYS = Object.keys(TABLE);
+    Object.values(TABLE).forEach((row) => row.forEach((s, i) => { row[i] = hex(s); }));
+    const WALLS = ["#ef7d6a", "#f2c14e", "#4fb3a5", "#f7ead1", "#b39ddb", "#6aa9e9", "#e896b4", "#f4a259"].map(hex);
+    const palette = (light, tod) => {
+      const t = clamp(tod) * 1.999, a = Math.floor(t), f = t - a, o = (light ? 3 : 0) + a, P = {};
+      for (const k of KEYS) P[k] = mix(TABLE[k][o], TABLE[k][o + 1], f);
+      return P;
+    };
+
+    const layer = (V, p) => ({ p, X: (x) => V.W / 2 + (x - V.cam * p) * V.U, j: (x) => x / (p * Z), a: V.cam * p - V.W / 2 / V.U, b: V.cam * p + V.W / 2 / V.U });
+    const cells = (lay, size, pad, fn) => { for (let i = Math.floor((lay.a - pad) / size), n = Math.ceil((lay.b + pad) / size); i <= n; i++) fn(i, (i + 0.5) * size); };
+
+    function sky(V) {
+      const { g, W, y0, U, P, S } = V;
+      if (S.light) {
+        const gr = g.createLinearGradient(0, 0, 0, y0);
+        gr.addColorStop(0, rgb(P.skyTop)); gr.addColorStop(0.6, rgb(mix(P.skyTop, P.skyLow, 0.5))); gr.addColorStop(1, rgb(mix(P.skyLow, P.glow, 0.35)));
+        g.fillStyle = gr; g.fillRect(0, 0, W, y0 + 2);
+        return;
+      }
+      const top = y0 - 0.66 * U, gr = g.createLinearGradient(0, top, 0, y0);
+      gr.addColorStop(0, rgb(P.skyLow, 0)); gr.addColorStop(0.5, rgb(P.skyLow, 0.46)); gr.addColorStop(0.86, rgb(mix(P.skyLow, P.glow, 0.34), 0.8)); gr.addColorStop(1, rgb(mix(P.skyLow, P.glow, 0.6), 0.92));
+      g.fillStyle = gr; g.fillRect(0, top, W, y0 - top + 2);
+    }
+
+    /* The moon at night, the sun by day. */
+    function orb(V) {
+      const { g, P, S } = V, o = S.orb;
+      if (!o || o.a <= 0.01) return;
+      g.save(); g.globalAlpha = o.a;
+      const halo = g.createRadialGradient(o.x, o.y, o.r * 0.8, o.x, o.y, o.r * (S.light ? 3.4 : 2.6));
+      halo.addColorStop(0, rgb(P.orb, S.light ? 0.5 : 0.28)); halo.addColorStop(1, rgb(P.orb, 0));
+      g.fillStyle = halo; g.beginPath(); g.arc(o.x, o.y, o.r * 3.4, 0, 6.2832); g.fill();
+      const disc = g.createRadialGradient(o.x - o.r * 0.35, o.y - o.r * 0.4, o.r * 0.1, o.x, o.y, o.r);
+      disc.addColorStop(0, rgb(mix(P.orb, [255, 255, 255], 0.5))); disc.addColorStop(1, rgb(S.light ? P.orb : mix(P.orb, P.farShade, 0.3)));
+      g.fillStyle = disc; g.beginPath(); g.arc(o.x, o.y, o.r, 0, 6.2832); g.fill();
+      if (!S.light) { /* seas and craters */
+        g.fillStyle = rgb(mix(P.orb, P.farShade, 0.55), 0.3);
+        [[-0.3, -0.25, 0.26], [0.28, -0.38, 0.15], [0.1, 0.22, 0.3], [-0.46, 0.3, 0.13], [0.5, 0.12, 0.11], [-0.05, -0.62, 0.09]].forEach(([x, y, r]) => { g.beginPath(); g.arc(o.x + x * o.r, o.y + y * o.r, r * o.r, 0, 6.2832); g.fill(); });
+      }
+      g.restore();
+    }
+
+    function clouds(V) {
+      const { g, U, y0, P, S } = V, lay = layer(V, 0.07);
+      cells(lay, 0.62, 0.5, (i, xc) => {
+        const k = hash(i * 3.17 + 5), j = lay.j(xc), storm = B.sea(j) > 0.5 && hash(i * 7.7) > 0.35;
+        if (k < 0.38 && !storm) return;
+        const x = lay.X(xc + (hash(i * 1.3) - 0.5) * 0.3), y = y0 - (storm ? 0.4 : 0.46 + 0.3 * hash(i * 9.1)) * U, s = (0.09 + 0.1 * hash(i * 5.3)) * U * (storm ? 1.5 : 1);
+        const c = storm ? mix(P.cloud, P.midShade, 0.6) : P.cloud;
+        g.fillStyle = rgb(c, S.light ? (storm ? 0.9 : 0.86) : storm ? 0.6 : 0.3);
+        g.beginPath();
+        [[-1.1, 0.1, 0.62], [-0.45, -0.22, 0.8], [0.3, -0.34, 0.92], [0.95, -0.02, 0.66], [0, 0.16, 1.25]].forEach(([dx, dy, r], n) => { g.ellipse(x + dx * s, y + dy * s, r * s * (n === 4 ? 1.1 : 0.72), r * s * (n === 4 ? 0.34 : 0.56), 0, 0, 6.2832); });
+        g.fill();
+        if (storm) { /* rain, leaning with the wind */
+          g.strokeStyle = rgb(P.spark, S.light ? 0.5 : 0.28); g.lineWidth = Math.max(1, U * 0.0016); g.beginPath();
+          for (let n = 0; n < 16; n++) { const rx = x + (hash(i * 31 + n) - 0.5) * 2.4 * s, ry = y + 0.32 * s + hash(i * 17 + n) * 0.5 * s; g.moveTo(rx, ry); g.lineTo(rx - 0.09 * s, ry + 0.3 * s); }
+          g.stroke();
+        }
+      });
+    }
+
+    /* One mountain: a lit face and a shaded face meeting on a ridge, with snow on the high ones. */
+    function peak(V, x, base, w, h, o, k) {
+      const { g, P } = V, ax = x + (k - 0.5) * w * 0.34, ay = base - h, Lx = x - w, Rx = x + w * (0.92 + 0.3 * k);
+      const ridge = [];
+      for (let i = 0; i <= 5; i++) { const t = i / 5, wob = i && i < 5 ? (i % 2 ? 1 : -1) * w * 0.07 * (1 - t * 0.5) : 0; ridge.push([ax + (Rx - ax) * 0.3 * t + wob, ay + h * t]); }
+      const shoulder = [lerp(Lx, ax, 0.52) - w * 0.05, lerp(base, ay, 0.56)];
+      const lit = g.createLinearGradient(0, ay, 0, base), dark = g.createLinearGradient(0, ay, 0, base);
+      lit.addColorStop(0, rgb(o.lit)); lit.addColorStop(1, rgb(mix(o.lit, P.haze, o.fade)));
+      dark.addColorStop(0, rgb(o.shade)); dark.addColorStop(1, rgb(mix(o.shade, P.haze, o.fade * 0.8)));
+      g.fillStyle = dark; g.beginPath(); g.moveTo(ax, ay); g.lineTo(lerp(ax, Rx, 0.5) + w * 0.06, lerp(ay, base, 0.46)); g.lineTo(Rx, base); g.lineTo(ridge[5][0], base);
+      for (let i = 4; i >= 0; i--) g.lineTo(ridge[i][0], ridge[i][1]);
+      g.fill();
+      g.fillStyle = lit; g.beginPath(); g.moveTo(Lx, base); g.lineTo(shoulder[0], shoulder[1]); g.lineTo(ax, ay);
+      ridge.forEach((p) => g.lineTo(p[0], p[1]));
+      g.fill();
+      if (!o.snow || h < o.snow) return;
+      const ts = clamp(0.2 + 0.2 * (h - o.snow) / o.snow, 0.2, 0.42), yS = ay + h * ts, onL = lerp(ax, shoulder[0], ts / 0.44), onR = lerp(ax, lerp(ax, Rx, 0.5) + w * 0.06, ts / 0.46), mid = ax + (Rx - ax) * 0.3 * ts;
+      g.fillStyle = rgb(P.snowShade); g.beginPath(); g.moveTo(ax, ay); g.lineTo(onR, yS); g.lineTo(lerp(mid, onR, 0.55), yS - h * 0.05); g.lineTo(mid + w * 0.02, yS + h * 0.03); g.lineTo(mid, yS - h * 0.02); g.fill();
+      g.fillStyle = rgb(P.snowLit); g.beginPath(); g.moveTo(ax, ay); g.lineTo(mid, yS - h * 0.02); g.lineTo(lerp(onL, mid, 0.66), yS + h * 0.035); g.lineTo(lerp(onL, mid, 0.4), yS - h * 0.03); g.lineTo(lerp(onL, mid, 0.16), yS + h * 0.03); g.lineTo(onL, yS - h * 0.01); g.fill();
+    }
+
+    function range(V, o) {
+      const lay = layer(V, o.p), { U } = V;
+      for (const pass of [0, 1]) cells(lay, o.cell, 1.2, (i, xc0) => {
+        const hf = hash(i * 3.71 + o.seed);
+        if ((hf > 0.55 ? 0 : 1) !== pass) return;
+        const xc = xc0 + (hash(i * 1.93 + o.seed) - 0.5) * 0.7 * o.cell, h = B.alp(lay.j(xc)) * lerp(o.min, o.max, hf);
+        if (h < 0.022) return;
+        peak(V, lay.X(xc), o.base, h * lerp(0.95, 1.45, hash(i * 5.13 + o.seed)) * U, h * U, o, hash(i * 7.31 + o.seed));
+      });
+    }
+
+    function water(V) {
+      const { g, W, H, U, y0, P, S } = V, lay = layer(V, 0.22), gr = g.createLinearGradient(0, y0, 0, y0 + 0.2 * U);
+      gr.addColorStop(0, rgb(P.waterTop)); gr.addColorStop(1, rgb(P.waterLow));
+      g.fillStyle = gr;
+      for (let x = 0; x < W; x += 24) { const a = B.sea(lay.j(lay.a + (x + 12) / U)); if (a > 0.02) { g.globalAlpha = a; g.fillRect(x, y0 - 1, 25, H - y0 + 1); } }
+      g.fillStyle = rgb(P.spark);
+      cells(lay, 0.05, 0.1, (i, xc) => {
+        const a = B.sea(lay.j(xc));
+        if (a < 0.2) return;
+        for (let r = 0; r < 4; r++) { const k = hash(i * 13.7 + r * 5.1); if (k > 0.5) continue; g.globalAlpha = a * (S.light ? 0.75 : 0.42) * (0.4 + k); g.fillRect(lay.X(xc + (k - 0.25) * 0.08), y0 + (0.012 + r * 0.011 + k * 0.006) * U, (0.012 + 0.03 * k) * U, Math.max(1, U * 0.0022)); }
+      });
+      g.globalAlpha = 1;
+      /* sails on the bay */
+      const far = layer(V, 0.3);
+      cells(far, 0.34, 0.2, (i, xc) => {
+        if (B.sea(far.j(xc)) < 0.6 || hash(i * 4.4) > 0.6) return;
+        const x = far.X(xc), y = y0 + (0.02 + 0.016 * hash(i * 2.2)) * U, s = (0.016 + 0.01 * hash(i * 8.8)) * U;
+        g.fillStyle = rgb(P.body); g.beginPath(); g.moveTo(x, y - s * 2.3); g.lineTo(x + s * 1.1, y - s * 0.3); g.lineTo(x, y - s * 0.3); g.fill();
+        g.fillStyle = rgb(P.band); g.beginPath(); g.moveTo(x - s * 0.15, y - s * 1.8); g.lineTo(x - s * 0.9, y - s * 0.3); g.lineTo(x - s * 0.15, y - s * 0.3); g.fill();
+        g.fillStyle = rgb(P.tree); g.beginPath(); g.moveTo(x - s * 1.1, y - s * 0.2); g.lineTo(x + s * 1.2, y - s * 0.2); g.lineTo(x + s * 0.8, y + s * 0.2); g.lineTo(x - s * 0.8, y + s * 0.2); g.fill();
+      });
+    }
+
+    const hillH = (x, j) => Math.max(0.004, B.hill(j) * (0.056 + 0.032 * Math.sin(x * 2.1 + 1.3) + 0.02 * Math.sin(x * 5.3 + 0.7) + 0.009 * Math.sin(x * 12.7)));
+
+    function tree(V, x, y, s, kind, k) {
+      const { g, P } = V;
+      if (kind === 0) { /* pine */
+        g.fillStyle = rgb(P.tree);
+        for (let n = 0; n < 3; n++) { const w = s * (0.34 - n * 0.07), top = y - s * (0.42 + n * 0.29), bot = y - s * (0.12 + n * 0.25); g.beginPath(); g.moveTo(x, top); g.lineTo(x + w, bot); g.lineTo(x - w, bot); g.fill(); }
+        g.fillStyle = rgb(P.treeLit, 0.8);
+        for (let n = 0; n < 3; n++) { const w = s * (0.34 - n * 0.07), top = y - s * (0.42 + n * 0.29), bot = y - s * (0.12 + n * 0.25); g.beginPath(); g.moveTo(x, top); g.lineTo(x - w, bot); g.lineTo(x - w * 0.2, bot); g.fill(); }
+        g.fillStyle = rgb(P.tree); g.fillRect(x - s * 0.03, y - s * 0.14, s * 0.06, s * 0.16);
+      } else if (kind === 1) { /* cypress */
+        g.fillStyle = rgb(P.tree); g.beginPath(); g.ellipse(x, y - s * 0.52, s * 0.13, s * 0.5, 0, 0, 6.2832); g.fill();
+        g.fillStyle = rgb(P.treeLit, 0.75); g.beginPath(); g.ellipse(x - s * 0.04, y - s * 0.56, s * 0.06, s * 0.4, 0, 0, 6.2832); g.fill();
+      } else { /* a round tree */
+        g.fillStyle = rgb(P.tree); g.fillRect(x - s * 0.03, y - s * 0.3, s * 0.06, s * 0.32);
+        g.beginPath(); g.arc(x, y - s * 0.52, s * 0.3, 0, 6.2832); g.arc(x + s * 0.2, y - s * 0.38, s * 0.2, 0, 6.2832); g.arc(x - s * 0.22, y - s * 0.4, s * 0.2, 0, 6.2832); g.fill();
+        g.fillStyle = rgb(P.treeLit, 0.8); g.beginPath(); g.arc(x - s * 0.08, y - s * 0.6, s * 0.17 * (0.8 + 0.4 * k), 0, 6.2832); g.fill();
+      }
+    }
+
+    function house(V, x, y, s, k) {
+      const { g, P, S } = V, wall = S.light ? WALLS[3] : mix(WALLS[3], P.hillLow, 0.62), roofc = S.light ? WALLS[0] : mix(WALLS[0], P.hillLow, 0.6);
+      g.fillStyle = rgb(wall); g.fillRect(x - s * 0.5, y - s * 0.62, s, s * 0.64);
+      g.fillStyle = rgb(roofc); g.beginPath(); g.moveTo(x - s * 0.62, y - s * 0.6); g.lineTo(x, y - s * 1.08); g.lineTo(x + s * 0.62, y - s * 0.6); g.fill();
+      g.fillStyle = rgb(P.pane, S.light ? 0.85 : 0.95); g.fillRect(x - s * 0.3, y - s * 0.45, s * 0.2, s * 0.22);
+      if (k > 0.4) g.fillRect(x + s * 0.1, y - s * 0.45, s * 0.2, s * 0.22);
+    }
+
+    /* Things that stand at one place of the journey. Each is drawn on the hills, at its own stop. */
+    const PROPS = [
+      { j: 3.36, draw(V, x, y, s) { /* the lighthouse, and its beam at night */
+        const { g, P, S } = V, h = s * 1.9;
+        if (!S.light) {
+          const a = Math.sin(S.spin * 1.7) * 0.55 - 0.15, beam = g.createLinearGradient(x, y - h, x + Math.cos(a) * s * 9, y - h + Math.sin(a) * s * 9);
+          beam.addColorStop(0, rgb(P.lamp, 0.42)); beam.addColorStop(1, rgb(P.lamp, 0));
+          g.fillStyle = beam; g.beginPath(); g.moveTo(x, y - h); g.lineTo(x + Math.cos(a - 0.09) * s * 9, y - h + Math.sin(a - 0.09) * s * 9); g.lineTo(x + Math.cos(a + 0.09) * s * 9, y - h + Math.sin(a + 0.09) * s * 9); g.fill();
+        }
+        g.fillStyle = rgb(P.body); g.beginPath(); g.moveTo(x - s * 0.3, y); g.lineTo(x - s * 0.19, y - h + s * 0.2); g.lineTo(x + s * 0.19, y - h + s * 0.2); g.lineTo(x + s * 0.3, y); g.fill();
+        g.fillStyle = rgb(P.band);
+        [0.22, 0.56].forEach((t) => { const w0 = lerp(0.3, 0.19, t), w1 = lerp(0.3, 0.19, t + 0.17); g.beginPath(); g.moveTo(x - s * w0, y - h * t * 0.89); g.lineTo(x - s * w1, y - h * (t + 0.17) * 0.89); g.lineTo(x + s * w1, y - h * (t + 0.17) * 0.89); g.lineTo(x + s * w0, y - h * t * 0.89); g.fill(); });
+        g.fillStyle = rgb(P.lamp); g.fillRect(x - s * 0.15, y - h + s * 0.02, s * 0.3, s * 0.18);
+        g.fillStyle = rgb(P.roof); g.beginPath(); g.moveTo(x - s * 0.24, y - h + s * 0.03); g.lineTo(x, y - h - s * 0.22); g.lineTo(x + s * 0.24, y - h + s * 0.03); g.fill(); g.fillRect(x - s * 0.27, y - h + s * 0.19, s * 0.54, s * 0.04);
+      } },
+      { j: 3.68, draw(V, x, y, s) { /* the weather station: a mast, cups that turn in the wind, a wind sock */
+        const { g, P, S } = V, h = s * 1.5;
+        g.strokeStyle = rgb(P.body); g.lineWidth = Math.max(1.2, s * 0.045); g.lineCap = "round";
+        g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - h); g.moveTo(x - s * 0.34, y); g.lineTo(x, y - h * 0.45); g.lineTo(x + s * 0.34, y); g.stroke();
+        for (let n = 0; n < 3; n++) { const a = S.spin * 3 + n * 2.0944, cx = x + Math.cos(a) * s * 0.3, cy = y - h + Math.sin(a) * s * 0.06; g.beginPath(); g.moveTo(x, y - h); g.lineTo(cx, cy); g.stroke(); g.fillStyle = rgb(P.band); g.beginPath(); g.arc(cx, cy, s * 0.075, 0, 6.2832); g.fill(); }
+        g.fillStyle = rgb(P.band); g.beginPath(); g.moveTo(x, y - h * 0.78); g.lineTo(x + s * 0.5, y - h * 0.74 + Math.sin(S.spin * 2.3) * s * 0.05); g.lineTo(x, y - h * 0.66); g.fill();
+        g.fillStyle = rgb(P.body); g.fillRect(x - s * 0.52, y - s * 0.3, s * 0.36, s * 0.3);
+        g.fillStyle = rgb(P.roof); g.fillRect(x - s * 0.56, y - s * 0.34, s * 0.44, s * 0.06);
+      } },
+      { j: 4.62, draw(V, x, y, s) { /* the observatory: a dome with its slit open to the sky */
+        const { g, P, S } = V;
+        g.fillStyle = rgb(S.light ? WALLS[3] : mix(WALLS[3], P.hillLow, 0.55)); g.fillRect(x - s * 0.62, y - s * 0.5, s * 1.24, s * 0.52);
+        g.fillStyle = rgb(S.light ? [236, 240, 248] : mix([236, 240, 248], P.hillLow, 0.45)); g.beginPath(); g.arc(x, y - s * 0.5, s * 0.6, Math.PI, 0); g.fill();
+        g.fillStyle = rgb(S.light ? P.roof : P.lamp, S.light ? 1 : 0.9); g.beginPath(); g.moveTo(x + s * 0.05, y - s * 0.5); g.arc(x, y - s * 0.5, s * 0.6, -1.25, -0.95); g.fill();
+        g.fillStyle = rgb(P.pane); g.fillRect(x - s * 0.42, y - s * 0.32, s * 0.16, s * 0.18); g.fillRect(x + s * 0.26, y - s * 0.32, s * 0.16, s * 0.18);
+      } },
+    ];
+
+    function turbine(V, x, y, s, k) {
+      const { g, P, S } = V, hub = y - s;
+      g.strokeStyle = rgb(S.light ? mix(P.roof, P.body, 0.25) : P.body); g.lineCap = "round"; g.lineWidth = Math.max(1.2, s * 0.035);
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x, hub); g.stroke();
+      g.lineWidth = Math.max(1, s * 0.03);
+      for (let n = 0; n < 3; n++) { const a = S.spin * (2.2 + k) + k * 6 + n * 2.0944; g.beginPath(); g.moveTo(x, hub); g.lineTo(x + Math.cos(a) * s * 0.46, hub + Math.sin(a) * s * 0.46); g.stroke(); }
+      g.fillStyle = rgb(P.band); g.beginPath(); g.arc(x, hub, s * 0.045, 0, 6.2832); g.fill();
+    }
+
+    function hills(V) {
+      const { g, W, H, U, y0, P, S, cam } = V, lay = layer(V, 0.5), base = y0 + 0.05 * U, top = [];
+      for (let x = -12; x <= W + 12; x += 8) { const xl = cam * 0.5 + (x - W / 2) / U; top.push([x, base - hillH(xl, lay.j(xl)) * U, xl]); }
+      const gr = g.createLinearGradient(0, base - 0.12 * U, 0, base + 0.16 * U);
+      gr.addColorStop(0, rgb(P.hillTop)); gr.addColorStop(1, rgb(P.hillLow));
+      g.fillStyle = gr; g.beginPath(); g.moveTo(-12, H); top.forEach((p) => g.lineTo(p[0], p[1])); g.lineTo(W + 12, H); g.fill();
+      g.strokeStyle = rgb(P.rim, S.light ? 0.9 : 0.55); g.lineWidth = Math.max(1.2, U * 0.003); g.beginPath(); top.forEach((p, n) => (n ? g.lineTo(p[0], p[1] + 1) : g.moveTo(p[0], p[1] + 1))); g.stroke();
+      /* rows of a field, following the slope */
+      g.lineWidth = Math.max(1, U * 0.0018);
+      for (let r = 1; r <= 5; r++) {
+        g.beginPath(); let open = false;
+        top.forEach((p) => { const a = B.farm(lay.j(p[2])); if (a > 0.35 && Math.sin(p[2] * 3.1) > -0.2) { const y = p[1] + r * U * 0.011; open ? g.lineTo(p[0], y) : g.moveTo(p[0], y); open = true; } else open = false; });
+        g.strokeStyle = rgb(P.rim, (S.light ? 0.55 : 0.3) * (1 - r * 0.12)); g.stroke();
+      }
+      const at = (xl) => base - hillH(xl, lay.j(xl)) * U;
+      cells(lay, 0.062, 0.2, (i, xc0) => {
+        const k = hash(i * 2.39 + 3), xc = xc0 + (k - 0.5) * 0.05, j = lay.j(xc), sea = B.sea(j), city = B.city(j), farm = B.farm(j), alp = B.alp(j);
+        if (k > 0.62 - 0.3 * sea - 0.45 * city + 0.12 * farm || hillH(xc, j) < 0.012) return;
+        tree(V, lay.X(xc), at(xc) + U * 0.004, U * (0.045 + 0.04 * hash(i * 6.1)), farm > 0.5 ? (hash(i * 4.7) > 0.45 ? 1 : 2) : alp > 0.55 ? 0 : hash(i * 4.7) > 0.5 ? 2 : 0, hash(i * 8.3));
+      });
+      cells(lay, 0.33, 0.3, (i, xc0) => {
+        const k = hash(i * 5.77 + 1), xc = xc0 + (k - 0.5) * 0.2, j = lay.j(xc);
+        if (B.farm(j) > 0.45 && k < 0.8) { house(V, lay.X(xc), at(xc) + U * 0.006, U * 0.042, k); if (k > 0.3) house(V, lay.X(xc + 0.05), at(xc + 0.05) + U * 0.006, U * 0.034, 1 - k); }
+        if (B.plain(j) > 0.45 && k < 0.85) turbine(V, lay.X(xc), at(xc), U * (0.1 + 0.07 * k), k);
+      });
+      PROPS.forEach((pr) => { const xl = pr.j * 0.5 * Z, x = lay.X(xl); if (x > -U && x < W + U) pr.draw(V, x, at(xl) + U * 0.004, U * 0.07); });
+    }
+
+    /* The city: blocks of colour with lit windows. Two rows, the far one paler. */
+    function town(V, o) {
+      const { g, U, P, S } = V, lay = layer(V, o.p);
+      cells(lay, o.cell, 0.3, (i, xc) => {
+        const c = B.city(lay.j(xc));
+        if (c < 0.06) return;
+        const k = hash(i * 3.3 + o.seed), k2 = hash(i * 9.1 + o.seed), k3 = hash(i * 5.9 + o.seed);
+        const jc = lay.j(xc), rise = (0.55 + 0.45 * ss(5.6, 6.3, jc)) * (1 - 0.5 * ss(6.95, 7.3, jc));
+      const w = o.cell * (0.74 + 0.4 * k) * U, h = c * rise * lerp(o.min, o.max, k2 * k2) * U, x = lay.X(xc) - w / 2, y = o.base - h;
+        let wall = WALLS[Math.floor(k3 * WALLS.length)];
+        wall = S.light ? mix(wall, P.haze, o.fade) : mix(mix(wall, P.hillLow, 0.66), P.haze, o.fade * 0.5);
+        g.fillStyle = rgb(wall); g.fillRect(x, y, w, h + U * 0.2);
+        g.fillStyle = rgb(mix(wall, S.light ? [40, 50, 90] : [0, 0, 20], 0.2)); g.fillRect(x + w * 0.72, y, w * 0.28, h + U * 0.2);
+        if (k < 0.24) { g.fillStyle = rgb(S.light ? mix(WALLS[0], P.haze, o.fade) : mix(WALLS[0], P.hillLow, 0.6)); g.beginPath(); g.moveTo(x - w * 0.06, y); g.lineTo(x + w / 2, y - w * 0.42); g.lineTo(x + w * 1.06, y); g.fill(); }
+        else if (k < 0.44) { g.fillStyle = rgb(wall); g.fillRect(x + w * 0.2, y - h * 0.12, w * 0.6, h * 0.13); }
+        else if (k > 0.88) { g.strokeStyle = rgb(P.roof); g.lineWidth = Math.max(1, U * 0.002); g.beginPath(); g.moveTo(x + w / 2, y); g.lineTo(x + w / 2, y - h * 0.3); g.stroke(); if (!S.light) { g.fillStyle = rgb(P.band); g.beginPath(); g.arc(x + w / 2, y - h * 0.3, U * 0.003, 0, 6.2832); g.fill(); } }
+        const cw = Math.max(5, U * o.win), cols = Math.max(1, Math.floor((w * 0.86) / cw)), rows = Math.min(40, Math.floor((h + U * o.deep) / (cw * 1.35))), pad = (w - cols * cw) / 2;
+        const inks = S.light ? [rgb(P.pane, 0.4), rgb(P.pane, 0.62)] : [rgb(P.pane, 0.95), rgb(P.pane, 0.62), "rgba(140,220,255,0.9)", "rgba(255,150,190,0.9)"], panes = inks.map(() => []);
+        for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) {
+          const lit = hash(i * 131 + r * 17 + q * 7.3 + o.seed);
+          if (S.light) panes[lit > 0.5 ? 1 : 0].push(q, r); else if (lit < 0.52) panes[lit < 0.06 ? 2 : lit < 0.1 ? 3 : lit < 0.32 ? 1 : 0].push(q, r);
+        }
+        panes.forEach((list, n) => { /* one path for each shade of window, not one fill for each window */
+          if (!list.length) return;
+          g.fillStyle = inks[n]; g.beginPath();
+          for (let m = 0; m < list.length; m += 2) g.rect(x + pad + list[m] * cw + cw * 0.2, y + cw * 0.5 + list[m + 1] * cw * 1.35, cw * 0.6, cw * 0.78);
+          g.fill();
+        });
+      });
+    }
+
+    /* The big wheel by the water, the lattice dome, the leaning tower: a city seen from its river. */
+    function sights(V) {
+      const { g, U, P, S, y0 } = V, lay = layer(V, 0.6), base = y0 + 0.1 * U, dim = (c) => (S.light ? c : mix(c, P.hillLow, 0.5));
+      const put = (j, fn) => { const x = lay.X(j * 0.6 * Z); if (x > -U * 0.6 && x < V.W + U * 0.6) fn(x); };
+      put(6.08, (x) => { /* the wheel turns with the scroll */
+        const r = U * 0.15, cy = base - r * 1.2;
+        g.strokeStyle = rgb(dim(WALLS[3])); g.lineWidth = Math.max(1.2, U * 0.0035);
+        g.beginPath(); g.arc(x, cy, r, 0, 6.2832); g.moveTo(x - r * 0.5, base); g.lineTo(x, cy); g.lineTo(x + r * 0.5, base); g.stroke();
+        g.lineWidth = Math.max(1, U * 0.0016); g.beginPath();
+        for (let n = 0; n < 12; n++) { const a = S.spin * 0.9 + n * 0.5236; g.moveTo(x, cy); g.lineTo(x + Math.cos(a) * r, cy + Math.sin(a) * r); }
+        g.stroke();
+        for (let n = 0; n < 12; n++) { const a = S.spin * 0.9 + n * 0.5236; g.fillStyle = rgb(S.light ? WALLS[n % WALLS.length] : n % 2 ? P.lamp : dim(WALLS[n % WALLS.length])); g.beginPath(); g.arc(x + Math.cos(a) * r, cy + Math.sin(a) * r + U * 0.006, U * 0.0085, 0, 6.2832); g.fill(); }
+      });
+      put(5.82, (x) => { /* the lattice dome */
+        const r = U * 0.06, cy = base - r * 0.9;
+        g.fillStyle = rgb(S.light ? [214, 236, 246] : mix([150, 190, 230], P.hillLow, 0.45), 0.92); g.beginPath(); g.arc(x, cy, r, 0, 6.2832); g.fill();
+        g.strokeStyle = rgb(S.light ? [120, 160, 190] : P.rim, 0.8); g.lineWidth = Math.max(1, U * 0.0014); g.beginPath();
+        for (let n = -2; n <= 2; n++) { g.ellipse(x, cy, Math.abs(r * Math.sin(n * 0.52)) || 0.01, r, 0, 0, 6.2832); g.moveTo(x - r * Math.cos(n * 0.5), cy + r * Math.sin(n * 0.5)); g.lineTo(x + r * Math.cos(n * 0.5), cy + r * Math.sin(n * 0.5)); }
+        g.stroke();
+      });
+      put(6.62, (x) => { /* the leaning tower over its stadium */
+        const h = U * 0.3, c = dim([238, 234, 226]);
+        g.fillStyle = rgb(mix(c, P.hillLow, 0.18)); g.beginPath(); g.ellipse(x - h * 0.5, base, h * 0.5, h * 0.2, 0, Math.PI, 0); g.fill();
+        g.fillStyle = rgb(c); g.beginPath(); g.moveTo(x + h * 0.16, base); g.lineTo(x - h * 0.04, base); g.quadraticCurveTo(x - h * 0.1, base - h * 0.62, x - h * 0.46, base - h); g.lineTo(x - h * 0.39, base - h * 1.02); g.quadraticCurveTo(x + h * 0.06, base - h * 0.6, x + h * 0.16, base); g.fill();
+        g.strokeStyle = rgb(c, 0.75); g.lineWidth = Math.max(1, U * 0.0013); g.beginPath();
+        for (let n = 0; n < 6; n++) { g.moveTo(x - h * 0.43, base - h * 1.0); g.lineTo(x - h * (0.92 - n * 0.14), base - h * 0.17); }
+        g.stroke();
+      });
+    }
+
+    /* Hot-air balloons over the high country, drifting the other way. */
+    function balloons(V) {
+      const { g, U, y0, P, S } = V, lay = layer(V, 0.12);
+      cells(lay, 0.8, 0.3, (i, xc0) => {
+        const k = hash(i * 6.13 + 2), xc = xc0 + (k - 0.5) * 0.4;
+        if (k > 0.55 || B.city(lay.j(xc)) > 0.3) return;
+        const x = lay.X(xc), y = y0 - (0.3 + 0.26 * hash(i * 2.9)) * U - Math.sin(S.spin + i) * U * 0.012, s = U * (0.022 + 0.014 * hash(i * 4.1)), c = WALLS[Math.floor(hash(i * 8.7) * WALLS.length)];
+        const tint = (col) => (S.light ? col : mix(col, P.farShade, 0.5));
+        g.fillStyle = rgb(tint(c)); g.beginPath(); g.arc(x, y, s, Math.PI * 0.86, Math.PI * 0.14); g.lineTo(x + s * 0.2, y + s * 1.18); g.lineTo(x - s * 0.2, y + s * 1.18); g.fill();
+        g.fillStyle = rgb(tint(WALLS[3])); g.beginPath(); g.ellipse(x, y, s * 0.36, s, 0, Math.PI, 0); g.lineTo(x + s * 0.09, y + s * 1.18); g.lineTo(x - s * 0.09, y + s * 1.18); g.fill();
+        g.fillStyle = rgb(tint([120, 80, 60])); g.fillRect(x - s * 0.14, y + s * 1.32, s * 0.28, s * 0.2);
+      });
+    }
+
+    const deck = (xl) => { const j = xl / (0.8 * Z); return 0.034 + 0.104 * B.span(j) + 0.05 * B.city(j) + 0.008 * Math.sin(xl * 1.7); };
+
+    function track(V) {
+      const { g, W, U, y0, P, S, cam } = V, lay = layer(V, 0.8), yT = y0 + 0.1 * U, foot = yT + 0.16 * U, Y = (xl) => yT - deck(xl) * U;
+      /* the embankment where the line runs on the ground */
+      const gr = g.createLinearGradient(0, yT - 0.1 * U, 0, foot); gr.addColorStop(0, rgb(mix(P.hillTop, P.hillLow, 0.35))); gr.addColorStop(1, rgb(P.hillLow));
+      g.fillStyle = gr; g.beginPath(); let open = false;
+      const flush = (x) => { if (open) { g.lineTo(x, foot); g.closePath(); g.fill(); g.beginPath(); open = false; } };
+      for (let x = -12; x <= W + 12; x += 8) {
+        const xl = cam * 0.8 + (x - W / 2) / U, j = lay.j(xl);
+        if (B.span(j) < 0.5 && B.city(j) < 0.5) { if (!open) { g.moveTo(x, foot); open = true; } g.lineTo(x, Y(xl) + U * 0.012); } else flush(x);
+      }
+      flush(W + 12);
+      /* the viaduct: stone arches across the valleys of the high country */
+      const span = 0.17;
+      cells(lay, span, 0.2, (i, xc) => {
+        const j = lay.j(xc);
+        if (B.span(j) < 0.5) return;
+        const x0 = lay.X(xc - span / 2), x1 = lay.X(xc + span / 2), w = x1 - x0, top = Math.min(Y(xc - span / 2), Y(xc + span / 2)) + U * 0.012, pier = w * 0.13, spring = top + U * 0.03 + w * 0.3;
+        for (const [dx, col] of [[w * 0.035, P.stoneShade], [0, P.stoneLit]]) {
+          g.fillStyle = rgb(col); g.beginPath(); g.moveTo(x0 - 1, top); g.lineTo(x1 + 1, top); g.lineTo(x1 + 1, foot); g.lineTo(x1 - pier + dx, foot); g.lineTo(x1 - pier + dx, spring);
+          g.bezierCurveTo(x1 - pier + dx, spring - w * 0.42, x0 + pier + dx, spring - w * 0.42, x0 + pier + dx, spring); g.lineTo(x0 + pier + dx, foot); g.lineTo(x0 - 1, foot); g.fill();
+        }
+        g.fillStyle = rgb(P.stoneShade, 0.55); g.fillRect(x0 - 1, top + U * 0.016, w + 2, Math.max(1, U * 0.003));
+      });
+      /* through the city the line rides on slim piers */
+      cells(lay, 0.24, 0.2, (i, xc) => { if (B.city(lay.j(xc)) < 0.5) return; const x = lay.X(xc); g.fillStyle = rgb(P.stoneShade); g.fillRect(x - U * 0.006, Y(xc), U * 0.012, foot - Y(xc)); g.fillStyle = rgb(P.stoneLit); g.fillRect(x - U * 0.006, Y(xc), U * 0.005, foot - Y(xc)); });
+      /* the deck and the rail, all the way */
+      g.lineJoin = "round";
+      [[P.stoneLit, 0.006, 0.013], [S.light ? P.roof : P.rim, -0.0015, 0.0028]].forEach(([c, dy, lw]) => {
+        g.strokeStyle = rgb(c); g.lineWidth = Math.max(1.5, U * lw); g.beginPath();
+        for (let x = -12; x <= W + 12; x += 12) { const y = Y(cam * 0.8 + (x - W / 2) / U) + U * dy; x === -12 ? g.moveTo(x, y) : g.lineTo(x, y); }
+        g.stroke();
+      });
+      return { lay, Y };
+    }
+
+    function station(V, T) {
+      const { g, U, P, S } = V, xl = S.end * 0.8 * Z, x = T.lay.X(xl), y = T.Y(xl), s = U * 0.062;
+      if (x < -U || x > V.W + U) return;
+      g.fillStyle = rgb(P.stoneShade); g.fillRect(x - s * 7, y - s * 0.02, s * 11, s * 0.34);
+      g.fillStyle = rgb(P.stoneLit); g.fillRect(x - s * 7, y - s * 0.02, s * 11, s * 0.1);
+      g.fillStyle = rgb(P.roof);
+      for (let n = 0; n < 6; n++) g.fillRect(x - s * 6.4 + n * s * 1.9, y - s * 1.9, s * 0.1, s * 1.9);
+      g.fillStyle = rgb(S.light ? WALLS[2] : mix(WALLS[2], P.hillLow, 0.4)); g.beginPath(); g.moveTo(x - s * 7, y - s * 1.9); g.lineTo(x - s * 6.6, y - s * 2.25); g.lineTo(x + s * 3.6, y - s * 2.25); g.lineTo(x + s * 4, y - s * 1.9); g.fill();
+      g.fillStyle = rgb(P.body); g.fillRect(x - s * 2.5, y - s * 1.72, s * 3.6, s * 0.52);
+      g.fillStyle = rgb(S.light ? [30, 40, 70] : [20, 24, 50]); g.font = `600 ${Math.max(7, s * 0.34)}px ${S.font || "sans-serif"}`; g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText("M O N T R É A L", x - s * 0.7, y - s * 1.45);
+      g.fillStyle = rgb(P.lamp, S.light ? 0.9 : 1); for (let n = 0; n < 5; n++) { g.beginPath(); g.arc(x - s * 5.5 + n * s * 1.9, y - s * 1.8, s * 0.07, 0, 6.2832); g.fill(); }
+    }
+
+    /* The train: an engine and three carriages, cream over red, windows lit at night. */
+    function train(V, T) {
+      const { g, U, P, S, cam } = V, len = 0.15, gap = 0.008, h = U * 0.036, head = cam * 0.8 + (S.train - 0.5) * V.W / U;
+      for (let n = 3; n >= 0; n--) {
+        const xc = head - len / 2 - n * (len + gap), x = T.lay.X(xc), y = T.Y(xc) - U * 0.002, w = len * U, slope = Math.atan2(T.Y(xc + 0.03) - T.Y(xc - 0.03), 0.06 * U);
+        if (x < -w || x > V.W + w) continue;
+        g.save(); g.translate(x, y); g.rotate(slope);
+        g.fillStyle = rgb([24, 24, 40]); [-0.34, -0.22, 0.22, 0.34].forEach((d) => { g.beginPath(); g.arc(w * d, -h * 0.1, h * 0.14, 0, 6.2832); g.fill(); });
+        const nose = n === 0 ? h * 0.55 : 0, r = h * 0.2;
+        const shape = () => { g.beginPath(); g.moveTo(-w / 2 + r, -h); g.lineTo(w / 2 - nose - r, -h); g.quadraticCurveTo(w / 2 - nose * 0.2, -h, w / 2, -h * 0.34); g.lineTo(w / 2, -h * 0.18); g.lineTo(-w / 2, -h * 0.18); g.lineTo(-w / 2, -h + r); g.quadraticCurveTo(-w / 2, -h, -w / 2 + r, -h); };
+        g.fillStyle = rgb(P.body); shape(); g.fill();
+        g.save(); shape(); g.clip();
+        g.fillStyle = rgb(P.band); g.fillRect(-w / 2, -h * 0.5, w, h * 0.34);
+        g.fillStyle = rgb(P.roof); g.fillRect(-w / 2, -h * 1.02, w, h * 0.12);
+        g.fillStyle = rgb(P.pane, S.light ? 0.95 : 1);
+        const cw = w * 0.085, n0 = n === 0 ? 7 : 9;
+        for (let q = 0; q < n0; q++) g.fillRect(-w / 2 + w * 0.05 + q * cw * 1.18, -h * 0.84, cw, h * 0.26);
+        if (n === 0) { g.beginPath(); g.moveTo(w / 2 - nose - r * 1.5, -h * 0.86); g.lineTo(w / 2 - nose * 0.42, -h * 0.86); g.lineTo(w / 2 - h * 0.04, -h * 0.52); g.lineTo(w / 2 - nose - r * 1.5, -h * 0.52); g.fill(); }
+        g.restore();
+        if (n === 0) {
+          g.fillStyle = rgb(P.lamp); g.beginPath(); g.arc(w / 2 - h * 0.05, -h * 0.3, h * 0.08, 0, 6.2832); g.fill();
+          if (!S.light) { const beam = g.createLinearGradient(w / 2, 0, w / 2 + h * 5, 0); beam.addColorStop(0, rgb(P.lamp, 0.4)); beam.addColorStop(1, rgb(P.lamp, 0)); g.fillStyle = beam; g.beginPath(); g.moveTo(w / 2, -h * 0.34); g.lineTo(w / 2 + h * 5, -h * 0.9); g.lineTo(w / 2 + h * 5, h * 0.25); g.lineTo(w / 2, -h * 0.26); g.fill(); }
+        }
+        g.restore();
+      }
+    }
+
+    function fore(V) {
+      const { g, W, H, U, y0, P, S, cam } = V, lay = layer(V, 1.3), base = y0 + 0.215 * U, top = [];
+      if (base - 0.09 * U > H) return;
+      const fh = (xl) => 0.03 + 0.022 * Math.sin(xl * 1.3 + 2) + 0.012 * Math.sin(xl * 3.7 + 1);
+      for (let x = -12; x <= W + 12; x += 10) { const xl = cam * 1.3 + (x - W / 2) / U; top.push([x, base - fh(xl) * U]); }
+      g.fillStyle = rgb(P.fore); g.beginPath(); g.moveTo(-12, H + 2); top.forEach((p) => g.lineTo(p[0], p[1])); g.lineTo(W + 12, H + 2); g.fill();
+      g.strokeStyle = rgb(P.foreRim, 0.7); g.lineWidth = Math.max(1.2, U * 0.003); g.beginPath(); top.forEach((p, n) => (n ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]))); g.stroke();
+      const keep = { tree: P.tree, treeLit: P.treeLit };
+      P.tree = P.fore; P.treeLit = mix(P.fore, P.foreRim, 0.45);
+      cells(lay, 0.21, 0.3, (i, xc0) => {
+        const k = hash(i * 4.21 + 9), xc = xc0 + (k - 0.5) * 0.14, j = lay.j(xc), city = B.city(j);
+        if (k > 0.6 - 0.3 * B.sea(j)) return;
+        if (city > 0.5) { /* a street lamp */
+          const x = lay.X(xc), y = base - fh(xc) * U, s = U * 0.1;
+          g.strokeStyle = rgb(P.fore); g.lineWidth = Math.max(1.5, U * 0.004); g.beginPath(); g.moveTo(x, y + 2); g.lineTo(x, y - s); g.lineTo(x + s * 0.18, y - s); g.stroke();
+          g.fillStyle = rgb(P.lamp, S.light ? 0.9 : 1); g.beginPath(); g.arc(x + s * 0.18, y - s * 0.96, s * 0.05, 0, 6.2832); g.fill();
+          if (!S.light) { const gl = g.createRadialGradient(x + s * 0.18, y - s * 0.96, 0, x + s * 0.18, y - s * 0.96, s * 0.7); gl.addColorStop(0, rgb(P.lamp, 0.3)); gl.addColorStop(1, rgb(P.lamp, 0)); g.fillStyle = gl; g.beginPath(); g.arc(x + s * 0.18, y - s * 0.96, s * 0.7, 0, 6.2832); g.fill(); }
+          return;
+        }
+        tree(V, lay.X(xc), base - fh(xc) * U + U * 0.01, U * (0.11 + 0.1 * hash(i * 6.6)), B.farm(j) > 0.5 ? 1 : B.alp(j) > 0.5 ? 0 : hash(i * 3.9) > 0.5 ? 2 : 0, k);
+      });
+      P.tree = keep.tree; P.treeLit = keep.treeLit;
+    }
+
+    function draw(g, W, H, S) {
+      const U = H * S.zoom, V = { g, W, H, U, S, cam: S.J * Z, y0: H * S.horizon, P: palette(S.light, S.tod) };
+      g.clearRect(0, 0, W, H);
+      if (V.y0 - 0.7 * U > H) return;
+      sky(V); orb(V); clouds(V);
+      range(V, { p: 0.09, cell: 0.6, seed: 83, min: 0.2, max: 0.5, base: V.y0 + 1, lit: mix(V.P.farLit, V.P.haze, 0.62), shade: mix(V.P.farShade, V.P.haze, 0.62), fade: 0.5, snow: 0 });
+      range(V, { p: 0.16, cell: 0.42, seed: 11, min: 0.13, max: 0.36, base: V.y0 + 1, lit: V.P.farLit, shade: V.P.farShade, fade: 0.62, snow: 0.2 });
+      balloons(V);
+      range(V, { p: 0.3, cell: 0.36, seed: 47, min: 0.06, max: 0.17, base: V.y0 + 0.02 * U, lit: V.P.midLit, shade: V.P.midShade, fade: 0.4, snow: 0 });
+      water(V);
+      town(V, { p: 0.44, cell: 0.085, seed: 5, min: 0.07, max: 0.36, base: V.y0 + 0.03 * U, fade: 0.38, win: 0.0075, deep: 0 });
+      hills(V);
+      sights(V);
+      town(V, { p: 0.6, cell: 0.1, seed: 23, min: 0.07, max: 0.2, base: V.y0 + 0.1 * U, fade: 0, win: 0.0095, deep: 0.1 });
+      const T = track(V);
+      station(V, T); train(V, T);
+      fore(V);
+    }
+    return { draw, Z };
+  })();
+
+  /* The land follows the scroll. Each stretch of a page is a stretch of the journey: the master page
+     rides the whole line (a place for each chapter, the city for the work below them, the station at
+     the end); a project page stays in its own country. Between two marks the camera eases, so it
+     slows as a chapter arrives. The train keeps a little ahead of the camera, the moon or the sun
+     climbs out of the opening screen, and the last screen of every page lifts the horizon: the land
+     is the footer. Under reduced motion one still frame is drawn. */
+  const land = { on: false };
+  safe(() => {
+    const canvas = el("canvas", "fx-land");
+    canvas.setAttribute("aria-hidden", "true");
+    const g = canvas.getContext("2d");
+    if (!g) return;
+    const below = [...document.querySelectorAll(".fx-stars")].pop() || document.querySelector(".fx-field");
+    if (below) below.after(canvas); else body.prepend(canvas);
+    land.on = true;
+    html.classList.add("land");
+    const mixn = (a, b, t) => a + (b - a) * t;
+    const ZONE = { dpc: 1, pension: 2, wsl: 3, tsfm: 4, aurvane: 5 };
+    const END = 7.4; /* where the station stands */
+    const font = getComputedStyle(body).fontFamily;
+    let W = 0, H = 0, d = 1, soft = 0, keys = [], end = 1, seen = "", cost = 0, heroBox = null, stacked = false;
+    const size = () => {
+      W = window.innerWidth; H = window.innerHeight;
+      d = Math.max(0.75, Math.min(window.devicePixelRatio || 1, W > 900 ? 1.5 : 2) - soft);
+      canvas.width = Math.round(W * d); canvas.height = Math.round(H * d);
+      seen = "";
+    };
+    const plan = () => {
+      size();
+      end = Math.max(1, document.documentElement.scrollHeight - H);
+      const narrow = W < 760, k = [], HIDE = [1.3, 0.5, 0, 0, 0];
+      stacked = false;
+      /* For each kind of screen: the horizon (the share of the screen above the land), the zoom, a veil from the left
+         (where a chapter's words are), a wash over everything (where words run the full width), and whether the moon is out. */
+      const OPEN = narrow ? [0.86, 0.6, 0, 0.3, 1] : [0.78, 0.9, 0.8, 0, 1], STORY = narrow ? [0.95, 0.5, 0, 0.6, 0] : [0.9, 0.66, 0.86, 0.12, 0];
+      const FLOW = narrow ? [0.95, 0.5, 0, 0.66, 0] : [0.9, 0.66, 0, 0.64, 0], LAST = narrow ? [0.74, 0.62, 0, 0, 1] : [0.66, 0.96, 0, 0, 1];
+      if (isHome) {
+        const hero = document.querySelector(".hero"), stories = [...document.querySelectorAll("[data-story]")];
+        const heroEnd = hero ? docTop(hero) + hero.offsetHeight : H;
+        const space = document.querySelector(".hero-space");
+        const r = space ? space.getBoundingClientRect() : null;
+        heroBox = r && r.width > 40 && r.height > 40 ? { x: r.left, top: r.top + window.scrollY, w: r.width, h: r.height } : null; /* no box when the stage is not running */
+        stacked = !!heroBox && !reduced && heroBox.w > W * 0.7;
+        k.push([0, 0.32, ...(stacked ? HIDE : OPEN)], [heroEnd - H * 0.75, 0.6, ...(stacked ? HIDE : OPEN)], [heroEnd + H * 0.15, 0.9, ...FLOW]);
+        stories.forEach((st, i) => { const top = docTop(st); k.push([top - H * 0.15, i + 1.06, ...STORY], [top + st.offsetHeight - H, i + 1.74, ...STORY]); });
+        const last = stories[stories.length - 1], after = last ? docTop(last) + last.offsetHeight : heroEnd;
+        k.push([after + H * 0.4, 6.0, ...FLOW], [end - H * 0.95, 7.02, ...FLOW], [end, 7.36, ...LAST]);
+      } else {
+        const scene = document.querySelector("[data-cs-scene] .scene"), z = (ZONE[scene && scene.dataset.scene] || 0) + 0.12;
+        k.push([0, z, ...(narrow ? HIDE : [0.82, 0.84, 0.8, 0, 1])], [H * 0.9, z + 0.12, ...FLOW], [end - H * 0.95, z + 0.5, ...FLOW], [end, z + 0.62, ...LAST]);
+      }
+      keys = k;
+      for (let i = 1; i < keys.length; i++) keys[i][0] = Math.max(keys[i][0], keys[i - 1][0] + 1);
+      if (reduced) paint();
+    };
+    const at = (y) => {
+      let i = 0;
+      while (i < keys.length - 2 && y > keys[i + 1][0]) i++;
+      const a = keys[i], b = keys[i + 1], t = inOut(clamp((y - a[0]) / (b[0] - a[0])));
+      return [1, 2, 3, 4, 5, 6].map((n) => mixn(a[n], b[n], t));
+    };
+    const paint = () => {
+      if (keys.length < 2) return;
+      const y = reduced ? 0 : Math.max(0, window.scrollY), light = html.dataset.theme === "light", stamp = `${Math.round(y * 2)}|${light}`;
+      if (stamp === seen) return;
+      seen = stamp;
+      const t0 = performance.now(), p = clamp(y / end), narrow = W < 760;
+      let [J, horizon, zoom, veil, wash, out] = at(y), floor = false;
+      if (reduced) { horizon = narrow ? 0.95 : 0.9; zoom = narrow ? 0.5 : 0.66; veil = 0; wash = 0.5; out = 0; } /* one quiet strip of land that stays put */
+      if (stacked && heroBox) { /* the box above the words holds the land, and leaves with it */
+        const edge = heroBox.top + heroBox.h - y;
+        if (edge > -H * 0.12) { horizon = (edge - heroBox.h * 0.12) / H; zoom = (heroBox.h * 1.45) / H; veil = wash = 0; out = 1; floor = true; }
+      }
+      const U = H * zoom;
+      /* the moon, or the sun: large behind the name on the opening screen, then small and high for the rest of the way */
+      const orb = { x: W * mixn(0.86, 0.74, p), y: Math.max(H * 0.2, 120), r: Math.max(16, U * 0.06), a: out };
+      if (isHome && heroBox && !reduced) {
+        const wideNow = W > 900, big = { x: heroBox.x + heroBox.w * (wideNow ? 0.54 : 0.5), y: heroBox.top + heroBox.h * 0.47 - y * 0.62, r: Math.min(heroBox.w * (wideNow ? 0.31 : 0.22), heroBox.h * 0.32) * 0.8 };
+        const t = inOut(seg(y, H * 0.3, H * 1.25));
+        orb.x = mixn(big.x, orb.x, t); orb.y = mixn(big.y, orb.y, t); orb.r = mixn(big.r, orb.r, t);
+      }
+      g.setTransform(d, 0, 0, d, 0, 0);
+      Land.draw(g, W, H, { J, horizon, zoom, light, orb, font, end: END, tod: isHome ? p : clamp((J - 0.4) / 7), spin: y / Math.max(1, H) * 1.15, train: mixn(narrow ? 0.5 : 0.76, narrow ? 0.74 : 0.7, p) });
+      if (floor) { /* the banner ends in a soft edge, and the page shows through below it */
+        const y1 = H * horizon + U * 0.1, cut = g.createLinearGradient(0, y1, 0, y1 + U * 0.13);
+        cut.addColorStop(0, "rgba(0,0,0,0)"); cut.addColorStop(1, "rgba(0,0,0,1)");
+        g.globalCompositeOperation = "destination-out"; g.fillStyle = cut; g.fillRect(0, y1, W, H - y1); g.globalCompositeOperation = "source-over";
+      }
+      /* words are read over the land: it steps back behind them */
+      const ink = light ? "251,251,253" : "3,4,12";
+      if (wash > 0.01) { g.fillStyle = `rgba(${ink},${wash})`; g.fillRect(0, 0, W, H); }
+      if (veil > 0.01) {
+        const gr = g.createLinearGradient(0, 0, W * 0.7, 0);
+        gr.addColorStop(0, `rgba(${ink},${veil})`); gr.addColorStop(0.55, `rgba(${ink},${veil * 0.55})`); gr.addColorStop(1, `rgba(${ink},0)`);
+        g.fillStyle = gr; g.fillRect(0, 0, W, H);
+      }
+      /* a slow device gets a softer picture, never a slower page */
+      cost += (performance.now() - t0 - cost) * 0.12;
+      if (cost > 13 && d > 0.76) { soft += 0.25; cost = 0; size(); }
+    };
+    measures.push(plan);
+    new MutationObserver(() => { seen = ""; if (reduced) paint(); }).observe(html, { attributes: true, attributeFilter: ["data-theme"] });
+    if (!reduced) tasks.push(() => { if (!document.hidden) paint(); });
+  });
+
   if (reduced) { startClock(); return; }
 
   /* ---- Grain, scroll progress, and a header that steps aside while you read down. ------------ */
@@ -1812,7 +2394,7 @@ void main(){
     gl.enableVertexAttribArray(5);
     gl.vertexAttribPointer(5, 2, gl.FLOAT, false, 0, 0);
     gl.useProgram(prog);
-    const before = [...document.querySelectorAll(".fx-stars")].pop() || document.querySelector(".fx-field");
+    const before = document.querySelector(".fx-land") || [...document.querySelectorAll(".fx-stars")].pop() || document.querySelector(".fx-field");
     if (before) before.after(canvas); else body.prepend(canvas);
 
     const N = window.innerWidth > 900 ? 18000 : 8000;
@@ -2205,6 +2787,7 @@ void main(){
     };
     const sky = (y, t) => {
       const out = [], vw = window.innerWidth;
+      if (land.on) return out; /* on Earth the sky holds one moon or one sun, drawn with the land */
       if (!home) {
         const kind = { dpc: "dpc", pension: "pension", tsfm: "tsfm", wsl: "moon", aurvane: "aurvane" }[all[0].svg.dataset.scene], o = 1 - seg(y, vh * 0.35, vh * 0.95);
         if (o > 0) out.push(kind === "moon" ? { ...WORLDS.moon, x: vw * 0.9, y: vh * 0.24 - y * 0.2, r: vh * 0.05, o } : { ...WORLDS[kind], x: vw * 1.0, y: vh * 1.12 - y * 0.25, r: vh * 0.42, o: o * 0.9 });
