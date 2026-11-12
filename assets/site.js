@@ -1947,13 +1947,16 @@ void main(){
         const space = document.querySelector(".hero-space"), r = space ? space.getBoundingClientRect() : null;
         heroBox = r && r.width > 40 && r.height > 40 ? { x: r.left, top: r.top + window.scrollY, w: r.width, h: r.height } : null; /* no box when the stage is not running */
         stacked = !!heroBox && !reduced && heroBox.w > W * 0.7;
-        k.push([0, 0.32, ...(stacked ? HIDE : OPEN), 0.76], [heroEnd - H * 0.75, 0.6, ...(stacked ? HIDE : OPEN), 0.8], [heroEnd + H * 0.15, 0.9, ...FLOW, 0.66]);
+        const quiet = !!document.querySelector(".hero-lean"); /* the home page opens on the ride: the land waits, washed back and low, with no moon over the words */
+        if (quiet) k.push([0, 0.32, ...FLOW, 0.6]); /* and from there the whole line passes evenly under a short page */
+        else k.push([0, 0.32, ...(stacked ? HIDE : OPEN), 0.76], [heroEnd - H * 0.75, 0.6, ...(stacked ? HIDE : OPEN), 0.8], [heroEnd + H * 0.15, 0.9, ...FLOW, 0.66]);
         const route = document.querySelector(".sky"); /* the five worlds: the land stays washed back until they have passed */
-        if (route) k.push([docTop(route) + route.offsetHeight - H * 0.85, 0.97, ...FLOW, 0.7]);
+        if (route && !quiet) k.push([docTop(route) + route.offsetHeight - H * 0.85, 0.97, ...FLOW, 0.7]);
         chapters = stories.map((st, i) => ({ top: docTop(st), h: st.offsetHeight, zone: i + 1 }));
         chapters.forEach((c) => k.push([c.top - H * 0.15, c.zone + 0.06, ...STORY, T0], [c.top + c.h - H, c.zone + 0.74, ...STORY, T1]));
         const last = chapters[chapters.length - 1], after = last ? last.top + last.h : heroEnd;
-        k.push([after + H * 0.4, 6.0, ...FLOW, 0.6], [end - H * 0.95, 7.02, ...FLOW, 0.66], [end, 7.36, ...LAST, 0.7]);
+        if (!quiet) k.push([after + H * 0.4, 6.0, ...FLOW, 0.6]);
+        k.push([end - H * 0.95, 7.02, ...FLOW, 0.66], [end, 7.36, ...LAST, 0.7]);
       } else {
         const z = here + 0.12;
         k.push([0, z, ...(narrow ? HIDE : [0.82, 0.84, 0.8, 0, 1, 0]), 0.62], [H * 0.9, z + 0.12, ...FLOW, 0.64], [end - H * 0.95, z + 0.5, ...FLOW, 0.68], [end, z + 0.62, ...LAST, 0.7]);
@@ -2107,11 +2110,11 @@ void main(){
     const say = () => { /* the words beside the picture: only rewritten when what they say changes */
       const i = Math.round(month), storm = D.storms.find((s) => i >= s.from + 1 && i <= s.back), d = below(month);
       let key = "calm", text = "";
-      if (!started && i === 0) { key = "wait"; text = "Pick a train, then board."; }
-      else if (i >= N) { key = "end"; text = 'Today. Past here there are no returns, only forecasts. <a href="#story-tsfm">The navigator</a>'; }
-      else if (storm && d >= 0.08) { key = `storm${storm.from}`; text = `${storm.name ? storm.name[0].toUpperCase() + storm.name.slice(1) : "A storm"}, ${storm.years}: the market falls ${storm.depth}% from its high. <a href="#story-world-shock-lab">What a shock does to markets</a>`; }
-      else if (i < 30) { key = "guard"; text = 'On board, a guard checks every order an AI gives. <a href="#story-aurvane">The shield</a>'; }
-      else if (i > N - 70) { key = "promise"; text = 'The line ends at a promise: pensions to pay. <a href="#story-pension-lab">What keeping it costs</a>'; }
+      if (!started && i === 0) { key = "wait"; text = `It is ${when(0)} and you have one dollar. Three trains leave for today: pick one, then board.`; }
+      else if (i >= N) { key = "end"; text = `Today. Past here there are no returns, only forecasts. <a href="${D.links.fog}">The navigator</a>`; }
+      else if (storm && d >= 0.08) { key = `storm${storm.from}`; text = `${storm.name ? storm.name[0].toUpperCase() + storm.name.slice(1) : "A storm"}, ${storm.years}: the market falls ${storm.depth}% from its high. <a href="${D.links.storm}">What a shock does to markets</a>`; }
+      else if (i < 30) { key = "guard"; text = `On board, a guard checks every order an AI gives. <a href="${D.links.guard}">The shield</a>`; }
+      else if (i > N - 70) { key = "promise"; text = `The line ends at a promise: pensions to pay. <a href="${D.links.promise}">What keeping it costs</a>`; }
       if (key !== noteKey) { noteKey = key; note.innerHTML = text; }
     };
     const readout = () => {
@@ -2131,12 +2134,16 @@ void main(){
       if (arrival) arrival.classList.remove("is-waiting");
       stage.classList.add("is-arrived");
     };
-    const label = () => { play.textContent = playing ? "Pause" : month >= N ? "Ride again" : started ? "Continue" : "Board"; };
+    const label = () => {
+      play.textContent = playing ? "Pause" : month >= N ? "Ride again" : started ? "Continue" : "Board";
+      stage.classList.toggle("is-playing", playing); /* the words step back while the train runs */
+      stage.classList.toggle("is-started", started);
+    };
 
     function paint(dt) {
       if (!W) return;
       light = html.dataset.theme === "light";
-      const narrow = W < 620, span = narrow ? 84 : 150, xNow = W * (narrow ? 0.56 : 0.6), k = xNow / span, sc = H * 0.56, yMid = H * 0.56;
+      const narrow = W < 620, span = narrow ? 84 : 150, xNow = W * (narrow ? 0.56 : 0.6), k = xNow / span, sc = H * 0.56, yMid = H * (narrow ? 0.6 : 0.68); /* the line runs low in the scene: the words stand in the sky above it */
       let cam = 0; for (let j = 0; j <= 36; j += 6) cam += lv(sel, month - j); cam /= 7; /* the camera lags the train: a fall is felt */
       const X = (m) => xNow + (m - month) * k, Yl = (l) => yMid - (l - cam) * sc;
       const st = clamp(below(month) / 0.36), m0 = Math.floor(month - span - 3); /* before the first month the line is level at one dollar: the platform */
@@ -2154,7 +2161,7 @@ void main(){
         g.fillStyle = `rgba(226,234,255,${(0.25 + 0.6 * hash(i + 9)) * (1 - st) * (1 - pr * 0.75)})`; g.fillRect(sx, hash(i + 40) * H * 0.6, 1.3, 1.3);
       }
       if (!light && st < 0.9) { /* the moon, setting slowly over the whole journey */
-        const mx = W * (0.86 - pr * 0.5), my = H * (0.16 + pr * pr * 0.34), mr = Math.max(9, H * 0.036);
+        const mx = W * (0.7 - pr * 0.42), my = H * (0.14 + pr * pr * 0.36), mr = Math.max(9, H * 0.036); /* clear of the readout, top right */
         const halo = g.createRadialGradient(mx, my, mr * 0.6, mx, my, mr * 4); halo.addColorStop(0, `rgba(214,222,250,${0.2 * (1 - st)})`); halo.addColorStop(1, "rgba(214,222,250,0)");
         g.fillStyle = halo; g.beginPath(); g.arc(mx, my, mr * 4, 0, 6.2832); g.fill();
         g.fillStyle = `rgba(226,230,246,${0.92 * (1 - st)})`; g.beginPath(); g.arc(mx, my, mr, 0, 6.2832); g.fill();
@@ -2172,7 +2179,7 @@ void main(){
       g.font = `500 11px ${font}`; g.textBaseline = "middle"; g.lineWidth = 1;
       [1, 10, 100, 1000].forEach((v) => {
         const y = Yl(Math.log10(v));
-        if (y < 14 || y > H - 8) return;
+        if (y < (narrow ? 14 : Math.min(200, H * 0.3)) || y > H - 8) return; /* clear of the readout, top right */
         g.strokeStyle = light ? "rgba(20,22,30,0.12)" : "rgba(206,214,232,0.12)"; g.setLineDash([2, 6]); g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); g.setLineDash([]);
         g.fillStyle = light ? "rgba(20,22,30,0.55)" : "rgba(206,214,232,0.55)"; g.textAlign = "right"; g.fillText(`$${v.toLocaleString("en-US")}`, W - 10, y - 9);
       });
@@ -2197,6 +2204,16 @@ void main(){
         for (let m = m0; m < month; m += 1) { const px = X(m), py = Yl(lv(key, m)); if (m === m0) g.moveTo(px, py); else g.lineTo(px, py); }
         g.lineTo(xNow, Yl(lv(key, month)));
         g.strokeStyle = rgba(c, mine ? 0.98 : 0.5); g.lineWidth = mine ? 2.2 : 1.2; g.lineJoin = "round"; g.stroke();
+        if (!mine) return;
+        [[16, 0.2], [38, 0.13], [66, 0.08]].forEach(([down, a]) => { /* the same crest, lower and fainter: the ground has depth */
+          g.beginPath();
+          for (let m = m0; m < month; m += 1) { const px = X(m), py = Yl(lv(key, m)) + down; if (m === m0) g.moveTo(px, py); else g.lineTo(px, py); }
+          g.lineTo(xNow, Yl(lv(key, month)) + down);
+          g.strokeStyle = rgba(c, a); g.lineWidth = 1; g.stroke();
+        });
+        g.strokeStyle = rgba(c, 0.5); g.lineWidth = 1.4; /* sleepers */
+        const gapM = 9 / k;
+        for (let m = Math.ceil((month - span) / gapM) * gapM; m < month; m += gapM) { const px = X(m), py = Yl(lv(key, m)); g.beginPath(); g.moveTo(px, py + 1.5); g.lineTo(px, py + 5.5); g.stroke(); }
       });
       /* the storms already lived through, each with its depth */
       D.storms.forEach((s) => {
@@ -2239,9 +2256,9 @@ void main(){
         dawn.addColorStop(0, `rgba(255,196,140,${a})`); dawn.addColorStop(0.5, `rgba(255,150,120,${a * 0.4})`); dawn.addColorStop(1, "rgba(255,150,120,0)");
         g.fillStyle = dawn; g.fillRect(xNow, 0, W - xNow, H);
       }
-      if (!narrow) { g.font = `500 11px ${font}`; g.textAlign = "left"; g.fillStyle = light ? "rgba(20,22,30,0.5)" : "rgba(206,214,232,0.5)"; g.fillText(month >= N ? "today" : "not yet known", xNow + (W - xNow) * 0.42, H * 0.3); }
+      if (!narrow) { g.font = `500 11px ${font}`; g.textAlign = "left"; g.fillStyle = light ? "rgba(20,22,30,0.5)" : "rgba(206,214,232,0.5)"; g.fillText(month >= N ? "today" : "not yet known", xNow + (W - xNow) * 0.42, H * 0.5); }
       /* the trains */
-      const car = clamp(W * 0.022, 13, 24), hgt = car * 0.46, gap = car * 0.16;
+      const car = clamp(W * 0.02, 13, 30), hgt = car * 0.46, gap = car * 0.16;
       order.forEach((key) => {
         const mine = key === sel, cars = mine ? 4 : 3, c = INK[key];
         for (let n = cars - 1; n >= 0; n -= 1) {
@@ -2265,7 +2282,7 @@ void main(){
         for (let i = smoke.length - 1; i >= 0; i -= 1) { const q = smoke[i]; q.age += dt; q.up += dt * (26 + q.drift * 14); if (q.age > 1.5) smoke.splice(i, 1); }
       } else if (!playing && smoke.length) smoke.length = 0;
       smoke.forEach((q) => {
-        const a = (1 - q.age / 1.5) * (light ? 0.3 : 0.24), r = car * (0.22 + q.age * 0.5);
+        const a = (1 - q.age / 1.5) * (light ? 0.24 : 0.16), r = car * (0.16 + q.age * 0.34);
         g.fillStyle = light ? `rgba(90,96,116,${a})` : `rgba(220,226,244,${a})`;
         g.beginPath(); g.arc(X(q.m) + car * 0.2, Yl(lv(sel, q.m)) - hgt * 1.3 - q.up, r, 0, 6.2832); g.fill();
       });
