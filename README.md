@@ -4,6 +4,8 @@ Portfolio of Sherif Morsi, a third-year Computer Science student at Concordia Un
 
 **Live:** https://shmorsi.github.io/
 
+**How the site is laid out.** The home page (`index.html`) is one short story, about six screens: who, the ride (one dollar from 1960, on a train the reader picks), the five stops on the line (one world per study, each linking to its page), how the work is done, experience, contact. The long way round (`voyage.html`) tells every stop as a pinned chapter, with the telemetry strip and the charts to try; it is the previous master page, kept whole and linked from the home page. Both are written by `scripts/build_home.py` from one template (`KEEP` says which parts each page holds), and `scripts/check_site.py` checks each against a fresh build. Sections below that describe the chapters, the stage of points and the cards describe `voyage.html`.
+
 The site shows **three projects**: Deep Portfolio Constructor (AI for long-term investing, in three studies), a time-series foundation model built from scratch, and Aurvane (a trust layer for AI agents). `scripts/groups.py` is the one place that says which study belongs to which project and how each is numbered. The site is a **master page plus one page per study**. The master page features the Deep Portfolio Constructor as an interactive lab, then one card per project, each with a chart drawn from that project's committed results (two of them interactive). Each card links to the project's own page, with the method, the results, the limits and links to the code.
 
 | No. | Project | Study | One line | Page | Code |
@@ -60,7 +62,7 @@ python3 scripts/sync_aurvane.py ../aurvane/ui/site/index.html   # Aurvane's page
 python3 scripts/sync_risk.py ../deep-portfolio-constructor/reports/risk/site_risk.json   # the risk study, when its results change
 python3 scripts/make_marks.py        # one project mark per project (assets/marks/)
 python3 scripts/make_land.py land-110m.json   # data/land_mask.json for the particle globe (only if the map source changes)
-python3 scripts/build_home.py        # index.html, the master page (with scripts/ride.py, scripts/worlds.py, scripts/stories.py and scripts/plain.py)
+python3 scripts/build_home.py        # index.html (the home page) and voyage.html (the long way round), with scripts/ride.py, scripts/worlds.py, scripts/stories.py and scripts/plain.py
 python3 scripts/build_dpc_page.py    # projects/deep-portfolio-constructor.html
 python3 scripts/build_pension_page.py   # projects/pension-lab.html
 python3 scripts/sync_chrome.py       # header, footer, project label, plain-English panel, previous / next links, private-repo notes, and the version stamp on site.css and site.js (run it after editing either)

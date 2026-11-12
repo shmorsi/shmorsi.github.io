@@ -106,13 +106,13 @@ def cards(P: dict, status) -> dict:
     }
 
 
-def section(P: dict, order: list[str], status) -> str:
+def section(P: dict, order: list[str], status, links: dict) -> str:
     text = cards(P, status)
     items = []
     for pid in order:
         p, (key, line, shows) = P[pid], text[pid]
         items.append(
-            f'<li class="sky-world" data-world="{KIND[pid]}" data-tint="{TINT[pid]}"><a href="#story-{pid}">'
+            f'<li class="sky-world" data-world="{KIND[pid]}" data-tint="{TINT[pid]}"><a href="{e(links[pid])}">'
             f'<span class="w-orb" aria-hidden="true"></span>'
             f'<span class="w-top"><span class="num">{p["number"]}</span><span class="w-role">{e(ROLE[pid])}</span>{status(pid)}</span>'
             f'<strong class="w-title">{e(p["study"] if p.get("group") == "investing" else p["title"])}</strong>'
@@ -126,7 +126,7 @@ def section(P: dict, order: list[str], status) -> str:
         <div class="section-head" data-reveal>
           <p class="label">The route</p>
           <h2 id="sky-title">Five worlds, one line</h2>
-          <p>The whole voyage at a glance, before it starts. Each stop is a world, and each world is drawn from its own results: nothing on it is decoration. Pick one to travel there.</p>
+          <p>The stops on the line. Each is a world drawn from its own results: nothing on it is decoration. Pick one to open its project, or take <a class="text-link" href="voyage.html">the long way round</a>, chapter by chapter.</p>
         </div>
         <div class="sky-stage" data-sky="{blob}">
           <ol class="sky-worlds">{"".join(items)}</ol>

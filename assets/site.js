@@ -1947,13 +1947,16 @@ void main(){
         const space = document.querySelector(".hero-space"), r = space ? space.getBoundingClientRect() : null;
         heroBox = r && r.width > 40 && r.height > 40 ? { x: r.left, top: r.top + window.scrollY, w: r.width, h: r.height } : null; /* no box when the stage is not running */
         stacked = !!heroBox && !reduced && heroBox.w > W * 0.7;
-        k.push([0, 0.32, ...(stacked ? HIDE : OPEN), 0.76], [heroEnd - H * 0.75, 0.6, ...(stacked ? HIDE : OPEN), 0.8], [heroEnd + H * 0.15, 0.9, ...FLOW, 0.66]);
+        const quiet = !!document.querySelector(".hero-lean"); /* the home page opens on the ride: the land waits, washed back and low, with no moon over the words */
+        if (quiet) k.push([0, 0.32, ...FLOW, 0.6]); /* and from there the whole line passes evenly under a short page */
+        else k.push([0, 0.32, ...(stacked ? HIDE : OPEN), 0.76], [heroEnd - H * 0.75, 0.6, ...(stacked ? HIDE : OPEN), 0.8], [heroEnd + H * 0.15, 0.9, ...FLOW, 0.66]);
         const route = document.querySelector(".sky"); /* the five worlds: the land stays washed back until they have passed */
-        if (route) k.push([docTop(route) + route.offsetHeight - H * 0.85, 0.97, ...FLOW, 0.7]);
+        if (route && !quiet) k.push([docTop(route) + route.offsetHeight - H * 0.85, 0.97, ...FLOW, 0.7]);
         chapters = stories.map((st, i) => ({ top: docTop(st), h: st.offsetHeight, zone: i + 1 }));
         chapters.forEach((c) => k.push([c.top - H * 0.15, c.zone + 0.06, ...STORY, T0], [c.top + c.h - H, c.zone + 0.74, ...STORY, T1]));
         const last = chapters[chapters.length - 1], after = last ? last.top + last.h : heroEnd;
-        k.push([after + H * 0.4, 6.0, ...FLOW, 0.6], [end - H * 0.95, 7.02, ...FLOW, 0.66], [end, 7.36, ...LAST, 0.7]);
+        if (!quiet) k.push([after + H * 0.4, 6.0, ...FLOW, 0.6]);
+        k.push([end - H * 0.95, 7.02, ...FLOW, 0.66], [end, 7.36, ...LAST, 0.7]);
       } else {
         const z = here + 0.12;
         k.push([0, z, ...(narrow ? HIDE : [0.82, 0.84, 0.8, 0, 1, 0]), 0.62], [H * 0.9, z + 0.12, ...FLOW, 0.64], [end - H * 0.95, z + 0.5, ...FLOW, 0.68], [end, z + 0.62, ...LAST, 0.7]);
@@ -2108,10 +2111,10 @@ void main(){
       const i = Math.round(month), storm = D.storms.find((s) => i >= s.from + 1 && i <= s.back), d = below(month);
       let key = "calm", text = "";
       if (!started && i === 0) { key = "wait"; text = "Pick a train, then board."; }
-      else if (i >= N) { key = "end"; text = 'Today. Past here there are no returns, only forecasts. <a href="#story-tsfm">The navigator</a>'; }
-      else if (storm && d >= 0.08) { key = `storm${storm.from}`; text = `${storm.name ? storm.name[0].toUpperCase() + storm.name.slice(1) : "A storm"}, ${storm.years}: the market falls ${storm.depth}% from its high. <a href="#story-world-shock-lab">What a shock does to markets</a>`; }
-      else if (i < 30) { key = "guard"; text = 'On board, a guard checks every order an AI gives. <a href="#story-aurvane">The shield</a>'; }
-      else if (i > N - 70) { key = "promise"; text = 'The line ends at a promise: pensions to pay. <a href="#story-pension-lab">What keeping it costs</a>'; }
+      else if (i >= N) { key = "end"; text = `Today. Past here there are no returns, only forecasts. <a href="${D.links.fog}">The navigator</a>`; }
+      else if (storm && d >= 0.08) { key = `storm${storm.from}`; text = `${storm.name ? storm.name[0].toUpperCase() + storm.name.slice(1) : "A storm"}, ${storm.years}: the market falls ${storm.depth}% from its high. <a href="${D.links.storm}">What a shock does to markets</a>`; }
+      else if (i < 30) { key = "guard"; text = `On board, a guard checks every order an AI gives. <a href="${D.links.guard}">The shield</a>`; }
+      else if (i > N - 70) { key = "promise"; text = `The line ends at a promise: pensions to pay. <a href="${D.links.promise}">What keeping it costs</a>`; }
       if (key !== noteKey) { noteKey = key; note.innerHTML = text; }
     };
     const readout = () => {

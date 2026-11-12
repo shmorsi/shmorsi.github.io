@@ -72,7 +72,7 @@ def storms(market: list[float], dates: list[str]) -> list[dict]:
     return out
 
 
-def data(P: dict) -> dict:
+def data(P: dict, links: dict) -> dict:
     w = json.loads((ROOT / "data" / "dpc_wealth.json").read_text())
     growth, dates = w["growth"], w["dates"]
     series = {}
@@ -85,11 +85,12 @@ def data(P: dict) -> dict:
     if len({len(v) for v in series.values()}) != 1 or len(series["market"]) != len(dates) + 1:
         raise SystemExit("ride.py: the three journeys and the calendar do not line up")
     return {"start": dates[0], "series": series, "storms": storms(growth["market"], dates),
+            "links": {"storm": links["world-shock-lab"], "fog": links["tsfm"], "guard": links["aurvane"], "promise": links["pension-lab"]},
             "end": {key: P[PID]["stats"][stat]["display"] for key, _, stat, _, _ in TRAINS}}
 
 
-def section(P: dict) -> str:
-    d = data(P)
+def section(P: dict, links: dict) -> str:
+    d = data(P, links)
     y0, m0 = int(d["start"][:4]), int(d["start"][5:7])
     last = len(d["series"]["market"]) - 1
     end_y, end_m = y0 + (m0 - 1 + last - 1) // 12, (m0 - 1 + last - 1) % 12

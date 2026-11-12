@@ -54,7 +54,7 @@ SIZES = [
     (1920, 950, "1080p desktop"),
     (2560, 1300, "large desktop"),
 ]
-OTHER_PAGES = ["projects/deep-portfolio-constructor.html", "projects/pension-lab.html",
+OTHER_PAGES = ["", "projects/deep-portfolio-constructor.html", "projects/pension-lab.html",  # "" is the home page
                "projects/world-shock-lab.html", "projects/tsfm.html", "aurvane/"]
 TOL = 2.0          # pixels of slack for rounding
 MIN_PICTURE = 0.17  # the picture keeps at least this share of the screen's height
@@ -169,7 +169,7 @@ def run(only: list[str]) -> int:
         for w, h, what in sizes:
             ctx = browser.new_context(viewport={"width": w, "height": h}, is_mobile=w < 900, has_touch=w < 900)
             page = ctx.new_page()
-            page.goto(f"{base}/", wait_until="load")
+            page.goto(f"{base}/voyage.html", wait_until="load")  # the chapters live on the voyage
             page.wait_for_timeout(900)
             stories = page.evaluate("""() => [...document.querySelectorAll('[data-story]')].map((s) => {
                 const b = s.getBoundingClientRect(); return {top: b.top + scrollY, h: b.height, n: s.querySelectorAll('.st-step').length}; })""")

@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Build index.html, the master page, from data/projects.json.
+"""Build index.html (the home page) and voyage.html (the long way round) from data/projects.json.
+
+The home page is one short story: who, the ride (one dollar from 1960, on a train the reader
+picks), the five stops on the line, how the work is done, experience, contact. The voyage is the
+same story told chapter by chapter, with the charts to try. Both come from one template below;
+KEEP says which parts each page holds.
+
+The rest of this note is about the template.
 
 One featured project (the Deep Portfolio Constructor) and three project cards,
 each linking to that project's own page. Every figure is a data-bind whose
@@ -330,16 +337,42 @@ def rules() -> str:
 def toolkit() -> str:
     out = []
     for title, text, proof in TOOLKIT:
-        links = "".join(f'<a href="#p-{pid}">{e(SHORT[pid])}</a>' for pid in proof)
+        links = "".join(f'<a href="{e(page_href(P[pid]))}">{e(SHORT[pid])}</a>' for pid in proof)  # the project's own page
         out.append(f'<article><h3>{e(title)}</h3><p>{e(text)}</p><p class="proof"><span class="label">See</span>{links}</p></article>')
     return "".join(out)
 
 
+# Which parts of the template each page keeps.
+KEEP = {"home": {"lead", "ride", "stops", "approach", "experience", "contact"},
+        "voyage": {"hero", "marquee", "statement", "stories", "explore", "contact"}}
+HEAD = {"home": ("Sherif Morsi · AI for long-term investing", "https://shmorsi.github.io/"),
+        "voyage": ("The voyage · Sherif Morsi", "https://shmorsi.github.io/voyage.html")}
+
+
 def page() -> str:
+    """index.html: the home page."""
+    return _cut(_template("home"), "home")
+
+
+def voyage() -> str:
+    """voyage.html: every stop as a chapter, and the charts to try."""
+    return _cut(_template("voyage"), "voyage")
+
+
+def _cut(html_text: str, which: str) -> str:
+    """Keep the parts marked for this page, drop the others, and take the marks out."""
+    def part(m: re.Match) -> str:
+        return m.group(2) if m.group(1) in KEEP[which] else ""
+    return re.sub(r"[ \t]*<!--part:(\w+)-->\n(.*?)[ \t]*<!--/part-->\n", part, html_text, flags=re.S)
+
+
+def _template(which: str) -> str:
+    title, url = HEAD[which]
     tagline = e(DATA["tagline"])
     titles = ", ".join(g["title"] + (f" ({', '.join(P[i]['study'] for i in g['projects'])})" if len(g["projects"]) > 1 else "") for g in DATA["groups"])
     count = len(DATA["groups"])
     words = {3: "Three", 4: "Four", 5: "Five", 6: "Six"}.get(count, str(count))
+    links = {pid: page_href(P[pid]) for pid in ORDER}
     desc = (f"Sherif Morsi builds AI for long-term investing: portfolios, forecasts and AI agents, "
             f"scored on tests fixed in advance. Projects: {titles}.")
     return f"""<!doctype html>
@@ -347,18 +380,18 @@ def page() -> str:
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Sherif Morsi · AI for long-term investing</title>
+  <title>{title}</title>
   <meta name="description" content="{e(desc)}">
   <meta name="author" content="Sherif Morsi">
   <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark light">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://shmorsi.github.io/">
+  <link rel="canonical" href="{url}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Sherif Morsi">
   <meta property="og:locale" content="en_CA">
-  <meta property="og:url" content="https://shmorsi.github.io/">
-  <meta property="og:title" content="Sherif Morsi · AI for long-term investing">
+  <meta property="og:url" content="{url}">
+  <meta property="og:title" content="{title}">
   <meta property="og:description" content="{tagline} {words} projects, each with its own page and every figure traced to a result file.">
   <meta property="og:image" content="https://shmorsi.github.io/assets/og.png">
   <meta property="og:image:type" content="image/png">
@@ -366,7 +399,7 @@ def page() -> str:
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Sherif Morsi. {tagline}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Sherif Morsi · AI for long-term investing">
+  <meta name="twitter:title" content="{title}">
   <meta name="twitter:description" content="{tagline}">
   <meta name="twitter:image" content="https://shmorsi.github.io/assets/og.png">
   <meta name="twitter:image:alt" content="Sherif Morsi. {tagline}">
@@ -398,6 +431,27 @@ def page() -> str:
   <header class="site-header"></header>
 
   <main id="main">
+<!--part:lead-->
+    <section class="hero hero-lean" aria-labelledby="hero-title">
+      <div class="hl-grid wrap">
+        <div class="hl-name">
+          <p class="hero-badge"><span class="pulse" aria-hidden="true"></span>Open to internships from January 2027</p>
+          <h1 id="hero-title">Sherif Morsi</h1>
+        </div>
+        <div class="hl-say">
+          <p class="hero-lead">{tagline}</p>
+          <p class="hero-meta">Third-year Computer Science student at Concordia University, Montreal. Open to 4 to 16 month internships anywhere in Canada, with pension funds, asset managers and AI teams.</p>
+          <div class="actions">
+            <a class="button button-solid" href="{RESUME}" download>Resume</a>
+            <a class="button" href="{GITHUB}" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a class="button" href="{LINKEDIN}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a class="button" href="#contact">Contact</a>
+          </div>
+        </div>
+      </div>
+    </section>
+<!--/part-->
+<!--part:hero-->
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-grid wrap">
         <div class="hero-copy">
@@ -407,7 +461,7 @@ def page() -> str:
           <p class="hero-lead">{tagline}</p>
           <p class="hero-meta">Third-year Computer Science student. Open to 4 to 16 month internships anywhere in Canada from January 2027, with pension funds, asset managers and AI teams: portfolio construction, quantitative research, machine learning and AI agents.</p>
           <div class="actions">
-            <a class="button button-solid" href="#ride">Take the ride</a>
+            <a class="button button-solid" href="./#ride">Take the ride</a>
             <a class="button" href="{RESUME}" download>Resume</a>
             <a class="button" href="{GITHUB}" target="_blank" rel="noopener noreferrer">GitHub</a>
             <a class="button" href="{LINKEDIN}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
@@ -423,11 +477,14 @@ def page() -> str:
         </ol>
       </div>
     </section>
-
-    {ride.section(P)}
-
+<!--/part-->
+<!--part:ride-->
+    {ride.section(P, links)}
+<!--/part-->
+<!--part:marquee-->
     {marquee()}
-
+<!--/part-->
+<!--part:statement-->
     <section class="section statement" aria-label="In short">
       <div class="wrap">
         <p class="label">In short</p>
@@ -435,8 +492,12 @@ def page() -> str:
       </div>
     </section>
 
-    {worlds.section(P, ORDER, status)}
-
+<!--/part-->
+<!--part:stops-->
+    <span id="work"></span>
+    {worlds.section(P, ORDER, status, links)}
+<!--/part-->
+<!--part:stories-->
     <section class="section stories" id="work" aria-labelledby="work-title">
       <div class="wrap">
         <div class="section-head" data-reveal>
@@ -449,6 +510,8 @@ def page() -> str:
       {"".join(stories.story(P, pid, page_href(P[pid])) for pid in ORDER)}
     </section>
 
+<!--/part-->
+<!--part:explore-->
     <section class="section" id="explore" aria-labelledby="explore-title">
       <div class="wrap">
         <div class="section-head" data-reveal>
@@ -463,6 +526,8 @@ def page() -> str:
       </div>
     </section>
 
+<!--/part-->
+<!--part:approach-->
     <section class="section" id="approach" aria-labelledby="approach-title">
       <div class="wrap">
         <div class="section-head" data-reveal>
@@ -475,6 +540,8 @@ def page() -> str:
       </div>
     </section>
 
+<!--/part-->
+<!--part:experience-->
     <section class="section" id="experience" aria-labelledby="experience-title">
       <div class="wrap">
         <div class="section-head" data-reveal>
@@ -522,6 +589,8 @@ def page() -> str:
       </div>
     </section>
 
+<!--/part-->
+<!--part:contact-->
     <section class="section contact" id="contact" aria-labelledby="contact-title">
       <div class="wrap">
         <p class="label">Contact</p>
@@ -564,6 +633,7 @@ def page() -> str:
       </div>
       <p class="giant" aria-hidden="true" data-giant><span class="giant-line">Sherif Morsi</span><span class="giant-fill">Sherif Morsi</span></p>
     </section>
+<!--/part-->
   </main>
 
   <footer class="site-footer"></footer>
@@ -575,7 +645,8 @@ def page() -> str:
 
 def main() -> None:
     (ROOT / "index.html").write_text(page(), encoding="utf-8")
-    print("wrote index.html")
+    (ROOT / "voyage.html").write_text(voyage(), encoding="utf-8")
+    print("wrote index.html and voyage.html")
 
 
 if __name__ == "__main__":

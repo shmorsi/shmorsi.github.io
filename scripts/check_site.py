@@ -141,8 +141,18 @@ for path in html_files:
     page = path.read_text(encoding="utf-8")
     if "devpost" in page.lower():
         errors.append(f"{path.relative_to(ROOT)} links Devpost; that profile is empty")
-home = (ROOT / "index.html").read_text(encoding="utf-8")
-if "Trained in agentic AI for intent-based 5G network slicing (Amazon Bedrock)." not in home:
+# The home page (index.html) is short: who, the ride, the five stops, approach, experience, contact. The chapters, the
+# telemetry strip, the cards and the charts to try live on voyage.html, which the checks below call `home`.
+front = (ROOT / "index.html").read_text(encoding="utf-8")
+home = (ROOT / "voyage.html").read_text(encoding="utf-8")
+for needed, what in (("data-ride=", "the ride"), ("data-sky=", "the five stops"), ('id="approach"', "the approach"), ('id="experience"', "experience"),
+                     ('id="contact"', "contact"), ('href="voyage.html"', "a link to the voyage")):
+    if needed not in front:
+        errors.append(f"index.html is missing {what}")
+for gone in ("data-story=", 'id="explore"', "data-statement"):
+    if gone in front:
+        errors.append(f"index.html holds {gone}: the chapters and the charts belong on voyage.html")
+if "Trained in agentic AI for intent-based 5G network slicing (Amazon Bedrock)." not in front:
     errors.append("Nokia role must keep the agentic AI training line")
 # The home telemetry strip repeats each headline figure for no-JS readers; it must match the data.
 for pid, project in projects.items():
@@ -151,9 +161,9 @@ for pid, project in projects.items():
     stat = project["stats"][project["headline"]["stat"]]
     block = re.search(rf'data-headline="{re.escape(pid)}".*?</li>', home, re.S)
     if not block:
-        errors.append(f"index.html telemetry strip is missing {pid}")
+        errors.append(f"voyage.html telemetry strip is missing {pid}")
     elif stat["display"] not in block.group(0) or stat["label"] not in block.group(0):
-        errors.append(f"index.html telemetry strip for {pid} does not match data/projects.json")
+        errors.append(f"voyage.html telemetry strip for {pid} does not match data/projects.json")
 # data-bind fallback text must match the data it binds.
 for path in html_files:
     page = path.read_text(encoding="utf-8")
@@ -491,8 +501,10 @@ spec = importlib.util.spec_from_file_location("build_home", ROOT / "scripts" / "
 build_home = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(build_home)
 main_of = lambda text: re.search(r"<main id=\"main\">.*?</main>", text, re.S).group(0)  # noqa: E731
-if main_of(build_home.page()) != main_of(home):
+if main_of(build_home.page()) != main_of(front):
     errors.append("index.html is out of date with data/projects.json (run scripts/build_home.py, then scripts/sync_chrome.py)")
+if main_of(build_home.voyage()) != main_of(home):
+    errors.append("voyage.html is out of date with data/projects.json (run scripts/build_home.py, then scripts/sync_chrome.py)")
 
 # The hero illustration and every reveal must respect reduced motion.
 site_js = (ROOT / "assets" / "site.js").read_text(encoding="utf-8")
