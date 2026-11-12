@@ -422,6 +422,41 @@ html:not(.motion) .hero-viz { visibility: hidden; } /* the illustration is drawn
 }
 .email:hover { color: var(--accent); border-color: var(--accent); }
 .phone { margin: 14px 0 24px; }
+
+/* The contact block is a ticket for the end of the line: from Montréal to the reader's team. The left part says who is
+   travelling and when; the stub, past the perforation, is how to reach him. */
+.ticket {
+  --tear: 58.333%;
+  position: relative; display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  border: 1px solid var(--line-strong); background: color-mix(in srgb, var(--bg) 80%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(130%); backdrop-filter: blur(14px) saturate(130%);
+  -webkit-mask: radial-gradient(circle 12px at var(--tear) 0, #0000 97%, #000 100%) top / 100% 51% no-repeat, radial-gradient(circle 12px at var(--tear) 100%, #0000 97%, #000 100%) bottom / 100% 51% no-repeat;
+  mask: radial-gradient(circle 12px at var(--tear) 0, #0000 97%, #000 100%) top / 100% 51% no-repeat, radial-gradient(circle 12px at var(--tear) 100%, #0000 97%, #000 100%) bottom / 100% 51% no-repeat;
+}
+.ticket-main, .ticket-stub { display: grid; align-content: start; gap: clamp(16px, 2.4vh, 24px); padding: clamp(22px, 3vw, 40px); min-width: 0; }
+.ticket-stub { border-left: 1px dashed var(--line-strong); }
+.ticket-route { display: grid; grid-template-columns: auto minmax(40px, 1fr) auto; align-items: center; gap: clamp(12px, 2vw, 28px); }
+.ticket-end { display: grid; gap: 4px; }
+.ticket-end.is-to { text-align: right; }
+.ticket-end b { font-size: clamp(40px, 6vw, 88px); font-weight: 600; line-height: 0.9; letter-spacing: 0.04em; }
+.ticket-end.is-to b { color: var(--accent); }
+.ticket-end small { color: var(--dim); font-size: 12px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; }
+.ticket-line { position: relative; height: 2px; background: linear-gradient(90deg, var(--line-strong) 60%, transparent 0) 0 0 / 12px 2px repeat-x; }
+.ticket-line i { position: absolute; left: 62%; top: 50%; width: 30px; height: 12px; margin: -6px 0 0 -15px; border-radius: 3px 6px 6px 3px; background: var(--warm); box-shadow: 0 0 14px color-mix(in srgb, var(--warm) 60%, transparent); }
+.ticket-line i::after { content: ""; position: absolute; right: -9px; top: 50%; border: 5px solid transparent; border-left-color: var(--line-strong); transform: translate(100%, -50%); }
+.ticket .lede { max-width: 46ch; }
+.ticket-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 18px; margin: 0; padding-top: clamp(14px, 2vh, 20px); border-top: 1px solid var(--line); }
+.ticket-facts div { display: grid; gap: 4px; min-width: 0; }
+.ticket-facts dt { color: var(--dim); font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; }
+.ticket-facts dd { margin: 0; font-size: clamp(15px, 1.3vw, 18px); font-weight: 600; letter-spacing: 0.01em; }
+.ticket-stub .email { font-size: clamp(20px, 2.3vw, 32px); }
+.ticket-stub .phone { margin: 0; }
+.ticket-code { display: block; height: 34px; margin-top: auto; opacity: 0.55; background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 5px, var(--ink) 5px 6px, transparent 6px 9px, var(--ink) 9px 12px, transparent 12px 16px); }
+@media (max-width: 900px) {
+  .ticket { grid-template-columns: minmax(0, 1fr); -webkit-mask: none; mask: none; }
+  .ticket-stub { border-left: 0; border-top: 1px dashed var(--line-strong); }
+  .ticket-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .phone a { color: var(--muted); text-decoration: none; }
 
 /* ---- Footer ---------------------------------------------------------------------- */
@@ -1445,6 +1480,28 @@ html:not(.stage) .hero-space { display: none; }
    its sky is clear, so the field and the stars are the sky; by day (the light theme) it paints
    its own. The last screen of every page is left to it: the footer stands on the ground. */
 .fx-land { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
+/* The route: the whole line at a glance, on the right edge of a wide screen. A stop for each place, the train where
+   the reader is. Names show when the rail is pointed at, or a stop has the focus. */
+.fx-route { position: fixed; z-index: 20; top: 50%; right: max(12px, calc((100vw - var(--max)) / 2 - 70px)); transform: translateY(-50%); display: none; }
+@media (min-width: 1100px) and (min-height: 600px) { .land .fx-route { display: block; } }
+.fx-route ol { position: relative; list-style: none; margin: 0; padding: 0; width: 18px; height: min(44vh, 360px); }
+.fx-route ol::before { content: ""; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: linear-gradient(var(--line-strong), var(--line-strong)) 0 0 / 2px 100% no-repeat; opacity: 0.8; }
+.fx-route li { position: absolute; left: 0; width: 18px; height: 18px; margin-top: -9px; }
+.fx-route a { position: relative; display: block; width: 18px; height: 18px; text-decoration: none; }
+.fx-route a::before { content: ""; position: absolute; left: 4px; top: 4px; width: 10px; height: 10px; border-radius: 50%; box-sizing: border-box; background: var(--bg); border: 2px solid var(--muted); transition: border-color 0.25s, background-color 0.25s, transform 0.25s var(--ease); }
+.fx-route a:hover::before, .fx-route a:focus-visible::before { border-color: var(--ink); transform: scale(1.25); }
+.fx-route a[aria-current]::before { border-color: var(--accent); background: var(--accent); }
+.fx-route a span {
+  position: absolute; right: 26px; top: 50%; transform: translate(6px, -50%); white-space: nowrap; pointer-events: none; opacity: 0;
+  padding: 6px 9px; color: var(--ink); background: color-mix(in srgb, var(--bg) 84%, transparent); border: 1px solid var(--line);
+  font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; line-height: 1;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: opacity 0.25s, transform 0.35s var(--ease);
+}
+.fx-route:hover a span, .fx-route:focus-within a span { opacity: 0.72; transform: translate(0, -50%); }
+.fx-route a:hover span, .fx-route a:focus-visible span, .fx-route:hover a[aria-current] span { opacity: 1; }
+.fx-route-train { position: absolute; left: 4px; width: 10px; height: 20px; margin-top: -10px; border-radius: 3px; background: var(--warm); box-shadow: 0 0 12px color-mix(in srgb, var(--warm) 70%, transparent); pointer-events: none; z-index: 1; }
+.fx-route-train::before { content: ""; position: absolute; left: 2px; right: 2px; top: 3px; height: 4px; border-radius: 1px; background: color-mix(in srgb, var(--bg) 70%, transparent); }
+html:not(.fx) .fx-route-train { display: none; }
 /* The words and numbers of a picture stay readable over mountains and lit windows. */
 .land .scene text { paint-order: stroke; stroke: var(--bg); stroke-width: 3.2px; stroke-linejoin: round; stroke-opacity: 0.82; }
 .land .site-footer {

@@ -534,9 +534,23 @@ def page() -> str:
       <div class="wrap">
         <p class="label">Contact</p>
         <h2 id="contact-title">Let's talk</h2>
-        <div class="split">
-          <p class="lede">I build AI for long-term investing, train the models underneath it, and write the measurement down, including when the answer is no.</p>
-          <div class="reach">
+        <div class="ticket">
+          <div class="ticket-main">
+            <p class="ticket-route" aria-label="A ticket from Montréal to your team">
+              <span class="ticket-end"><b>MTL</b><small>Montréal</small></span>
+              <span class="ticket-line" aria-hidden="true"><i></i></span>
+              <span class="ticket-end is-to"><b>YOU</b><small>Your team</small></span>
+            </p>
+            <p class="lede">I build AI for long-term investing, train the models underneath it, and write the measurement down, including when the answer is no.</p>
+            <dl class="ticket-facts">
+              <div><dt>Passenger</dt><dd>Sherif Morsi</dd></div>
+              <div><dt>Departs</dt><dd>January 2027</dd></div>
+              <div><dt>Stay</dt><dd>4 to 16 months</dd></div>
+              <div><dt>Class</dt><dd>Internship</dd></div>
+            </dl>
+          </div>
+          <div class="ticket-stub reach">
+            <p class="label">Boarding</p>
             <a class="email" href="mailto:shmorsi@outlook.com">shmorsi@outlook.com</a>
             <p class="phone"><a href="tel:+14385966468">+1 (438) 596-6468</a></p>
             <div class="actions">
@@ -545,6 +559,7 @@ def page() -> str:
               <a class="button" href="{LINKEDIN}" target="_blank" rel="noopener noreferrer">LinkedIn</a>
               <button class="text-link" type="button" data-copy-email="shmorsi@outlook.com">Copy email</button>
             </div>
+            <span class="ticket-code" aria-hidden="true"></span>
           </div>
         </div>
         <dl class="facts">
