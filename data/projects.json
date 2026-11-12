@@ -3314,6 +3314,26 @@
           "display": "0",
           "label": "False alarms on clean tasks",
           "source": "data/measurements/aurvane/worst-case_summary.json with_aurvane.clean_friction_events 0."
+        },
+        "dojoWithout": {
+          "display": "97.5%",
+          "label": "Attacks that landed on AgentDojo, without Aurvane",
+          "source": "data/measurements/aurvane/agentdojo_summary.json conditions.none.total: attack_success 613 of pairs 629. AgentDojo v1.2.2, worst-case agent (ground-truth replay, no model), AgentDojo's own checks; protocol in aurvane bench/agentdojo/PROTOCOL.md."
+        },
+        "dojoWith": {
+          "display": "13.0%",
+          "label": "Attacks that landed on AgentDojo, with Aurvane",
+          "source": "data/measurements/aurvane/agentdojo_summary.json conditions.A.total: attack_success 82 of pairs 629. AgentDojo v1.2.2, worst-case agent (ground-truth replay, no model), AgentDojo's own checks; protocol in aurvane bench/agentdojo/PROTOCOL.md."
+        },
+        "dojoPairs": {
+          "display": "629",
+          "label": "AgentDojo attack cases replayed",
+          "source": "data/measurements/aurvane/agentdojo_summary.json conditions.A.total.pairs 629; pairs_not_replayable 320 have no attacker ground truth in the benchmark."
+        },
+        "dojoApproval": {
+          "display": "36 of 97",
+          "label": "Honest AgentDojo tasks that needed an approval, with Aurvane",
+          "source": "data/measurements/aurvane/agentdojo_summary.json conditions.A.total: clean_need_approval 36 of user_tasks 97."
         }
       },
       "group": "agents",

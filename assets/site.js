@@ -2043,6 +2043,272 @@ void main(){
     if (!reduced) tasks.push((dt, now) => { if (!document.hidden) paint(dt, now); });
   });
 
+  /* ---- The ride: one dollar, January 1960, and three trains to today. ---------------------------
+     The first thing under the opening screen, and the one thing the reader does rather than reads:
+     pick a train (hold the market, a momentum rule, or the wealth study's neural network), board,
+     and ride it through every month since 1960. The ground under each train is what its dollar had
+     become, on a scale where equal growth is an equal climb; the camera follows the reader's train,
+     so a crash is felt as a fall. The market's real falls of a fifth or more arrive as storms, with
+     their depth; past today there is only fog. At the end stand the three results and the verdicts
+     of the test that was fixed in advance. The months come in the page (data-ride, written by
+     scripts/ride.py from data/dpc_wealth.json), and the final figures are the published ones. It
+     plays only when asked, can be paused and dragged, and under reduced motion "Board" goes
+     straight to the arrival. Without it the section is its words and the three results. */
+  safe(() => {
+    const stage = document.querySelector("[data-ride]");
+    if (!stage) return;
+    const D = JSON.parse(stage.dataset.ride), S = D.series, KEYS = ["market", "momentum", "deep"];
+    const view = stage.querySelector(".ride-view"), play = stage.querySelector("[data-ride-play]"), scrub = stage.querySelector("[data-ride-scrub]");
+    const dateEl = stage.querySelector("[data-ride-date]"), note = stage.querySelector("[data-ride-note]");
+    const vals = {}, rows = {};
+    KEYS.forEach((k) => { vals[k] = stage.querySelector(`[data-ride-val="${k}"]`); rows[k] = stage.querySelector(`.ride-hud [data-train="${k}"]`); });
+    const arrival = document.querySelector("[data-ride-arrival]");
+    if (!view || !play || !scrub || KEYS.some((k) => !S[k] || !vals[k])) return;
+    const canvas = el("canvas", "ride-canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    const g = canvas.getContext("2d");
+    if (!g) return;
+    view.prepend(canvas);
+    stage.classList.add("is-live");
+    if (arrival) arrival.classList.add("is-waiting");
+
+    const N = S.market.length - 1, Y0 = +D.start.slice(0, 4), M0 = +D.start.slice(5, 7) - 1;
+    const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const INK = { market: [158, 166, 194], momentum: [247, 184, 77], deep: [142, 197, 255] }, DEEP = { market: [84, 92, 120], momentum: [158, 100, 8], deep: [22, 96, 176] };
+    const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+    const mixc = (a, b, t) => [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)];
+    const hash = (x) => { const v = Math.sin(x * 127.1) * 43758.5453; return v - Math.floor(v); };
+    const lv = (k, m) => { const c = clamp(m, 0, N), i = Math.floor(c), f = c - i; return (S[k][i] + (S[k][Math.min(N, i + 1)] - S[k][i]) * f) / 10000; };
+    const peak = []; /* the market's high so far, month by month: how far below it we are is the weather */
+    S.market.forEach((v, i) => { peak.push(i ? Math.max(peak[i - 1], v) : v); });
+    const below = (m) => { const i = Math.round(clamp(m, 0, N)); return 1 - Math.pow(10, (S.market[i] - peak[i]) / 10000); };
+    const when = (i) => { if (i <= 0) return `${MONTH[M0]} ${Y0}`; const n = M0 + i - 1; return `${MONTH[n % 12]} ${Y0 + Math.floor(n / 12)}`; };
+    const money = (v) => (v < 10 ? `$${v.toFixed(2)}` : v < 100 ? `$${v.toFixed(1)}` : `$${Math.round(v).toLocaleString("en-US")}`);
+
+    const noise = (x) => { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return hash(i) + (hash(i + 1) - hash(i)) * u; };
+    const passed = {}; /* the first month each train's dollar is worth ten, a hundred, a thousand */
+    KEYS.forEach((k) => { passed[k] = [1, 2, 3].map((d) => S[k].findIndex((v) => v >= d * 10000)); });
+    const smoke = [];
+    let W = 0, H = 0, dpr = 1, font = "sans-serif", light = false;
+    let sel = (stage.querySelector('input[name="ride-train"]:checked') || {}).value || "deep";
+    let month = 0, playing = false, started = false, arrived = false, clock = 0, noteKey = "", shownMonth = -1, dirty = true;
+    const RUN = 27; /* seconds for the whole journey */
+
+    const measure = () => {
+      const b = view.getBoundingClientRect();
+      if (b.width < 10) return;
+      W = b.width; H = b.height; dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      font = getComputedStyle(stage).fontFamily || font;
+      dirty = true;
+      if (reduced) paint(0);
+    };
+
+    const say = () => { /* the words beside the picture: only rewritten when what they say changes */
+      const i = Math.round(month), storm = D.storms.find((s) => i >= s.from + 1 && i <= s.back), d = below(month);
+      let key = "calm", text = "";
+      if (!started && i === 0) { key = "wait"; text = "Pick a train, then board."; }
+      else if (i >= N) { key = "end"; text = 'Today. Past here there are no returns, only forecasts. <a href="#story-tsfm">The navigator</a>'; }
+      else if (storm && d >= 0.08) { key = `storm${storm.from}`; text = `${storm.name ? storm.name[0].toUpperCase() + storm.name.slice(1) : "A storm"}, ${storm.years}: the market falls ${storm.depth}% from its high. <a href="#story-world-shock-lab">What a shock does to markets</a>`; }
+      else if (i < 30) { key = "guard"; text = 'On board, a guard checks every order an AI gives. <a href="#story-aurvane">The shield</a>'; }
+      else if (i > N - 70) { key = "promise"; text = 'The line ends at a promise: pensions to pay. <a href="#story-pension-lab">What keeping it costs</a>'; }
+      if (key !== noteKey) { noteKey = key; note.innerHTML = text; }
+    };
+    const readout = () => {
+      const i = Math.round(month);
+      if (i === shownMonth) return;
+      shownMonth = i;
+      dateEl.textContent = when(i);
+      let lead = KEYS[0];
+      KEYS.forEach((k) => { vals[k].textContent = i >= N ? D.end[k] : money(Math.pow(10, S[k][i] / 10000)); if (S[k][i] > S[lead][i]) lead = k; });
+      KEYS.forEach((k) => { rows[k].classList.toggle("is-you", k === sel); rows[k].classList.toggle("is-ahead", i > 0 && k === lead); });
+      scrub.value = String(i);
+      scrub.setAttribute("aria-valuetext", when(i));
+    };
+    const arrive = () => {
+      if (arrived) return;
+      arrived = true;
+      if (arrival) arrival.classList.remove("is-waiting");
+      stage.classList.add("is-arrived");
+    };
+    const label = () => { play.textContent = playing ? "Pause" : month >= N ? "Ride again" : started ? "Continue" : "Board"; };
+
+    function paint(dt) {
+      if (!W) return;
+      light = html.dataset.theme === "light";
+      const narrow = W < 620, span = narrow ? 84 : 150, xNow = W * (narrow ? 0.56 : 0.6), k = xNow / span, sc = H * 0.56, yMid = H * 0.56;
+      let cam = 0; for (let j = 0; j <= 36; j += 6) cam += lv(sel, month - j); cam /= 7; /* the camera lags the train: a fall is felt */
+      const X = (m) => xNow + (m - month) * k, Yl = (l) => yMid - (l - cam) * sc;
+      const st = clamp(below(month) / 0.36), m0 = Math.floor(month - span - 3); /* before the first month the line is level at one dollar: the platform */
+      const pr = month / N, mi = Math.floor(clamp(month, 1, N)), drop = (S.market[mi] - S.market[mi - 1]) / 10000, jolt = playing && drop < -0.04 ? (1 - (month - Math.floor(month))) : 0;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      /* the sky: night when the train leaves, first light when it arrives, and as dark as the fall is deep in between */
+      const sky = g.createLinearGradient(0, 0, 0, H);
+      const clearTop = light ? mixc([198, 218, 250], [214, 228, 250], pr) : mixc([6, 8, 24], [20, 24, 62], pr), clearLow = light ? mixc([240, 236, 248], [255, 228, 204], pr * pr) : mixc([40, 30, 80], [150, 86, 104], pr * pr);
+      const top = mixc(clearTop, light ? [142, 150, 168] : [15, 16, 23], st), low = mixc(clearLow, light ? [176, 180, 190] : [36, 38, 52], st);
+      sky.addColorStop(0, rgba(top, 1)); sky.addColorStop(1, rgba(low, 1));
+      g.fillStyle = sky; g.fillRect(0, 0, W, H);
+      if (jolt) g.translate((hash(clock * 31) - 0.5) * 7 * jolt, (hash(clock * 17 + 4) - 0.5) * 5 * jolt);
+      if (!light) for (let i = 0; i < 80; i += 1) { /* stars drift a little as the years pass, and go out toward morning */
+        const sx = ((hash(i) * (W + 60) - month * 0.22) % (W + 60) + W + 60) % (W + 60) - 30;
+        g.fillStyle = `rgba(226,234,255,${(0.25 + 0.6 * hash(i + 9)) * (1 - st) * (1 - pr * 0.75)})`; g.fillRect(sx, hash(i + 40) * H * 0.6, 1.3, 1.3);
+      }
+      if (!light && st < 0.9) { /* the moon, setting slowly over the whole journey */
+        const mx = W * (0.86 - pr * 0.5), my = H * (0.16 + pr * pr * 0.34), mr = Math.max(9, H * 0.036);
+        const halo = g.createRadialGradient(mx, my, mr * 0.6, mx, my, mr * 4); halo.addColorStop(0, `rgba(214,222,250,${0.2 * (1 - st)})`); halo.addColorStop(1, "rgba(214,222,250,0)");
+        g.fillStyle = halo; g.beginPath(); g.arc(mx, my, mr * 4, 0, 6.2832); g.fill();
+        g.fillStyle = `rgba(226,230,246,${0.92 * (1 - st)})`; g.beginPath(); g.arc(mx, my, mr, 0, 6.2832); g.fill();
+      }
+      /* far mountains, two ranges, passing more slowly than the line */
+      [[0.5, 0.62, 0.15, light ? [202, 210, 234] : [24, 21, 56], 37], [0.82, 0.74, 0.13, light ? [184, 194, 224] : [32, 27, 70], 91]].forEach(([par, base, amp, c, seed]) => {
+        g.fillStyle = rgba(mixc(c, light ? [150, 156, 172] : [20, 21, 30], st * 0.7), 1); g.beginPath(); g.moveTo(0, H);
+        for (let x = 0; x <= W + 12; x += 12) {
+          const wx = (x + month * k * par) / (W * 0.16) + seed;
+          g.lineTo(x, H * base - H * amp * (noise(wx) * 0.65 + noise(wx * 2.7 + 9) * 0.35));
+        }
+        g.lineTo(W, H); g.closePath(); g.fill();
+      });
+      /* heights: each line is ten times the one below it */
+      g.font = `500 11px ${font}`; g.textBaseline = "middle"; g.lineWidth = 1;
+      [1, 10, 100, 1000].forEach((v) => {
+        const y = Yl(Math.log10(v));
+        if (y < 14 || y > H - 8) return;
+        g.strokeStyle = light ? "rgba(20,22,30,0.12)" : "rgba(206,214,232,0.12)"; g.setLineDash([2, 6]); g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); g.setLineDash([]);
+        g.fillStyle = light ? "rgba(20,22,30,0.55)" : "rgba(206,214,232,0.55)"; g.textAlign = "right"; g.fillText(`$${v.toLocaleString("en-US")}`, W - 10, y - 9);
+      });
+      /* years: a post every five, a name every ten */
+      for (let yr = Y0; yr <= Y0 + Math.ceil(N / 12) + 1; yr += 5) {
+        const x = X((yr - Y0) * 12 - M0 + 1);
+        if (x < -20 || x > xNow + 4) continue;
+        g.strokeStyle = light ? "rgba(20,22,30,0.14)" : "rgba(206,214,232,0.14)"; g.beginPath(); g.moveTo(x, H * 0.12); g.lineTo(x, H); g.stroke();
+        if (yr % 10 === 0) { g.fillStyle = light ? "rgba(20,22,30,0.6)" : "rgba(206,214,232,0.6)"; g.textAlign = "left"; g.fillText(String(yr), x + 6, H - 14); }
+      }
+      /* the ground each train has covered: the reader's last, in front */
+      const order = KEYS.filter((key) => key !== sel).concat(sel);
+      order.forEach((key) => {
+        const mine = key === sel, c = light ? DEEP[key] : INK[key];
+        g.beginPath(); g.moveTo(X(m0), H);
+        for (let m = m0; m < month; m += 1) g.lineTo(X(m), Yl(lv(key, m)));
+        g.lineTo(xNow, Yl(lv(key, month))); g.lineTo(xNow, H); g.closePath();
+        const fill = g.createLinearGradient(0, Yl(lv(key, month)) - 30, 0, H);
+        fill.addColorStop(0, rgba(c, mine ? (light ? 0.3 : 0.34) : 0.1)); fill.addColorStop(1, rgba(c, mine ? 0.04 : 0.01));
+        g.fillStyle = fill; g.fill();
+        g.beginPath();
+        for (let m = m0; m < month; m += 1) { const px = X(m), py = Yl(lv(key, m)); if (m === m0) g.moveTo(px, py); else g.lineTo(px, py); }
+        g.lineTo(xNow, Yl(lv(key, month)));
+        g.strokeStyle = rgba(c, mine ? 0.98 : 0.5); g.lineWidth = mine ? 2.2 : 1.2; g.lineJoin = "round"; g.stroke();
+      });
+      /* the storms already lived through, each with its depth */
+      D.storms.forEach((s) => {
+        if (s.low > month) return;
+        const x = X(s.low), y = Yl(S.market[s.low] / 10000);
+        if (x < 46 || x > xNow) return;
+        const ty = Math.min(y + 22, H - 52); /* clear of the year names along the bottom */
+        g.textAlign = "center"; g.font = `600 12px ${font}`; g.fillStyle = light ? "rgba(170,40,60,0.95)" : "rgba(255,128,150,0.95)";
+        g.fillText(`−${s.depth}%`, x, ty);
+        g.font = `500 10.5px ${font}`; g.fillStyle = light ? "rgba(20,22,30,0.66)" : "rgba(206,214,232,0.66)";
+        g.fillText(s.name ? `${s.name}, ${s.years}` : s.years, x, ty + 15);
+      });
+      /* rain, and a flash in the worst months */
+      if (st > 0.12) {
+        g.strokeStyle = light ? `rgba(60,70,96,${0.3 * st})` : `rgba(190,204,236,${0.34 * st})`; g.lineWidth = 1;
+        const drops = Math.round(st * (narrow ? 60 : 130));
+        for (let i = 0; i < drops; i += 1) {
+          const rx = (hash(i) * (W + 80) + clock * 90 * (0.7 + hash(i + 3))) % (W + 80) - 40, ry = (hash(i + 7) * H + clock * 520 * (0.7 + hash(i + 5))) % H;
+          g.beginPath(); g.moveTo(rx, ry); g.lineTo(rx - 5, ry + 15); g.stroke();
+        }
+        for (let i = 0; i < 7; i += 1) { /* clouds as heavy as the fall is deep */
+          const cx = ((hash(i + 60) * (W + 300) + clock * 14 * (0.6 + hash(i + 61))) % (W + 300)) - 150, cy = H * (0.04 + hash(i + 62) * 0.16), cw = W * (0.1 + hash(i + 63) * 0.1);
+          g.fillStyle = light ? `rgba(96,102,120,${0.5 * st})` : `rgba(44,46,62,${0.85 * st})`;
+          g.beginPath(); g.ellipse(cx, cy, cw, cw * 0.3, 0, 0, 6.2832); g.ellipse(cx + cw * 0.55, cy + cw * 0.08, cw * 0.7, cw * 0.24, 0, 0, 6.2832); g.ellipse(cx - cw * 0.5, cy + cw * 0.1, cw * 0.6, cw * 0.2, 0, 0, 6.2832); g.fill();
+        }
+        if (jolt > 0.45) { /* lightning in the months the market lost most: the same bolt every time that month is played */
+          let bx = W * (0.18 + hash(mi * 3.1) * 0.5), by = H * 0.1;
+          g.strokeStyle = `rgba(255,250,224,${Math.min(1, jolt * 1.3)})`; g.lineWidth = 2; g.lineJoin = "miter"; g.beginPath(); g.moveTo(bx, by);
+          for (let q = 1; q <= 7; q += 1) { bx += (hash(mi * 7.3 + q) - 0.5) * W * 0.07; by += H * 0.065; g.lineTo(bx, by); }
+          g.stroke();
+          g.fillStyle = `rgba(255,255,255,${jolt * 0.2})`; g.fillRect(-10, -10, W + 20, H + 20);
+        }
+      }
+      /* what lies ahead is not known */
+      const fog = g.createLinearGradient(xNow + 14, 0, W, 0), fc = light ? [236, 238, 244] : [10, 11, 22];
+      fog.addColorStop(0, rgba(fc, 0)); fog.addColorStop(0.55, rgba(fc, 0.78)); fog.addColorStop(1, rgba(fc, 0.96));
+      g.fillStyle = fog; g.fillRect(xNow + 14, 0, W - xNow - 14, H);
+      if (pr > 0.5) { /* first light, low on the right, as the arrival nears */
+        const dawn = g.createRadialGradient(W * 0.9, H * 0.86, 0, W * 0.9, H * 0.86, H * 0.9), a = Math.pow((pr - 0.5) * 2, 2) * (1 - st) * (light ? 0.5 : 0.42);
+        dawn.addColorStop(0, `rgba(255,196,140,${a})`); dawn.addColorStop(0.5, `rgba(255,150,120,${a * 0.4})`); dawn.addColorStop(1, "rgba(255,150,120,0)");
+        g.fillStyle = dawn; g.fillRect(xNow, 0, W - xNow, H);
+      }
+      if (!narrow) { g.font = `500 11px ${font}`; g.textAlign = "left"; g.fillStyle = light ? "rgba(20,22,30,0.5)" : "rgba(206,214,232,0.5)"; g.fillText(month >= N ? "today" : "not yet known", xNow + (W - xNow) * 0.42, H * 0.3); }
+      /* the trains */
+      const car = clamp(W * 0.022, 13, 24), hgt = car * 0.46, gap = car * 0.16;
+      order.forEach((key) => {
+        const mine = key === sel, cars = mine ? 4 : 3, c = INK[key];
+        for (let n = cars - 1; n >= 0; n -= 1) {
+          const back = (n * (car + gap)) / k, px = X(month - back), py = Yl(lv(key, month - back)), a = clamp(Math.atan2(Yl(lv(key, month - back)) - Yl(lv(key, month - back - 6)), 6 * k), -0.62, 0.62); /* the grade of the last half year: never a look ahead */
+          g.save(); g.translate(px, py); g.rotate(a); g.globalAlpha = mine ? 1 : 0.62;
+          if (n === 0 && mine && !light) { const beam = g.createLinearGradient(car * 0.5, 0, car * 3.6, 0); beam.addColorStop(0, "rgba(255,226,150,0.5)"); beam.addColorStop(1, "rgba(255,226,150,0)"); g.fillStyle = beam; g.beginPath(); g.moveTo(car * 0.5, -hgt * 0.3); g.lineTo(car * 3.6, -hgt * 1.7); g.lineTo(car * 3.6, hgt * 1.0); g.closePath(); g.fill(); }
+          g.fillStyle = rgba(light ? DEEP[key] : mixc(c, [20, 22, 40], 0.25), 1); g.beginPath();
+          if (g.roundRect) g.roundRect(-car / 2, -hgt, car, hgt, [hgt * 0.34, n === 0 ? hgt * 0.9 : hgt * 0.34, 2, 2]); else g.rect(-car / 2, -hgt, car, hgt);
+          g.fill();
+          g.fillStyle = mine ? (light ? "#fff4d6" : "#ffe3a0") : (light ? "rgba(255,255,255,0.7)" : "rgba(226,234,255,0.5)");
+          for (let q = 0; q < 4; q += 1) g.fillRect(-car / 2 + car * (0.1 + q * 0.2), -hgt * 0.78, car * 0.12, hgt * 0.3);
+          g.fillStyle = light ? "rgba(30,32,44,0.85)" : "rgba(8,9,18,0.9)";
+          [-0.3, 0.3].forEach((q) => { g.beginPath(); g.arc(car * q, 0, hgt * 0.2, 0, 6.2832); g.fill(); });
+          g.restore();
+        }
+      });
+      g.globalAlpha = 1;
+      /* smoke behind the reader's engine while it runs */
+      if (playing && dt) {
+        if (smoke.length < 26 && hash(clock * 53) < 0.5) smoke.push({ m: month, up: 0, age: 0, drift: hash(clock * 11) - 0.5 });
+        for (let i = smoke.length - 1; i >= 0; i -= 1) { const q = smoke[i]; q.age += dt; q.up += dt * (26 + q.drift * 14); if (q.age > 1.5) smoke.splice(i, 1); }
+      } else if (!playing && smoke.length) smoke.length = 0;
+      smoke.forEach((q) => {
+        const a = (1 - q.age / 1.5) * (light ? 0.3 : 0.24), r = car * (0.22 + q.age * 0.5);
+        g.fillStyle = light ? `rgba(90,96,116,${a})` : `rgba(220,226,244,${a})`;
+        g.beginPath(); g.arc(X(q.m) + car * 0.2, Yl(lv(sel, q.m)) - hgt * 1.3 - q.up, r, 0, 6.2832); g.fill();
+      });
+      /* a word when the reader's dollar becomes ten, a hundred, a thousand */
+      passed[sel].forEach((at, d) => {
+        const since = month - at;
+        if (at < 0 || since < 0 || since > 34) return;
+        const a = Math.min(1, since / 4) * (1 - Math.max(0, (since - 22) / 12)), lift = Math.min(1, since / 10) * H * 0.07;
+        g.textAlign = "center"; g.font = `600 ${Math.round(clamp(W * 0.02, 15, 24))}px ${font}`;
+        g.fillStyle = light ? `rgba(22,96,176,${a})` : `rgba(238,245,255,${a})`;
+        g.fillText(["Ten dollars", "A hundred dollars", "A thousand dollars"][d], xNow - car, Yl(lv(sel, month)) - hgt * 2.6 - lift);
+      });
+      readout(); say();
+      dirty = false;
+    }
+
+    const go = (m, stop) => { month = clamp(m, 0, N); if (stop) playing = false; if (month >= N) { playing = false; arrive(); } label(); dirty = true; if (reduced) paint(0); };
+    play.addEventListener("click", () => {
+      started = true;
+      if (reduced) { go(N, true); return; } /* no motion: straight to the arrival */
+      if (month >= N) month = 0;
+      playing = !playing; label(); dirty = true;
+    });
+    scrub.addEventListener("input", () => { started = true; go(+scrub.value, true); });
+    const radios = [...stage.querySelectorAll('input[name="ride-train"]')];
+    const picked = () => radios.forEach((r) => r.closest(".ride-train").classList.toggle("is-picked", r.checked));
+    radios.forEach((r) => {
+      r.addEventListener("change", () => { if (r.checked) { sel = r.value; shownMonth = -1; dirty = true; picked(); if (reduced) paint(0); } });
+      r.addEventListener("focus", () => r.closest(".ride-train").classList.toggle("is-focused", r.matches(":focus-visible")));
+      r.addEventListener("blur", () => r.closest(".ride-train").classList.remove("is-focused"));
+    });
+    picked();
+    measures.push(measure);
+    tasks.push((dt) => {
+      const b = view.getBoundingClientRect(), on = b.bottom > -40 && b.top < vh + 40;
+      if (playing) { clock += dt; month = Math.min(N, month + (N / RUN) * dt); if (month >= N) go(N, true); if (!on) { playing = false; label(); } }
+      else if (on && below(month) > 0.04) clock += dt; /* the rain keeps falling while a storm is on screen */
+      if (on && (playing || dirty || below(month) > 0.04)) paint(dt);
+    });
+    new MutationObserver(() => { dirty = true; if (reduced) paint(0); }).observe(html, { attributes: true, attributeFilter: ["data-theme"] });
+    label();
+  });
+
   /* ---- The route: five worlds on one line, each drawn from its project's results. ---------------
      Under the opening screen the reader sees the whole voyage at once: five worlds hanging over the
      land, a railway running past them, and the train on it, wherever the page is. Nothing on a

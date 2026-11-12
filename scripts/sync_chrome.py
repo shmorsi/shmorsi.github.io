@@ -10,6 +10,12 @@
   links with "public": false) with a plain "Code: private repository" note, so
   the site never shows a dead GitHub link. Flip the flag to true and re-run
   when a repository goes public.
+* Stamps every page's link to assets/site.css and assets/site.js with a version made from
+  what those two files contain (?v=...). A browser that came before a change would
+  otherwise keep the old script and stylesheet for a while and show the new page half
+  dressed: the words of a new section without its picture. With the stamp a changed file
+  has a new address, so it is fetched at once. scripts/check_site.py fails if a page
+  carries an old stamp: run this script after editing either file.
 
 aurvane/index.html is one of those project pages. Its demo (the sections, their styles and
 scripts) is built in the aurvane repository; everything listed above is written here, as on
@@ -19,6 +25,7 @@ build in through dress() below.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -177,6 +184,23 @@ PAGES = {"index.html": ("", None, True)}  # page -> (prefix to the site root, it
 PAGES.update({path + ("index.html" if path.endswith("/") else ""): ("../", path, False) for pid, path in PATH_OF.items()})
 
 
+ASSET_REF = re.compile(r'((?:href|src)="(?:\.\./|/)?assets/site\.(?:css|js))(?:\?v=[0-9a-f]+)?"')
+
+
+def asset_version() -> str:
+    """Ten hex digits that change whenever the stylesheet or the script does."""
+    digest = hashlib.sha256()
+    for name in ("site.css", "site.js"):
+        digest.update((ROOT / "assets" / name).read_bytes())
+    return digest.hexdigest()[:10]
+
+
+def stamp(html: str) -> str:
+    """The page with its stylesheet and script addressed by their current version."""
+    version = asset_version()
+    return ASSET_REF.sub(lambda m: f'{m.group(1)}?v={version}"', html)
+
+
 def dress(html: str, prefix: str, current: str | None, home: bool) -> str:
     """One page with everything the pages share written into it. Running it twice changes nothing."""
     html, n = re.subn(r'<header class="site-header">.*?</header>', lambda m: header(prefix, current, home), html, count=1, flags=re.S)
@@ -189,7 +213,7 @@ def dress(html: str, prefix: str, current: str | None, home: bool) -> str:
     pid = next((p for p, own in PATH_OF.items() if own == current), None)
     if pid:
         html = projectize(html, pid)
-    return html
+    return stamp(html)
 
 
 def main() -> None:
@@ -199,6 +223,9 @@ def main() -> None:
             raise SystemExit(f"missing page {rel}")
         path.write_text(dress(path.read_text(encoding="utf-8"), prefix, current, home), encoding="utf-8")
         print(f"synced {rel}")
+    lost = ROOT / "404.html"  # not dressed, but it loads the same stylesheet
+    if lost.exists():
+        lost.write_text(stamp(lost.read_text(encoding="utf-8")), encoding="utf-8")
 
 
 if __name__ == "__main__":
