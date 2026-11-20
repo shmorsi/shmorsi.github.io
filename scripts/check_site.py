@@ -157,7 +157,7 @@ front = (ROOT / "index.html").read_text(encoding="utf-8")
 home = (ROOT / "voyage.html").read_text(encoding="utf-8")
 # index.html is written whole by scripts/home.py, on assets/home.css and assets/home.js.
 for needed, what in (("data-ride", "the ride"), ('id="work"', "the work"), ('id="approach"', "the approach"), ('id="experience"', "experience"),
-                     ('id="contact"', "contact"), ('href="voyage.html"', "a link to the voyage"), ("data-rosette", "the rosette")):
+                     ('id="contact"', "contact"), ('href="voyage.html"', "a link to the voyage"), ("data-globe", "the Earth")):
     if needed not in front:
         errors.append(f"index.html is missing {what}")
 for gone in ("data-story=", 'id="explore"', "data-statement"):

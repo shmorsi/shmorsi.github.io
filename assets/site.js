@@ -1084,6 +1084,9 @@
     });
   }
   const safe = (fn) => { try { fn(); } catch (err) { /* decoration only: never break the page */ } };
+  /* Clean space: black, still stars and the pages' own pictures. The domain-warped field, the illustrated
+     land with its route, and the film grain stay switched off, so the project pages match the home page. */
+  const CLEAN = true;
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const seg = (v, a, b) => clamp((v - a) / (b - a));
   const ease = (t) => 1 - Math.pow(1 - t, 3);
@@ -1158,6 +1161,7 @@
   const tints = { ice: [0.30, 0.56, 1.0], violet: [0.58, 0.40, 1.0], amber: [1.0, 0.62, 0.26], teal: [0.16, 0.74, 0.78], rose: [1.0, 0.34, 0.5] };
   const field = { tint: tints.ice.slice(), want: tints.ice };
   safe(() => {
+    if (CLEAN) return;
     const canvas = el("canvas", "fx-field");
     canvas.setAttribute("aria-hidden", "true");
     const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, powerPreference: "low-power" });
@@ -1862,6 +1866,7 @@ void main(){
      the reader is, and a link on each stop (to its chapter here, to its page from a project page). */
   const land = { on: false };
   safe(() => {
+    if (CLEAN) return;
     const canvas = el("canvas", "fx-land");
     canvas.setAttribute("aria-hidden", "true");
     const g = canvas.getContext("2d");
@@ -2758,7 +2763,7 @@ void main(){
 
   /* ---- Grain, scroll progress, and a header that steps aside while you read down. ------------ */
   safe(() => {
-    el("div", "fx-grain", body).setAttribute("aria-hidden", "true");
+    if (!CLEAN) el("div", "fx-grain", body).setAttribute("aria-hidden", "true");
     const bar = el("div", "fx-progress", body);
     bar.setAttribute("aria-hidden", "true");
     const header = document.querySelector(".site-header");

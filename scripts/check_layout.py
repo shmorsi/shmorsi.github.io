@@ -159,36 +159,29 @@ def check_step(m: dict, verbose: bool) -> list[str]:
 
 HOME_MEASURE = """() => {
   const r = (el) => { const b = el.getBoundingClientRect(); return {t: b.top, b: b.bottom, l: b.left, r: b.right}; };
-  const ride = document.querySelector('[data-ride]');
-  const pin = ride.querySelector('.ride-pin');
-  const step = ride.querySelector('.ride-step.is-on') || ride.querySelector('.ride-step');
-  return {pinned: getComputedStyle(pin).position === 'sticky', top: document.querySelector('.top').getBoundingClientRect().bottom,
-          title: r(ride.querySelector('h2')), step: r(step), plot: r(ride.querySelector('.ride-plot')), legend: r(ride.querySelector('.ride-legend')),
-          cols: getComputedStyle(ride.querySelector('.ride-grid')).gridTemplateColumns.split(' ').length};
+  return {top: document.querySelector('.top').getBoundingClientRect().bottom, title: r(document.querySelector('#hero-title')),
+          actions: r(document.querySelector('.hero .actions')), clock: document.querySelector('.countdown').offsetParent ? r(document.querySelector('.countdown')) : null,
+          copies: [...document.querySelectorAll('.m-copy')].map((m) => ({id: m.closest('.mission').id, h: m.getBoundingClientRect().height,
+                   w: m.getBoundingClientRect().right}))};
 }"""
 
 
 def check_home(page, base: str, w: int, h: int) -> list[str]:
-    """The home page's one pinned piece, the dollar from 1960: its title, words, chart and legend all fit the screen."""
+    """The home page's opening fits its screen: the name under the header, the buttons on screen and clear of the countdown."""
     out: list[str] = []
     page.goto(f"{base}/", wait_until="load")
-    page.wait_for_timeout(600)
-    top, span = page.evaluate("() => { const r = document.querySelector('[data-ride]'); return [r.offsetTop, r.offsetHeight - innerHeight]; }")
-    for share in (0.05, 0.5, 0.97):
-        scroll_to(page, top + span * share)
-        page.wait_for_timeout(700)
-        m = page.evaluate(HOME_MEASURE)
-        if not m["pinned"]:
-            break
-        where = f"home, the dollar from 1960 at {share:.0%}"
-        if m["title"]["t"] < m["top"] - TOL:
-            out.append(f"{where}: the title runs {m['top'] - m['title']['t']:.0f}px under the header")
-        if m["legend"]["b"] > h + TOL:
-            out.append(f"{where}: the legend runs {m['legend']['b'] - h:.0f}px off the bottom")
-        if m["cols"] == 1 and m["plot"]["t"] < m["step"]["b"] - TOL:
-            out.append(f"{where}: the chart runs {m['step']['b'] - m['plot']['t']:.0f}px into the words above it")
-        if m["cols"] > 1 and m["step"]["b"] > h + TOL:
-            out.append(f"{where}: the words run {m['step']['b'] - h:.0f}px off the bottom")
+    page.wait_for_timeout(1600)
+    m = page.evaluate(HOME_MEASURE)
+    if m["title"]["t"] < m["top"] - TOL:
+        out.append(f"home: the name runs {m['top'] - m['title']['t']:.0f}px under the header")
+    if h >= 560:
+        if m["actions"]["b"] > h + TOL:
+            out.append(f"home: the opening's buttons end {m['actions']['b'] - h:.0f}px below the first screen")
+        if m["clock"] and m["clock"]["t"] < m["actions"]["b"] - TOL:  # on a short laptop the countdown is hidden (it is under Contact too)
+            out.append(f"home: the countdown overlaps the buttons by {m['actions']['b'] - m['clock']['t']:.0f}px")
+    for c in m["copies"]:
+        if c["w"] > w + TOL:
+            out.append(f"home: {c['id']} runs {c['w'] - w:.0f}px off the right edge")
     over = page.evaluate("() => document.documentElement.scrollWidth - innerWidth")
     if over > 1:
         out.append(f"the home page scrolls sideways by {over}px")
