@@ -157,6 +157,44 @@ def check_step(m: dict, verbose: bool) -> list[str]:
     return out
 
 
+HOME_MEASURE = """() => {
+  const r = (el) => { const b = el.getBoundingClientRect(); return {t: b.top, b: b.bottom, l: b.left, r: b.right}; };
+  const ride = document.querySelector('[data-ride]');
+  const pin = ride.querySelector('.ride-pin');
+  const step = ride.querySelector('.ride-step.is-on') || ride.querySelector('.ride-step');
+  return {pinned: getComputedStyle(pin).position === 'sticky', top: document.querySelector('.top').getBoundingClientRect().bottom,
+          title: r(ride.querySelector('h2')), step: r(step), plot: r(ride.querySelector('.ride-plot')), legend: r(ride.querySelector('.ride-legend')),
+          cols: getComputedStyle(ride.querySelector('.ride-grid')).gridTemplateColumns.split(' ').length};
+}"""
+
+
+def check_home(page, base: str, w: int, h: int) -> list[str]:
+    """The home page's one pinned piece, the dollar from 1960: its title, words, chart and legend all fit the screen."""
+    out: list[str] = []
+    page.goto(f"{base}/", wait_until="load")
+    page.wait_for_timeout(600)
+    top, span = page.evaluate("() => { const r = document.querySelector('[data-ride]'); return [r.offsetTop, r.offsetHeight - innerHeight]; }")
+    for share in (0.05, 0.5, 0.97):
+        scroll_to(page, top + span * share)
+        page.wait_for_timeout(700)
+        m = page.evaluate(HOME_MEASURE)
+        if not m["pinned"]:
+            break
+        where = f"home, the dollar from 1960 at {share:.0%}"
+        if m["title"]["t"] < m["top"] - TOL:
+            out.append(f"{where}: the title runs {m['top'] - m['title']['t']:.0f}px under the header")
+        if m["legend"]["b"] > h + TOL:
+            out.append(f"{where}: the legend runs {m['legend']['b'] - h:.0f}px off the bottom")
+        if m["cols"] == 1 and m["plot"]["t"] < m["step"]["b"] - TOL:
+            out.append(f"{where}: the chart runs {m['step']['b'] - m['plot']['t']:.0f}px into the words above it")
+        if m["cols"] > 1 and m["step"]["b"] > h + TOL:
+            out.append(f"{where}: the words run {m['step']['b'] - h:.0f}px off the bottom")
+    over = page.evaluate("() => document.documentElement.scrollWidth - innerWidth")
+    if over > 1:
+        out.append(f"the home page scrolls sideways by {over}px")
+    return out
+
+
 def run(only: list[str]) -> int:
     server, base = serve()
     sizes = [s for s in SIZES if not only or f"{s[0]}x{s[1]}" in only]
@@ -203,6 +241,7 @@ def run(only: list[str]) -> int:
                     over = page.evaluate("() => document.documentElement.scrollWidth - innerWidth")
                     if over > 1:
                         here.append(f"{url} scrolls sideways by {over}px")
+            here += check_home(page, base, w, h)
             state = "pinned" if pinned else "plain layout"
             print(f"{'FAIL' if here else 'ok  '} {w}x{h}  {what} ({state})")
             for line in here:

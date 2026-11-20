@@ -2,7 +2,7 @@
 
 One page to keep track of the whole thing: what lives where, what happens by itself, and what waits for you.
 
-## The five repositories
+## The six repositories
 
 | Repository | What it is | Where it shows on the site | What the site reads from it |
 |---|---|---|---|
@@ -11,6 +11,7 @@ One page to keep track of the whole thing: what lives where, what happens by its
 | `tsfm-from-scratch` | The forecasting model built from scratch | Forecasting (TSFM) page | The numbers its page cites, checked against `results/analysis/headline.json` |
 | `world-shock-lab` | Central-bank shocks and live forecasts | Shock Lab page and the app at `/shock-lab/` | The built app (`web/dist`) and the score files in `live/scores/` |
 | `aurvane` | The trust layer for AI agents | Aurvane page at `/aurvane/` | Its built page `ui/site/index.html` and two benchmark summaries |
+| `poly-datathon-2026` | ÉPICENTRE, a team entry to the PolyFinances Datathon 2026 | A row on the home page; its own demo at `/poly-datathon-2026/` (that repository's `gh-pages` branch) | Nothing is copied: the row's figures sit in `data/projects.json` under `more`, citing `docs/review_technical.md` |
 
 ## How a change reaches the live site
 

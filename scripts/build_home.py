@@ -29,6 +29,7 @@ import lab  # scripts/lab.py: the interactive pieces, rendered as static HTML fi
 import stories  # scripts/stories.py: one pinned, plain-English chapter per project
 import ride  # scripts/ride.py: one dollar in 1960 and three trains to today, the first thing under the opening screen
 import worlds  # scripts/worlds.py: the route, five worlds drawn from the projects' results
+import home  # scripts/home.py: the home page itself, on its own stylesheet and script
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / "data" / "projects.json").read_text())
@@ -350,8 +351,8 @@ HEAD = {"home": ("Sherif Morsi · AI for long-term investing", "https://shmorsi.
 
 
 def page() -> str:
-    """index.html: the home page."""
-    return _cut(_template("home"), "home")
+    """index.html: the home page, written by scripts/home.py (assets/home.css and assets/home.js)."""
+    return home.page(DATA, P, ORDER, {pid: page_href(P[pid]) for pid in ORDER})
 
 
 def voyage() -> str:

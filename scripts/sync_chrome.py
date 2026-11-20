@@ -180,8 +180,9 @@ def projectize(html: str, pid: str) -> str:
     return html
 
 
-PAGES = {"index.html": ("", None, True),  # page -> (prefix to the site root, its own path, is the home page)
-         "voyage.html": ("", "voyage.html", False)}  # the long way round: a page beside the home page, linked from it
+# page -> (prefix to the site root, its own path, is the home page). index.html is not here: scripts/home.py writes the
+# whole home page, header and footer included, on its own stylesheet and script (assets/home.css, assets/home.js).
+PAGES = {"voyage.html": ("", "voyage.html", False)}  # the long way round: a page beside the home page, linked from it
 PAGES.update({path + ("index.html" if path.endswith("/") else ""): ("../", path, False) for pid, path in PATH_OF.items()})
 
 

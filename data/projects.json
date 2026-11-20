@@ -3374,5 +3374,42 @@
         "aurvane"
       ]
     }
+  ],
+  "more": [
+    {
+      "id": "epicentre",
+      "number": "04",
+      "title": "ÉPICENTRE",
+      "kicker": "PolyFinances Datathon 2026, AlphaForge AI challenge, team entry",
+      "purpose": "See through your ETFs and replay a portfolio change against market history and your own loss limit, before you place the order. Claude explains the result by choosing evidence the code already calculated.",
+      "headline": {
+        "display": "71%",
+        "label": "Of Robert's modelled portfolio risk comes from one ETF, XIU, which holds 45% of his money",
+        "qualifier": "Robert is a fictional investor in the saved example. Adding a 40% NVIDIA position would have taken his balance to $408,174 CAD in the historical replay, below his $510,000 floor. Fixed target weights, before fees and taxes; the public demo uses rounded weekly paths. Educational simulation: no orders are placed.",
+        "source": "poly-datathon-2026 docs/review_technical.md, section 4 (evidence example)"
+      },
+      "tags": [
+        "Python",
+        "FastAPI",
+        "Amazon Bedrock",
+        "Claude tool use",
+        "JavaScript",
+        "pytest"
+      ],
+      "links": [
+        {
+          "label": "Open the demo",
+          "href": "https://shmorsi.github.io/poly-datathon-2026/",
+          "kind": "site",
+          "external": true
+        },
+        {
+          "label": "Code",
+          "href": "https://github.com/shmorsi/poly-datathon-2026",
+          "kind": "repo",
+          "external": true
+        }
+      ]
+    }
   ]
 }
