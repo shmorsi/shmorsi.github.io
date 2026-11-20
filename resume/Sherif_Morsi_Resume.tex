@@ -156,7 +156,7 @@ Computer Science student building machine-learning systems from scratch in \text
       \resumeItem{\textbf{Availability:} Winter 2027 (Jan to Apr 2027) for 4, 8, 12, or 16 months, anywhere in Canada}
       % EDIT: if your GPA is strong, add it to the degree line above, e.g. {Bachelor of Computer Science, GPA 3.9/4.3}
       \resumeItem{\textbf{Coursework:} \ifcase\resumevariant \textbf{Probability}, Linear Algebra, Multivariable Calculus, Machine Learning, Artificial Intelligence, Data Structures and Algorithms, Object-Oriented Programming\or Machine Learning, Artificial Intelligence, \textbf{Probability}, Linear Algebra, Multivariable Calculus, Data Structures and Algorithms, Object-Oriented Programming\fi}
-      \resumeItem{\textbf{Activities:} Member, QUARCC (Quantitative Research and Competitions Club)}
+      \resumeItem{\textbf{Activities:} Member, QUARCC (Quantitative Research and Competitions Club) $|$ \textbf{Certifications:} Anthropic, Building with the Claude API; IBM, Machine Learning with Python}
     \resumeItemListEnd
 \resumeSubHeadingListEnd
 \vspace{-3pt}
@@ -190,7 +190,7 @@ Computer Science student building machine-learning systems from scratch in \text
 \resumeSubHeadingListEnd
 
 %-----------PROJECTS-----------
-% Three projects. The first has three studies (shmorsi.github.io shows them the same way).
+% Four projects. The first has three studies (shmorsi.github.io shows them the same way); the fourth is the datathon build.
 % Every project links its code (GitHub) and its page on shmorsi.github.io.
 \vspace{-5pt}
 \section{Projects}
@@ -237,7 +237,17 @@ Computer Science student building machine-learning systems from scratch in \text
 \vspace{2pt}
 }
 
-\ifcase\resumevariant \projectDPC\projectTSFM\projectAurvane \or \projectTSFM\projectAurvane\projectDPC \fi
+\newcommand{\projectEpicentre}{%
+\resumeProjectHeading
+{\textbf{\'EPICENTRE (PolyFinances Datathon 2026)} $|$ \emph{Python, FastAPI, Amazon Bedrock} $|$ \githubLink{https://github.com/shmorsi/poly-datathon-2026} $|$ \href{https://shmorsi.github.io/poly-datathon-2026/}{\textbf{\underline{Live Demo}}}}{2026}
+\vspace{-2pt}
+\resumeItemListStart
+\resumeItem{Team build: sees through ETFs to issuer holdings, splits \textbf{portfolio risk by position} and \textbf{replays a proposed order} against market history and the investor's loss limit; \textbf{Claude on Amazon Bedrock} (Guardrails, \textbf{tool use}) picks evidence the code calculated, and the server validates every pick}
+\resumeItemListEnd
+\vspace{1pt}
+}
+
+\ifcase\resumevariant \projectDPC\projectTSFM\projectAurvane\projectEpicentre \or \projectTSFM\projectAurvane\projectEpicentre\projectDPC \fi
 
 \resumeSubHeadingListEnd
 
@@ -256,12 +266,6 @@ Computer Science student building machine-learning systems from scratch in \text
 }}
 \end{itemize}
 
-%-----------CERTIFICATIONS & AFFILIATIONS-----------
-\vspace{-12pt}
-\section{Certifications} \vspace{-2pt}
-\resumeSubHeadingListStart
-% EDIT: one line each
-\resumeSimpleProjectHeading{\textbf{Anthropic:} Building with the Claude API \textbar{} \textbf{IBM:} Machine Learning with Python}
-\resumeSubHeadingListEnd
+% Certifications are one line under Education.
 
 \end{document}

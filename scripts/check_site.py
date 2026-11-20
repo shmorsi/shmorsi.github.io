@@ -15,6 +15,7 @@ TEXT_PATHS = [
     *ROOT.glob("*.md"),
     *ROOT.glob("projects/*.html"),
     ROOT / "assets" / "site.js",
+    ROOT / "assets" / "home.js",
     ROOT / "data" / "projects.json",
 ]
 
@@ -41,6 +42,15 @@ FORBIDDEN = [
 ]
 
 errors: list[str] = []
+
+
+def build_home_version() -> str:
+    """The version stamp scripts/home.py gives assets/home.css and assets/home.js."""
+    import hashlib
+    digest = hashlib.sha256()
+    for name in ("home.css", "home.js"):
+        digest.update((ROOT / "assets" / name).read_bytes())
+    return digest.hexdigest()[:10]
 
 # The lab's app lives at shock-lab/. world-shock-lab/ is its old address: only a page that forwards there.
 if sorted(f.name for f in (ROOT / "world-shock-lab").glob("*")) != ["index.html"] or "../shock-lab/" not in (ROOT / "world-shock-lab" / "index.html").read_text():
@@ -145,13 +155,25 @@ for path in html_files:
 # telemetry strip, the cards and the charts to try live on voyage.html, which the checks below call `home`.
 front = (ROOT / "index.html").read_text(encoding="utf-8")
 home = (ROOT / "voyage.html").read_text(encoding="utf-8")
-for needed, what in (("data-ride=", "the ride"), ("data-sky=", "the five stops"), ('id="approach"', "the approach"), ('id="experience"', "experience"),
-                     ('id="contact"', "contact"), ('href="voyage.html"', "a link to the voyage")):
+# index.html is written whole by scripts/home.py, on assets/home.css and assets/home.js.
+for needed, what in (("data-ride", "the ride"), ('id="work"', "the work"), ('id="approach"', "the approach"), ('id="experience"', "experience"),
+                     ('id="contact"', "contact"), ('href="voyage.html"', "a link to the voyage"), ("data-rosette", "the rosette")):
     if needed not in front:
         errors.append(f"index.html is missing {what}")
 for gone in ("data-story=", 'id="explore"', "data-statement"):
     if gone in front:
         errors.append(f"index.html holds {gone}: the chapters and the charts belong on voyage.html")
+for extra in DATA.get("more", []):  # projects outside the three research projects, listed on the home page only
+    if f'id="p-{extra["id"]}"' not in front or extra["headline"]["display"] not in front:
+        errors.append(f"index.html is missing the project {extra['id']} from data/projects.json more")
+    if not extra["headline"].get("source"):
+        errors.append(f"data/projects.json more {extra['id']} headline must name its source")
+home_js = (ROOT / "assets" / "home.js").read_text(encoding="utf-8")
+if "prefers-reduced-motion" not in home_js:
+    errors.append("assets/home.js must check prefers-reduced-motion before animating")
+for name in ("home.css", "home.js"):
+    if f"assets/{name}?v={build_home_version()}" not in front:
+        errors.append(f"index.html loads assets/{name} without its current version stamp (run scripts/build_home.py)")
 if "Trained in agentic AI for intent-based 5G network slicing (Amazon Bedrock)." not in front:
     errors.append("Nokia role must keep the agentic AI training line")
 # The home telemetry strip repeats each headline figure for no-JS readers; it must match the data.
