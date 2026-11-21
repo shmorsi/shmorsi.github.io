@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draw assets/earth/limb.webp: the curve of the Earth at night, for the foot of every project page.
 
-It is the home page's own Earth (NASA imagery, drawn by assets/home.js) at the opening shot, photographed
+It is the home page's own Earth (NASA imagery, drawn by assets/home.js) at its closing shot, photographed
 in a wide window with everything else hidden and the sky left transparent, then cropped to the band where
 the Earth is. The project pages lay it along the bottom of the screen (assets/site.css), so the whole
 site stands on the same planet.
@@ -41,6 +41,7 @@ def main() -> None:
         page = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1, reduced_motion="reduce")
         page.goto(f"{base}/", wait_until="networkidle")
         page.add_style_tag(content=HIDE)
+        page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")  # the close: the horizon at dawn
         page.wait_for_timeout(6000)  # the pictures arrive; under reduced motion the Earth is drawn in its final place
         png = page.screenshot(omit_background=True)
         browser.close()
