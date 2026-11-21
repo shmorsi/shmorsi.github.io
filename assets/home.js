@@ -30,12 +30,16 @@
      share of the screen's shorter side. horizon: the centre sits below the screen and only the curve of the
      Earth shows. fx: what is drawn over it. spin: degrees a second it keeps turning on its own. */
   const MTL = [45.5, -73.57], CAIRO = [30.04, 31.24];
+  /* where Canada's pension funds and asset managers work: lat, lon, name, label side, label nudge */
+  const HUBS = [[43.65, -79.38, "Toronto", -1, 14], [49.28, -123.12, "Vancouver", -1, 0],
+    [51.05, -114.07, "Calgary", 1, 0], [44.65, -63.57, "Halifax", 1, 14]];
   const PLACES = {
     fed: [38.9, -77.04, "Federal Reserve"], boc: [45.42, -75.7, "Bank of Canada"], opec: [48.21, 16.37, "OPEC, Vienna"],
   };
   const wide = () => window.innerWidth > 1000;
+  const tall = () => window.innerHeight > window.innerWidth * 0.8;
   const SCENES = {
-    horizon:   { lon: -73.6, lat: -22, x: 0.5, y: 0, r: 0, horizon: 1, fx: { home: 1 }, spin: 0 },
+    horizon:   { lon: -90, lat: 38, mlat: 12, x: 0.7, y: 0.54, r: 0.4, fx: { home: 1, open: 1 }, spin: 0, open: 1 },
     rise:      { lon: -40, lat: 18, x: 0.72, y: 0.5, r: 0.4, fx: {}, spin: 4 },
     dpc:       { lon: -97, lat: 36, x: 0.7, y: 0.5, r: 0.44, fx: { dpc: 1 }, spin: 0 },
     pension:   { lon: -30, lat: 22, x: 0.27, y: 0.5, r: 0.3, fx: { futures: 1 }, spin: 2, flip: 1 },
@@ -54,6 +58,8 @@
   /* Where the sun is, as seen by the reader: on the right for the missions (day on the right, city lights on
      the left, under the words); behind the Earth's edge for the opening and the close, a dawn along the curve. */
   const SUN = [0.86, 0.32, 0.1], SUN_L = [-0.86, 0.32, 0.1], DAWN = [0.42, 0.3, -0.86], NIGHT = [-0.9, 0.25, -0.35];
+  /* the opening: the whole of North America in daylight, the evening reaching the east coast, its cities lit */
+  const OPEN = [-0.88, 0.38, 0.0];
   const view = { lon: -73.6, lat: -12, cx: 0, cy: 0, R: 0, dim: 1, fx: {}, spin: 0, sun: SUN.slice() };
   const want = { lon: -73.6, lat: -12, cx: 0, cy: 0, R: 0, dim: 1, fx: {}, sun: SUN.slice() };
   let W = 0, H = 0, dpr = 1, gl = null, fxc = null, g = null, prog = null, back = null, buf = null, spinLon = 0;
@@ -62,6 +68,11 @@
 
   function place(s) {
     const m = Math.min(W, H);
+    if (s.open && !wide()) {
+      if (!tall()) return { cx: W * 0.74, cy: H * 0.55, R: H * 0.44 };  /* a small landscape window: the Earth beside the words */
+      const R = Math.min(W * 0.62, H * 0.3);                              /* a phone: North America rises from the foot of the screen */
+      return { cx: W * 0.5, cy: H - R * 0.15, R };
+    }
     if (s.horizon) {
       const R = Math.max(W, H) * (wide() ? 0.95 : 1.5);
       return { cx: W * (wide() ? 0.62 : 0.5), cy: H * (wide() ? 0.64 : 0.7) + R, R };
@@ -160,12 +171,13 @@
           cl=smoothstep(.46,.76,cl)*(.6+.4*abs(w.y))*.92;
           float spec=pow(max(dot(n,normalize(L+vec3(0.,0.,1.))),0.),320.)*water*day*(1.-cl);
           vec3 lit=cDay*(.04+1.05*lit0)+vec3(1.,.92,.8)*spec*.2;
-          vec3 lights=cNight*vec3(1.,.8,.52)*1.9*(1.-day)*(1.-cl*.75);
+          /* city lights only: the red channel holds the lights, the picture's blue-green landscape stays faint */
+          vec3 lights=(vec3(1.,.76,.48)*smoothstep(.05,.5,cNight.r)*1.9+cNight*.14)*(1.-day)*(1.-cl*.75);
           vec3 surface=lit*day+lights+cDay*.018;
           vec3 cloudCol=vec3(.92,.95,1.)*(.03+1.08*max(ndl,0.));
           surface=mix(surface,cloudCol,cl*day+cl*.12*(1.-day));
           float band=exp(-pow(ndl/.075,2.));
-          surface+=vec3(1.,.45,.16)*band*.085*(1.-cl*.5);
+          surface+=vec3(1.,.45,.16)*band*.05*(1.-cl*.5);
           photo=mix(base,surface,T);
         }
         float rim=pow(1.-n.z,2.6);
@@ -394,7 +406,17 @@
     }
     g.stroke();
   }
-  function marker(M, lat, lon, label, w, t, side = 1) {
+  function arc(M, from, to, rise) {
+    const a = unit(...from), b = unit(...to);
+    const omega = Math.acos(clamp(a[0] * b[0] + a[1] * b[1] + a[2] * b[2], -1, 1)), so = Math.sin(omega);
+    const pts = [];
+    for (let k = 0; k <= 64; k += 1) {
+      const s = k / 64, w1 = Math.sin((1 - s) * omega) / so, w2 = Math.sin(s * omega) / so, h = 1 + rise * omega * Math.sin(Math.PI * s);
+      pts.push(project(M, [(w1 * a[0] + w2 * b[0]) * h, (w1 * a[1] + w2 * b[1]) * h, (w1 * a[2] + w2 * b[2]) * h]));
+    }
+    return pts;
+  }
+  function marker(M, lat, lon, label, w, t, side = 1, dy = 0) {
     const p = project(M, unit(lat, lon));
     if (p.z < 0.08 || w < 0.02) return;
     const a = w * clamp(p.z * 3);
@@ -407,7 +429,7 @@
       g.font = "500 11px Barlow, Arial, sans-serif";
       g.fillStyle = `rgba(244,245,247,${a})`;
       g.textAlign = side > 0 ? "left" : "right";
-      g.fillText(label.toUpperCase().split("").join(String.fromCharCode(8202)), p.x + side * 14, p.y + 4);
+      g.fillText(label.toUpperCase().split("").join(String.fromCharCode(8202)), p.x + side * 14, p.y + 4 + dy);
     }
   }
 
@@ -429,9 +451,9 @@
     g.restore();
     const f = view.fx;
     if (!gl && earth.ready) draw2D(M, view.dim);
-    // Montréal, home, and a satellite crossing above the curve of the Earth
+    // Montréal, home, and a satellite crossing over the Earth
     if (f.home > 0.02) {
-      marker(M, MTL[0], MTL[1], "Montréal", f.home, t);
+      marker(M, MTL[0], MTL[1], "Montréal", f.home, t, 1, -8);
       const inc = 0.9, a0 = (still ? 0.4 : t * 0.045) % (Math.PI * 2);
       const at = (a) => { const r = 1.035; const p = [Math.cos(a) * r, Math.sin(a) * Math.sin(inc) * r, Math.sin(a) * Math.cos(inc) * r]; return { x: view.cx + p[0] * view.R, y: view.cy - p[1] * view.R, hide: p[2] < 0 && Math.hypot(p[0], p[1]) < 1 }; };
       const Mx = rotation(view.lat * 0.2, 0);
@@ -443,6 +465,18 @@
         g.fillStyle = `rgba(220,235,255,${f.home * (1 - k / 40) * (k ? 0.35 : 1)})`;
         g.beginPath(); g.arc(p.x, p.y, k ? 1 : 1.8, 0, Math.PI * 2); g.fill();
       }
+    }
+    // the opening: from Montréal to every city that runs Canada's pensions and investments
+    if (f.open > 0.02) {
+      HUBS.forEach(([lat, lon, name, side, dy], i) => {
+        const pts = arc(M, MTL, [lat, lon], 0.14);
+        g.strokeStyle = `rgba(142,197,255,${0.75 * f.open})`; g.lineWidth = 1.4; strokeFront(pts, 0.05);
+        if (!still) {
+          const k = Math.floor((((t * 0.18) + i * 0.21) % 1) * (pts.length - 1)), q = pts[k];
+          if (q.z > 0.05) { g.fillStyle = `rgba(244,245,247,${0.9 * f.open})`; g.beginPath(); g.arc(q.x, q.y, 2.2, 0, Math.PI * 2); g.fill(); }
+        }
+        marker(M, lat, lon, name, f.open, t + i * 0.37, side, dy);
+      });
     }
     if (f.dpc > 0.02) marker(M, 39.5, -98.35, "30 US industries, 1960 to 2026", f.dpc, t);
     // World Shock Lab: rings leave the three announcers
@@ -546,13 +580,15 @@
     const A = SCENES[a.name] || SCENES.rise, B = SCENES[b.name] || SCENES.rise;
     const pa = place(A), pb = place(B);
     let dl = ((B.lon - A.lon + 540) % 360) - 180;
-    want.lon = A.lon + dl * t; want.lat = lerp(A.lat, B.lat, t);
+    const la = (S) => (!wide() && tall() && S.mlat != null ? S.mlat : S.lat);
+    want.lon = A.lon + dl * t; want.lat = lerp(la(A), la(B), t);
     want.cx = lerp(pa.cx, pb.cx, t); want.cy = lerp(pa.cy, pb.cy, t); want.R = lerp(pa.R, pb.R, t);
-    want.dim = lerp(A.dim || 1, B.dim || 1, t) * (wide() || A.horizon || B.horizon ? 1 : 0.62);
+    want.dim = lerp(A.dim || 1, B.dim || 1, t) * (wide() || A.horizon || B.horizon || A.open || B.open ? 1 : 0.62);
     want.spin = lerp(A.spin, B.spin, t);
     want.flip = wide() ? lerp(A.flip || 0, B.flip || 0, t) : 0;
-    want.hz = lerp(A.horizon ? 1 : 0, B.horizon ? 1 : 0, t);
-    const sun = (S) => (S.horizon ? DAWN : S.flip && wide() ? SUN_L : SUN);  // the night side always sits under the words
+    const hz = (S) => (S.horizon ? 1 : S.open ? 0.55 : 0);
+    want.hz = lerp(hz(A), hz(B), t);
+    const sun = (S) => (S.open ? OPEN : S.horizon ? DAWN : S.flip && wide() ? SUN_L : SUN);  // the night side always sits under the words
     const sa = sun(A), sb = sun(B);
     want.sun = [0, 1, 2].map((i) => lerp(sa[i], sb[i], t));
     const fx = {};
@@ -560,7 +596,8 @@
     want.fx = fx;
   }
 
-  /* The opening shot: the camera starts over Montréal at night and pulls back to the curve of the Earth. */
+  /* The opening shot: the camera starts over Montréal at night and pulls back until the whole of Canada and the
+     United States is in view, at dusk, with an arc from Montréal to each city where Canada's pensions are run. */
   let last = performance.now(), first = true, introFrom = 0;
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;

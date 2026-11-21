@@ -1,7 +1,8 @@
 """The home page (index.html): mission control for a portfolio, over a live Earth.
 
 One dotted Earth (assets/earth.json, real coastlines) stays behind the whole page and flies to each
-section's place as the reader scrolls: the curve of the Earth seen from space at the opening, the United States for the
+section's place as the reader scrolls: North America at dusk at the opening (arcs from Montréal to Toronto,
+Vancouver, Calgary and Halifax: open to any of them), the United States for the
 wealth study, rings leaving the Fed, the Bank of Canada and OPEC for World Shock Lab, Montréal for
 ÉPICENTRE, and back to the horizon at the end. assets/home.js draws it (WebGL) and runs the counters
 and countdowns; assets/home.css sets the page.
