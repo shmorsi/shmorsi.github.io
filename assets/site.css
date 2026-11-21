@@ -1,24 +1,12 @@
-/* Sherif Morsi: one stylesheet for every page.
-   Inter Tight is self-hosted under the SIL Open Font License (fonts/OFL.txt).
-   A launch-control look for a deep learning and markets portfolio: black, tracked
-   uppercase display type, thin rules, telemetry numerals and one ice-blue accent.
+/* Sherif Morsi: one stylesheet for every project page (the home page has assets/home.css, on the same tokens).
+   Barlow, a DIN-style face, is self-hosted under the SIL Open Font License (fonts/OFL.txt).
+   Mission control over the Earth: black, tracked uppercase display type, thin rules, telemetry numerals,
+   one ice-blue accent and the glow of the Earth's limb at the foot of the screen.
    Dark by default on every page; the header toggle switches to light for this browser. */
 
-@font-face {
-  font-family: "Inter Tight Fallback";
-  src: local("Arial");
-  size-adjust: 97%;
-  ascent-override: 92%;
-  descent-override: 24%;
-  line-gap-override: 0%;
-}
-@font-face {
-  font-family: "Inter Tight";
-  src: url("fonts/inter-tight-latin.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
+@font-face { font-family: "Barlow"; src: url("fonts/barlow-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Barlow"; src: url("fonts/barlow-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Barlow"; src: url("fonts/barlow-600.woff2") format("woff2"); font-weight: 600 900; font-style: normal; font-display: swap; }
 
 :root {
   --bg: #000;
@@ -33,7 +21,7 @@
   --accent-soft: rgba(142, 197, 255, 0.14);
   --warm: #f2b450;
   --good: #7fd6c2;
-  --font: "Inter Tight", "Inter Tight Fallback", "Helvetica Neue", Arial, sans-serif;
+  --font: "Barlow", "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --gutter: clamp(16px, 4.4vw, 64px);
   --max: 1240px;
@@ -1666,3 +1654,15 @@ html:not(.fx) .fx-route-train { display: none; }
   .ride-results li, .ride-results li + li { padding: 14px 0; border-left: 0; }
   .ride-results li + li { border-top: 1px solid var(--line); }
 }
+
+/* ---- The Earth's limb: the curve of the planet glowing at the foot of the screen, as on the home page. ---- */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(150% 62% at 50% 128%, #04080f 58%, rgba(84, 153, 255, 0.34) 60%, rgba(84, 153, 255, 0.08) 62.5%, rgba(84, 153, 255, 0) 67%);
+}
+:root[data-theme="light"] body::before { display: none; }
+
+/* ---- Page-to-page: a short fade between this site's pages, as on the home page. ---- */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.55s; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
