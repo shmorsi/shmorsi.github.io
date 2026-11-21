@@ -58,6 +58,7 @@
   const want = { lon: -73.6, lat: -12, cx: 0, cy: 0, R: 0, dim: 1, fx: {}, sun: SUN.slice() };
   let W = 0, H = 0, dpr = 1, gl = null, fxc = null, g = null, prog = null, back = null, buf = null, spinLon = 0;
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+  const drag = { on: false, lon: 0, lat: 0, vx: 0, vy: 0, x: 0, y: 0, t: 0, at: -1e9 };
 
   function place(s) {
     const m = Math.min(W, H);
@@ -79,8 +80,15 @@
   const unit = (lat, lon) => { const c = Math.cos(lat * rad); return [c * Math.sin(lon * rad), Math.sin(lat * rad), c * Math.cos(lon * rad)]; };
   const apply = (M, p) => [M[0][0] * p[0] + M[0][1] * p[1] + M[0][2] * p[2], M[1][0] * p[0] + M[1][1] * p[1] + M[1][2] * p[2], M[2][0] * p[0] + M[2][1] * p[1] + M[2][2] * p[2]];
 
+  /* The Earth is drawn per pixel: a ray meets the sphere, the hit is turned back into a latitude and longitude,
+     and the NASA pictures are read there. WebGL 2 where it exists (mipmaps, anisotropic filtering, and texture
+     gradients that do not tear at the date line); WebGL 1 otherwise. */
+  let gl2 = false;
   function initGL() {
-    gl = canvas.getContext("webgl", { antialias: true, alpha: true, premultipliedAlpha: true, powerPreference: "high-performance" });
+    const opts = { antialias: true, alpha: true, premultipliedAlpha: true, powerPreference: "high-performance" };
+    gl = canvas.getContext("webgl2", opts);
+    gl2 = !!gl;
+    if (!gl) gl = canvas.getContext("webgl", opts);
     if (!gl) return false;
     const compile = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
     const link = (vs, fs) => {
@@ -100,61 +108,88 @@
       }`, `
       precision mediump float; varying float vA; uniform vec3 K; uniform float D;
       void main(){ float r=length(gl_PointCoord-.5); float a=smoothstep(.5,.15,r)*vA*D; if(a<.01) discard; gl_FragColor=vec4(K*a,a); }`);
-    back = link(`attribute vec2 a; void main(){ gl_Position=vec4(a,0.,1.); }`, `
+    const head = gl2 ? `#version 300 es
+      precision highp float;
+      out vec4 fragColor;
+      #define TEX(s,uv) textureGrad(s,uv,gx,gy)
+      #define OUT fragColor` : `
       #ifdef GL_FRAGMENT_PRECISION_HIGH
       precision highp float;
       #else
       precision mediump float;
       #endif
-      uniform vec2 C; uniform float S; uniform vec3 L; uniform float D; uniform mat3 M; uniform float T; uniform float U;
-      uniform sampler2D tDay, tNight, tWater;
-      /* clouds, made here from noise on the sphere (no picture needed): value noise in 3D, five octaves */
+      #define TEX(s,uv) texture2D(s,uv)
+      #define OUT gl_FragColor`;
+    const vsBack = gl2 ? `#version 300 es
+      in vec2 a; void main(){ gl_Position=vec4(a,0.,1.); }` : `attribute vec2 a; void main(){ gl_Position=vec4(a,0.,1.); }`;
+    back = link(vsBack, `${head}
+      uniform vec2 C; uniform float S; uniform vec3 L; uniform float D; uniform mat3 M; uniform float T; uniform float U; uniform float B;
+      uniform sampler2D tDay, tNight, tWater, tRelief;
       float hh(vec3 p){ p=fract(p*.3183099+.1); p*=17.; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
       float vn(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.-2.*f);
         return mix(mix(mix(hh(i),hh(i+vec3(1,0,0)),f.x),mix(hh(i+vec3(0,1,0)),hh(i+vec3(1,1,0)),f.x),f.y),
                    mix(mix(hh(i+vec3(0,0,1)),hh(i+vec3(1,0,1)),f.x),mix(hh(i+vec3(0,1,1)),hh(i+vec3(1,1,1)),f.x),f.y),f.z); }
       float fbm(vec3 p){ float v=0., a=.5; for(int i=0;i<4;i++){ v+=a*vn(p); p=p*2.03+vec3(1.7,9.2,3.1); a*=.5; } return v; }
       float fbm2(vec3 p){ return .5*vn(p)+.25*vn(p*2.03+vec3(1.7,9.2,3.1)); }
+      const vec3 GLOW=vec3(.33,.6,1.);
+
+      vec3 surfaceAt(vec2 d, float r){
+        vec3 n=vec3(d,sqrt(max(0.,1.-r*r)));
+        float ndl=dot(n,L);
+        vec3 base=mix(vec3(.004,.008,.02),vec3(.03,.06,.13),max(ndl,0.));
+        vec3 photo=base;
+        if(T>0.){
+          vec3 w=n*M;                                          /* back to the Earth's own frame */
+          float lat=asin(clamp(w.y,-1.,1.)), lon=atan(w.x,w.z);
+          vec2 uv=vec2(lon/6.2831853+.5,.5-lat/3.1415927);
+          ${gl2 ? `vec2 gx=dFdx(uv), gy=dFdy(uv); gx.x-=floor(gx.x+.5); gy.x-=floor(gy.x+.5);  /* no tear at the date line */` : ""}
+          vec3 cDay=TEX(tDay,uv).rgb, cNight=TEX(tNight,uv).rgb;
+          float water=TEX(tWater,uv).r;
+          float day=smoothstep(-.1,.25,ndl);
+          /* relief: the land's height leans the light, on the day side only */
+          float lit0=max(ndl,0.);
+          if(B>0.){
+            vec2 e=vec2(1./2048.,1./1024.);
+            float h0=TEX(tRelief,uv).r, hx=TEX(tRelief,uv+vec2(e.x,0.)).r, hy=TEX(tRelief,uv-vec2(0.,e.y)).r;
+            vec3 east=vec3(cos(lon),0.,-sin(lon)), north=vec3(-sin(lat)*sin(lon),cos(lat),-sin(lat)*cos(lon));
+            vec3 nb=normalize(w-(hx-h0)*east*B-(hy-h0)*north*B);
+            lit0=max(dot(M*nb,L),0.);
+          }
+          vec3 q=w*2.6+vec3(U*.012,0.,U*.004);
+          float cl=fbm(q+fbm2(q*1.7)*.8);
+          cl=smoothstep(.46,.76,cl)*(.6+.4*abs(w.y))*.92;
+          float spec=pow(max(dot(n,normalize(L+vec3(0.,0.,1.))),0.),320.)*water*day*(1.-cl);
+          vec3 lit=cDay*(.04+1.05*lit0)+vec3(1.,.92,.8)*spec*.2;
+          vec3 lights=cNight*vec3(1.,.8,.52)*1.9*(1.-day)*(1.-cl*.75);
+          vec3 surface=lit*day+lights+cDay*.018;
+          vec3 cloudCol=vec3(.92,.95,1.)*(.03+1.08*max(ndl,0.));
+          surface=mix(surface,cloudCol,cl*day+cl*.12*(1.-day));
+          float band=exp(-pow(ndl/.075,2.));
+          surface+=vec3(1.,.45,.16)*band*.085*(1.-cl*.5);
+          photo=mix(base,surface,T);
+        }
+        float rim=pow(1.-n.z,2.6);
+        float dusk=exp(-pow(ndl/.18,2.));
+        vec3 atmo=(GLOW*(.18+1.1*smoothstep(-.35,.55,ndl))+vec3(1.,.5,.2)*dusk*.5)*rim;
+        return photo+atmo*.62;
+      }
+      vec4 skyAt(vec2 d, float r){
+        vec2 u=normalize(d);
+        float side=.25+.75*smoothstep(-.5,.7,dot(vec3(u,0.),L));
+        float x=max(r-1.,0.);
+        /* a thin bright line at the edge, then the blue that fades into space */
+        float k=(exp(-x*70.)*.55+exp(-x*15.)*.45+exp(-x*4.)*.1)*side;
+        vec3 c=mix(GLOW,vec3(.62,.8,1.),exp(-x*40.));
+        return vec4(c*k,k);
+      }
       void main(){
         vec2 d=(gl_FragCoord.xy-C)/S; float r=length(d);
-        vec3 glow=vec3(.33,.6,1.);
-        if(r<1.){
-          vec3 n=vec3(d,sqrt(1.-r*r));
-          float ndl=dot(n,L);
-          vec3 base=mix(vec3(.004,.008,.02),vec3(.03,.06,.13),max(ndl,0.));
-          vec3 photo=base;
-          if(T>0.){
-            vec3 w=n*M;                                   /* back to the Earth's own frame */
-            float lat=asin(clamp(w.y,-1.,1.)), lon=atan(w.x,w.z);
-            vec2 uv=vec2(lon/6.2831853+.5,.5-lat/3.1415927);
-            vec3 cDay=texture2D(tDay,uv).rgb, cNight=texture2D(tNight,uv).rgb;
-            float water=texture2D(tWater,uv).r;
-            float day=smoothstep(-.1,.25,ndl);
-            /* clouds drift west to east; bands of weather follow the latitude a little */
-            vec3 q=w*2.6+vec3(U*.012,0.,U*.004);
-            float cl=fbm(q+fbm2(q*1.7)*.8);
-            cl=smoothstep(.46,.76,cl)*(.6+.4*abs(w.y))*.92;
-            float spec=pow(max(dot(n,normalize(L+vec3(0.,0.,1.))),0.),320.)*water*day*(1.-cl);
-            vec3 lit=cDay*(.04+1.05*max(ndl,0.))+vec3(1.,.92,.8)*spec*.2;
-            vec3 lights=cNight*vec3(1.,.8,.52)*1.9*(1.-day)*(1.-cl*.75);
-            vec3 surface=lit*day+lights+cDay*.018;
-            vec3 cloudCol=vec3(.92,.95,1.)*(.03+1.08*max(ndl,0.));
-            surface=mix(surface,cloudCol,cl*day+cl*.12*(1.-day));
-            /* the sunset band: an orange edge where day turns into night */
-            float band=exp(-pow(ndl/.075,2.));
-            surface+=vec3(1.,.45,.16)*band*.085*(1.-cl*.5);
-            photo=mix(base,surface,T);
-          }
-          float rim=pow(1.-n.z,2.6);
-          float dusk=exp(-pow(ndl/.18,2.));
-          vec3 atmo=(glow*(.18+1.1*smoothstep(-.35,.55,ndl))+vec3(1.,.5,.2)*dusk*.5)*rim;
-          gl_FragColor=vec4((photo+atmo*.62)*D,1.);
-        } else {
-          vec2 u=normalize(d);
-          float side=.3+.7*smoothstep(-.5,.7,dot(vec3(u,0.),L));
-          float k=(exp(-(r-1.)*16.)*.6+exp(-(r-1.)*4.)*.12)*side;
-          gl_FragColor=vec4(glow*k*D,k*D);
-        }
+        float px=1./S;                                         /* one pixel, in Earth radii */
+        float inside=clamp((1.-r)/(1.6*px)+.5,0.,1.);          /* a soft, anti-aliased edge */
+        vec4 c=vec4(0.);
+        if(inside<1.) c=skyAt(d,r);
+        if(inside>0.){ vec3 s=surfaceAt(d*min(1.,(1.-.5*px)/max(r,1e-4)),min(r,1.-.5*px)); c=mix(c,vec4(s,1.),inside); }
+        OUT=c*D;
       }`);
     if (!prog || !back) return false;
     buf = gl.createBuffer();
@@ -169,29 +204,45 @@
     return true;
   }
 
-  /* NASA's Blue Marble (day), Black Marble (city lights) and an ocean mask for the sun's glint. They arrive
-     after the page: until then, and if they never do, the Earth is its dots. */
-  const tex = { day: null, night: null, water: null, mix: 0, ready: false, at: 0 };
+  /* NASA's Blue Marble (day), Black Marble (city lights), an ocean mask for the sun's glint and a relief map.
+     They arrive after the page: until then, and if they never do, the Earth is its dots. A large screen then
+     swaps in the 4096 pixel pictures. */
+  const tex = { day: null, night: null, water: null, relief: null, mix: 0, ready: false, at: 0 };
+  const aniso = () => gl.getExtension("EXT_texture_filter_anisotropic") || gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
+  function upload(img, unit) {
+    const t = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    if (gl2) {
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      const ext = aniso();
+      if (ext) gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+    } else {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+    return t;
+  }
+  const loadImage = (src) => new Promise((ok, no) => { const img = new Image(); img.decoding = "async"; img.onload = () => ok(img); img.onerror = no; img.src = src; });
   function loadTextures() {
-    const names = ["day", "night", "water"];
-    let left = names.length;
-    names.forEach((name, unit) => {
-      const img = new Image();
-      img.decoding = "async";
-      img.onload = () => {
-        const t = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0 + unit);
-        gl.bindTexture(gl.TEXTURE_2D, t);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        tex[name] = t;
-        if (--left === 0) { tex.ready = true; tex.at = performance.now(); if (still) { tex.mix = 1; redraw(); } }
-      };
-      img.src = `assets/earth/${name}.jpg`;
-    });
+    const names = ["day", "night", "water", "relief"];
+    Promise.all(names.map((n) => loadImage(`assets/earth/${n}.jpg`))).then((imgs) => {
+      imgs.forEach((img, i) => { tex[names[i]] = upload(img, i); });
+      tex.ready = true; tex.at = performance.now();
+      if (still) { tex.mix = 1; redraw(); }
+      const big = Math.max(window.screen.width, window.screen.height) * (window.devicePixelRatio || 1) >= 1800;
+      const max = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+      if (!coarse && big && max >= 4096) {
+        Promise.all([loadImage("assets/earth/day-4k.jpg"), loadImage("assets/earth/night-4k.jpg")]).then(([d, n]) => {
+          tex.day = upload(d, 0); tex.night = upload(n, 1);
+          if (still) redraw();
+        }).catch(() => { /* the 2048 pictures stay */ });
+      }
+    }).catch(() => { /* no pictures: the Earth stays its dots */ });
   }
 
   /* The Earth's resolution: up to 2x on a desktop, 1.5x on a phone, and lower again if the frames run slow. */
@@ -233,11 +284,12 @@
     gl.uniform3f(gl.getUniformLocation(back, "L"), sun[0], sun[1], sun[2]);
     gl.uniform1f(gl.getUniformLocation(back, "T"), tex.mix);
     gl.uniform1f(gl.getUniformLocation(back, "U"), still ? 0 : performance.now() / 1000);
-    ["tDay", "tNight", "tWater"].forEach((u, i) => {
+    ["tDay", "tNight", "tWater", "tRelief"].forEach((u, i) => {
       gl.activeTexture(gl.TEXTURE0 + i);
-      gl.bindTexture(gl.TEXTURE_2D, [tex.day, tex.night, tex.water][i]);
+      gl.bindTexture(gl.TEXTURE_2D, [tex.day, tex.night, tex.water, tex.relief][i]);
       gl.uniform1i(gl.getUniformLocation(back, u), i);
     });
+    gl.uniform1f(gl.getUniformLocation(back, "B"), tex.relief ? 2.4 : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.useProgram(prog);
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
@@ -276,8 +328,38 @@
   /* ---------------------------------------------------------- what is drawn over the Earth */
   const stars = Array.from({ length: 240 }, (_, i) => {
     const h = (n) => { const s = Math.sin(n * 12.9898 + i * 78.233) * 43758.5453; return s - Math.floor(s); };
-    return { x: h(1), y: h(2), r: 0.35 + h(3) * 1.1, a: 0.25 + h(4) * 0.6, tw: h(5) * 6.28 };
+    const k = h(6);  /* colour temperature: most white, some blue, a few warm */
+    return { x: h(1), y: h(2), r: 0.35 + h(3) * 1.1, a: 0.25 + h(4) * 0.6, tw: h(5) * 6.28, c: k < 0.18 ? "255,226,196" : k < 0.45 ? "200,220,255" : "255,255,255" };
   });
+  /* the Milky Way: a faint band of dust and thousands of small stars, painted once per size and slid with the scroll */
+  let milky = null;
+  function paintMilky() {
+    const c = document.createElement("canvas"), w = Math.round(W * dpr), h = Math.round(H * 1.6 * dpr);
+    c.width = w; c.height = h;
+    const m = c.getContext("2d");
+    const rnd = (() => { let x = 7; return () => { x = (x * 16807) % 2147483647; return x / 2147483647; }; })();
+    const gauss = () => (rnd() + rnd() + rnd() + rnd() - 2) / 2;
+    const ang = -0.52, cx = w * 0.55, cy = h * 0.42, len = Math.hypot(w, h);
+    const along = (t, off) => [cx + Math.cos(ang) * t * len - Math.sin(ang) * off, cy + Math.sin(ang) * t * len + Math.cos(ang) * off];
+    m.globalCompositeOperation = "lighter";
+    for (let i = 0; i < 70; i += 1) {           // dust glow
+      const [x, y] = along(rnd() - 0.5, gauss() * h * 0.06);
+      const r = (40 + rnd() * 140) * dpr;
+      const gr = m.createRadialGradient(x, y, 0, x, y, r);
+      const warm = rnd() < 0.35;
+      gr.addColorStop(0, warm ? "rgba(255,220,190,0.035)" : "rgba(150,180,255,0.04)");
+      gr.addColorStop(1, "rgba(0,0,0,0)");
+      m.fillStyle = gr; m.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    for (let i = 0; i < 5200; i += 1) {         // the band's stars
+      const [x, y] = along(rnd() - 0.5, gauss() * h * 0.08);
+      const a = 0.08 + rnd() * 0.35;
+      m.fillStyle = `rgba(230,238,255,${a})`;
+      const r = (rnd() < 0.96 ? 0.6 : 1.2) * dpr;
+      m.fillRect(x, y, r, r);
+    }
+    milky = c;
+  }
   const futures = Array.from({ length: 34 }, (_, i) => {
     const h = (n) => { const s = Math.sin(n * 91.17 + i * 13.37) * 43758.5453; return s - Math.floor(s); };
     const inc = (h(1) - 0.5) * 2.4, node = h(2) * Math.PI * 2, rr = 1.12 + h(3) * 0.62;
@@ -331,13 +413,20 @@
 
   function drawFx(M, t, scrollY) {
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    // stars, a little parallax with the scroll
+    // the sky: the Milky Way and the stars, a little parallax with the scroll, never in front of the Earth
+    g.save();
+    g.beginPath(); g.rect(0, 0, W, H); g.arc(view.cx, view.cy, view.R * 1.01, 0, Math.PI * 2, true); g.clip("evenodd");
+    if (!milky || milky.width !== Math.round(W * dpr)) paintMilky();
+    const my = -((scrollY * 0.03) % (H * 0.6));
+    g.globalAlpha = 0.9; g.drawImage(milky, 0, my * 1, W, H * 1.6); g.globalAlpha = 1;
     for (const s of stars) {
       const y = ((s.y * H - scrollY * 0.04 * s.r) % H + H) % H;
       const tw = still ? 1 : 0.65 + 0.35 * Math.sin(t * 1.3 + s.tw);
-      g.fillStyle = `rgba(255,255,255,${s.a * tw * 0.75})`;
+      g.fillStyle = `rgba(${s.c},${s.a * tw * 0.8})`;
       g.fillRect(s.x * W, y, s.r, s.r);
+      if (s.r > 1.3) { g.fillStyle = `rgba(${s.c},${s.a * tw * 0.12})`; g.beginPath(); g.arc(s.x * W + s.r / 2, y + s.r / 2, s.r * 2.6, 0, Math.PI * 2); g.fill(); }
     }
+    g.restore();
     const f = view.fx;
     if (!gl && earth.ready) draw2D(M, view.dim);
     // Montréal, home, and a satellite crossing above the curve of the Earth
@@ -493,7 +582,13 @@
     const k = still ? 1 : 1 - Math.exp(-dt * rate);
     if (!still) spinLon = (spinLon + (want.spin || 0) * dt) % 360;
     pointer.x += (pointer.tx - pointer.x) * 0.05; pointer.y += (pointer.ty - pointer.y) * 0.05;
-    const lonT = want.lon - spinLon + pointer.x * 6, latT = want.lat - pointer.y * 4;
+    if (!drag.on) {
+      drag.lon += drag.vx * dt; drag.lat += drag.vy * dt;               // momentum after the release
+      drag.vx *= Math.exp(-dt * 2.2); drag.vy *= Math.exp(-dt * 2.2);
+      if (now - drag.at > 2200) { const back = Math.exp(-dt * 0.9); drag.lon *= back; drag.lat *= back; }  // then home to the scene
+    }
+    drag.lat = clamp(drag.lat, -55, 55);
+    const lonT = want.lon - spinLon + pointer.x * 6 + drag.lon, latT = want.lat - pointer.y * 4 + drag.lat;
     view.lon += ((((lonT - view.lon) + 540) % 360) - 180) * k;
     view.lat += (latT - view.lat) * k;
     for (const key of ["cx", "cy", "R", "dim"]) view[key] += (want[key] - view[key]) * k;
@@ -577,6 +672,32 @@
     else {
       document.addEventListener("visibilitychange", () => { if (!document.hidden) redraw(); });
       window.addEventListener("pointermove", (ev) => { pointer.tx = ev.clientX / W - 0.5; pointer.ty = ev.clientY / H - 0.5; }, { passive: true });
+      /* Grab the Earth and turn it (a mouse or a pen, not a finger: on a phone the page scrolls). Words, links and
+         buttons keep their own clicks; the Earth answers only where it is, and only where nothing else is. */
+      const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+      const onEarth = (ev) => fine.matches && earth.ready && Math.hypot(ev.clientX - view.cx, ev.clientY - view.cy) < view.R * 1.02
+        && !ev.target.closest("a, button, input, textarea, select, label, p, h1, h2, h3, li, dd, dt, figure, .hud, .top");
+      window.addEventListener("pointermove", (ev) => {
+        if (drag.on) {
+          const dt = Math.max(1, ev.timeStamp - drag.t) / 1000;
+          const dl = ((ev.clientX - drag.x) / view.R) * (180 / Math.PI) * 0.9, dp = ((ev.clientY - drag.y) / view.R) * (180 / Math.PI) * 0.9;
+          drag.lon -= dl; drag.lat += dp;
+          drag.vx = -dl / dt; drag.vy = dp / dt;
+          drag.x = ev.clientX; drag.y = ev.clientY; drag.t = ev.timeStamp; drag.at = performance.now();
+          return;
+        }
+        doc.classList.toggle("can-grab", onEarth(ev));
+      }, { passive: true });
+      window.addEventListener("pointerdown", (ev) => {
+        if (ev.button !== 0 || !onEarth(ev)) return;
+        ev.preventDefault();
+        Object.assign(drag, { on: true, x: ev.clientX, y: ev.clientY, t: ev.timeStamp, vx: 0, vy: 0, at: performance.now() });
+        doc.classList.add("is-grabbing");
+      });
+      const release = () => { if (!drag.on) return; drag.on = false; drag.at = performance.now(); doc.classList.remove("is-grabbing"); };
+      window.addEventListener("pointerup", release);
+      window.addEventListener("pointercancel", release);
+      window.addEventListener("blur", release);
     }
     measure();
     redraw();
@@ -600,6 +721,29 @@
     el.textContent = fmt(0);
     requestAnimationFrame(step);
   }
+
+  /* ---------------------------------------------------------- titles rise word by word from behind a mask */
+  function splitWords(el) {
+    let i = 0;
+    const walk = (node) => {
+      [...node.childNodes].forEach((ch) => {
+        if (ch.nodeType === 3) {
+          const frag = document.createDocumentFragment();
+          ch.textContent.split(/(\s+)/).forEach((part) => {
+            if (!part) return;
+            if (/^\s+$/.test(part)) { frag.append(part); return; }
+            const wd = document.createElement("span"), wi = document.createElement("span");
+            wd.className = "wd"; wi.className = "wi"; wi.style.setProperty("--i", i++); wi.textContent = part;
+            wd.append(wi); frag.append(wd);
+          });
+          ch.replaceWith(frag);
+        } else if (ch.nodeType === 1) walk(ch);
+      });
+    };
+    walk(el);
+    el.classList.add("split");
+  }
+  if (!still) $$("main h2, .mission h3").forEach(splitWords);
 
   /* ---------------------------------------------------------- arrivals */
   const reveal = new IntersectionObserver((entries) => entries.forEach((en) => {

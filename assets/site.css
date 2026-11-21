@@ -1655,10 +1655,12 @@ html:not(.fx) .fx-route-train { display: none; }
   .ride-results li + li { border-top: 1px solid var(--line); }
 }
 
-/* ---- The Earth's limb: the curve of the planet glowing at the foot of the screen, as on the home page. ---- */
+/* ---- The Earth's limb: the curve of the planet, with its city lights, at the foot of the screen, as on the home page. ---- */
 body::before {
   content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background: radial-gradient(150% 62% at 50% 128%, #04080f 58%, rgba(84, 153, 255, 0.34) 60%, rgba(84, 153, 255, 0.08) 62.5%, rgba(84, 153, 255, 0) 67%);
+  /* the home page's own Earth at night (scripts/make_limb.py), its edge along the foot of the screen */
+  background: url("earth/limb.webp") 38% calc(100% + max(320px, 23vw)) / max(1500px, 128vw) auto no-repeat;
+  opacity: 0.9;
 }
 :root[data-theme="light"] body::before { display: none; }
 
@@ -1666,3 +1668,7 @@ body::before {
 @view-transition { navigation: auto; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.55s; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+
+/* ---- Charts drawn on white (the study's own matplotlib figures): in the dark theme they are printed in negative,
+   with their hues turned back, so a white panel does not glare out of the black page. ---- */
+:root:not([data-theme="light"]) img[src*="assets/img/dpc-"] { filter: invert(0.93) hue-rotate(180deg) saturate(1.25) contrast(0.95); border-radius: 2px; }
