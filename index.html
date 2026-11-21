@@ -31,9 +31,10 @@
   <link rel="preload" href="assets/fonts/barlow-600.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/earth.bin" as="fetch" crossorigin>
-  <link rel="stylesheet" href="assets/home.css?v=486ef169e2">
+  <link rel="stylesheet" href="assets/home.css?v=4920252f78">
   <script>document.documentElement.classList.replace("no-js","js")</script>
-  <script src="assets/home.js?v=486ef169e2" defer></script>
+  <script src="assets/vendor/lenis.min.js" defer></script>
+  <script src="assets/home.js?v=4920252f78" defer></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -53,6 +54,11 @@
   <a class="skip" href="#main">Skip to content</a>
   <canvas class="globe" data-globe aria-hidden="true"></canvas>
   <div class="veil" aria-hidden="true"></div>
+  <nav class="hud" data-hud aria-label="The page as a launch timeline">
+    <p class="hud-now" aria-hidden="true"><span data-hud-code>Launch</span><b data-hud-name>Sherif Morsi</b></p>
+    <div class="hud-line"><span class="hud-track" aria-hidden="true"><i data-hud-fill></i></span><ol><li><a href="#top" data-node data-code="Launch" data-name="Sherif Morsi"><i></i><span>Launch</span></a></li><li><a href="#p-deep-portfolio-constructor" data-node data-code="Mission 01.1" data-name="Deep Portfolio Constructor"><i></i><span>01.1</span></a></li><li><a href="#p-pension-lab" data-node data-code="Mission 01.2" data-name="Pension Lab"><i></i><span>01.2</span></a></li><li><a href="#p-world-shock-lab" data-node data-code="Mission 01.3" data-name="World Shock Lab"><i></i><span>01.3</span></a></li><li><a href="#p-tsfm" data-node data-code="Mission 02" data-name="Time-series foundation model"><i></i><span>02</span></a></li><li><a href="#p-aurvane" data-node data-code="Mission 03" data-name="Aurvane"><i></i><span>03</span></a></li><li><a href="#p-epicentre" data-node data-code="Mission 04" data-name="ÉPICENTRE"><i></i><span>04</span></a></li><li><a href="#experience" data-node data-code="Experience" data-name="Flight log"><i></i><span>Log</span></a></li><li><a href="#contact" data-node data-code="Contact" data-name="Let&#x27;s talk"><i></i><span>Contact</span></a></li></ol></div>
+    <p class="hud-tel" aria-hidden="true"><span>Lat<b data-hud-lat>45.50° N</b></span><span>Lon<b data-hud-lon>73.57° W</b></span><span>Alt<b data-hud-alt>0 km</b></span><span><b data-hud-clock>T+ 00:00:00</b></span></p>
+  </nav>
   <header class="top">
     <div class="wrap top-in">
       <a class="brand" href="./" aria-label="Sherif Morsi, home">Sherif Morsi</a>
@@ -67,7 +73,7 @@
         <p class="status" data-reveal><span class="dot" aria-hidden="true"></span>Open to internships from January 2027</p>
         <h1 id="hero-title" data-split>Sherif Morsi</h1>
         <p class="lede" data-reveal>AI for long-term investing: portfolios, forecasts and AI agents, built from first principles and measured honestly.</p>
-        <p class="meta" data-reveal>Computer Science at Concordia University, Montréal. For pension funds, asset managers and AI teams, anywhere in Canada, for 4 to 16 months.</p>
+        <p class="meta" data-reveal>Third-year Computer Science at Concordia University, Montréal. Looking for a 4 to 16 month internship from January 2027 with a pension fund, asset manager or AI team, anywhere in Canada.</p>
         <div class="actions" data-reveal>
           <a class="btn btn-solid" href="resume/Sherif_Morsi_Resume.pdf" download>Download resume</a>
           <a class="btn" href="#work">See the missions</a>
@@ -109,7 +115,7 @@
             </div>
           </div>
         </article>
-        <article class="mission" id="p-pension-lab" data-scene="pension">
+        <article class="mission is-flip" id="p-pension-lab" data-scene="pension">
           <div class="wrap mission-in">
             <div class="m-copy" data-reveal>
               <p class="m-tag">Mission 01.2<span>Pensions and long-term investing</span></p>
@@ -142,7 +148,7 @@
             </div>
           </div>
         </article>
-        <article class="mission" id="p-tsfm" data-scene="tsfm">
+        <article class="mission is-flip" id="p-tsfm" data-scene="tsfm">
           <div class="wrap mission-in">
             <div class="m-copy" data-reveal>
               <p class="m-tag">Mission 02<span>Deep learning</span></p>
@@ -174,7 +180,7 @@
             </div>
           </div>
         </article>
-        <article class="mission" id="p-epicentre" data-scene="epicentre">
+        <article class="mission is-flip" id="p-epicentre" data-scene="epicentre">
           <div class="wrap mission-in">
             <div class="m-copy" data-reveal>
               <p class="m-tag">Mission 04<span>PolyFinances Datathon 2026, team entry</span><em class="new">New</em></p>
@@ -267,7 +273,7 @@
 
   <footer class="foot">
     <div class="wrap foot-in">
-      <p>Sherif Morsi, 2026. Every figure is read from <a href="data/projects.json">one data file</a> that names its source. Coastlines: Natural Earth.</p>
+      <p>Sherif Morsi, 2026. Every figure is read from <a href="data/projects.json">one data file</a> that names its source. Earth: NASA Blue Marble and Black Marble imagery, Natural Earth coastlines.</p>
       <p><a href="voyage.html">The long way round</a><a href="#top" data-top>Back to top</a></p>
     </div>
   </footer>

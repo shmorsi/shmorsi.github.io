@@ -137,9 +137,9 @@
 \section{Summary}
 \small{
 \ifcase\resumevariant
-Computer Science student building \textbf{AI for long-term investing}: \textbf{asset-liability} models for pension plans, \textbf{PyTorch} portfolio and forecasting models built from scratch, and \textbf{agentic AI} systems that act inside signed bounds, each tested out of sample.
+Computer Science student building \textbf{AI for long-term investing}: \textbf{pension asset-liability} models, \textbf{PyTorch} portfolio and forecasting models written from scratch, and safety layers for \textbf{AI agents}, each tested out of sample against rules fixed in advance.
 \or
-Computer Science student building machine-learning systems from scratch in \textbf{PyTorch}: a \textbf{time-series foundation model}, a security layer for \textbf{LLM agents}, and \textbf{differentiable simulators} for long-term investing, each tested out of sample.
+Computer Science student building machine-learning systems from scratch in \textbf{PyTorch}: a \textbf{time-series foundation model}, a security layer for \textbf{LLM agents}, and \textbf{differentiable simulators} for long-term investing, each tested out of sample against rules fixed in advance.
 \fi
 }
 
@@ -155,8 +155,8 @@ Computer Science student building machine-learning systems from scratch in \text
     \resumeItemListStart
       \resumeItem{\textbf{Availability:} Winter 2027 (Jan to Apr 2027) for 4, 8, 12, or 16 months, anywhere in Canada}
       % EDIT: if your GPA is strong, add it to the degree line above, e.g. {Bachelor of Computer Science, GPA 3.9/4.3}
-      \resumeItem{\textbf{Coursework:} \ifcase\resumevariant \textbf{Probability}, Linear Algebra, Multivariable Calculus, Machine Learning, Artificial Intelligence, Data Structures and Algorithms, Object-Oriented Programming\or Machine Learning, Artificial Intelligence, \textbf{Probability}, Linear Algebra, Multivariable Calculus, Data Structures and Algorithms, Object-Oriented Programming\fi}
-      \resumeItem{\textbf{Activities:} Member, QUARCC (Quantitative Research and Competitions Club) $|$ \textbf{Certifications:} Anthropic, Building with the Claude API; IBM, Machine Learning with Python}
+      \resumeItem{\textbf{Coursework:} \ifcase\resumevariant \textbf{Probability}, Linear Algebra, Multivariable Calculus, Machine Learning, AI, Data Structures \& Algorithms, OOP\or Machine Learning, Artificial Intelligence, \textbf{Probability}, Linear Algebra, Multivariable Calculus, Data Structures \& Algorithms, OOP\fi}
+      \resumeItem{\textbf{Activities:} QUARCC quant research club $|$ \textbf{Certified:} Claude API (Anthropic), ML with Python (IBM)}
     \resumeItemListEnd
 \resumeSubHeadingListEnd
 \vspace{-3pt}
@@ -171,8 +171,8 @@ Computer Science student building machine-learning systems from scratch in \text
 {Nokia}{Cairo, Egypt}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Trained and evaluated Python and \textbf{PyTorch} models on wireless network telemetry to forecast 5G \textbf{energy demand}}\vspace{-1pt}
-\resumeItem{Developed \textbf{data and ML pipelines} for 5G energy telemetry, to support automated network management and optimization}\vspace{-1pt}
+\resumeItem{Trained and evaluated \textbf{PyTorch} models on wireless network telemetry to forecast \textbf{5G energy demand}}\vspace{-1pt}
+\resumeItem{Developed \textbf{data and ML pipelines} for 5G energy telemetry to support automated network management and optimization}\vspace{-1pt}
 \resumeItem{Trained in \textbf{agentic AI} for intent-based 5G network slicing (Amazon Bedrock); presented findings to cross-functional data science and engineering teams and led the project proposal and requirements review}
 \resumeItemListEnd
 \vspace{2pt}
@@ -183,7 +183,7 @@ Computer Science student building machine-learning systems from scratch in \text
 {Qatar National Bank (QNB)}{Cairo, Egypt}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Built and documented \textbf{Python} utilities and \textbf{SQL} queries that preprocess and validate SME financial records for the bank's credit-review process, improving data quality and reliability}
+\resumeItem{Built \textbf{Python} utilities and \textbf{SQL} queries that validate SME financial records for credit review, improving data quality}
 \resumeItemListEnd
 \vspace{2pt}
 
@@ -204,12 +204,12 @@ Computer Science student building machine-learning systems from scratch in \text
 {\textbf{Deep Portfolio Constructor (AI for Long-Term Investing)} $|$ \emph{Python, PyTorch} $|$ \githubLink{https://github.com/shmorsi/deep-portfolio-constructor} $|$ \href{https://shmorsi.github.io/projects/deep-portfolio-constructor.html}{\textbf{\underline{Project Page}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{\textbf{Wealth study.} A long-only portfolio for \textbf{long-term wealth}: a \textbf{transformer} allocates across 30 US industries and learns how much to trade, trained in PyTorch on the \textbf{growth of wealth after costs} through a \textbf{differentiable simulator}}\vspace{-1pt}\vspace{-1pt}
-\resumeItem{\textbf{Walk-forward backtest} 1960--2026, \textbf{pre-registered}: \$1 grew to \textbf{\$1,368} vs \$929 for the market (+0.58\% a year, t~=~1.40, not significant); 5 classical baselines incl. risk parity and a Kelly optimizer, 3 ablations, 5 seeds, 152 tests}\vspace{-1pt}
-\resumeItem{\href{https://shmorsi.github.io/projects/pension-lab.html}{\textbf{\underline{Pension Lab}}} \textbf{(asset-liability management).} A 90\%-funded pension plan with 60 years of \textbf{inflation-indexed liabilities}; 60/40, \mbox{\textbf{liability-driven (LDI)}} and \mbox{glide-path} policies costed by contributions and \textbf{CVaR} over 10,000 \textbf{Monte Carlo} scenarios}\vspace{-1pt}
-\resumeItem{Trained a policy through a \textbf{differentiable simulator} (\textbf{pre-registered}): it halved the simulated cost (\$5.0 vs \$9.9 per \$100 promised) but only matched the glide path on 34 real 20-year periods; traced the gap to patterns the simulator repeats}\vspace{-1pt}
-\resumeItem{\href{https://shmorsi.github.io/shock-lab/}{\textbf{\underline{World Shock Lab}}} \textbf{(macro shocks,} \href{https://github.com/shmorsi/world-shock-lab}{\textbf{\underline{code}}}\textbf{).} How Fed, Bank of Canada and OPEC surprises move \textbf{53} assets (10 bp Fed surprise: TSX \textbf{$-$1.10\%}, 90\% band $-$1.59 to $-$0.61); replicated \textbf{11 of 13} published findings; live forecasts before decisions}\vspace{-1pt}
-\resumeItem{\textbf{Pre-registered} test of machine learning on 168 held-out announcements: a neural net did not beat the linear model on the mean (gap $-$0.003, 90\% CI includes zero); quantile boosting won only on 5\% tail loss}
+\resumeItem{Built a \textbf{transformer} that allocates a long-only portfolio across 30 US industries and learns how much to trade, trained end to end in PyTorch on \textbf{wealth growth after trading costs} through a \textbf{differentiable simulator}}\vspace{-1pt}\vspace{-1pt}
+\resumeItem{Ran a \textbf{pre-registered walk-forward backtest} (1960--2026): \$1 grew to \textbf{\$1,368} vs \$929 for the market (+0.58\%/yr, t~=~1.40, not significant), against 5 classical baselines incl. risk parity and Kelly, with 3 ablations, 5 seeds, 152 tests}\vspace{-1pt}
+\resumeItem{\href{https://shmorsi.github.io/projects/pension-lab.html}{\textbf{\underline{Pension Lab}}} \textbf{(asset-liability management).} Modelled a 90\%-funded plan with 60 years of \textbf{inflation-indexed liabilities}; costed 60/40, \mbox{\textbf{liability-driven (LDI)}} and \mbox{glide-path} policies by contributions and \textbf{CVaR} over 10,000 \textbf{Monte Carlo} scenarios}\vspace{-1pt}
+\resumeItem{Trained a funding policy through the simulator (\textbf{pre-registered}) that \textbf{halved simulated cost} (\$5.0 vs \$9.9 per \$100 promised); showed it only matched the glide path on 34 real 20-year periods and traced the gap to the simulator}\vspace{-1pt}
+\resumeItem{\href{https://shmorsi.github.io/shock-lab/}{\textbf{\underline{World Shock Lab}}} \textbf{(macro event studies,} \href{https://github.com/shmorsi/world-shock-lab}{\textbf{\underline{code}}}\textbf{).} Measured how Fed, Bank of Canada and OPEC surprises move \textbf{53} global assets (10 bp Fed surprise: TSX \textbf{$-$1.10\%}); replicated \textbf{11 of 13} published findings; forecasts published before each decision}\vspace{-1pt}
+\resumeItem{\textbf{Pre-registered} ML test on 168 held-out events: a neural net did not beat linear; quantile boosting cut only 5\% tail loss}
 \resumeItemListEnd
 \vspace{1pt}
 }
@@ -219,9 +219,9 @@ Computer Science student building machine-learning systems from scratch in \text
 {\textbf{Time-Series Foundation Model (Deep Learning)} $|$ \emph{Python, PyTorch, GluonTS} $|$ \githubLink{https://github.com/shmorsi/tsfm-from-scratch} $|$ \href{https://shmorsi.github.io/projects/tsfm.html}{\textbf{\underline{Project Page}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Pretrained a \textbf{10.1M-parameter} decoder-only transformer from scratch on \textbf{443,258} series across 77 datasets; on the frozen \textbf{GIFT-Eval} test split (97 configurations), zero-shot CRPS was \textbf{0.688$\times$} AutoARIMA, 95\% CI [0.624, 0.757]}\vspace{-1pt}
-\resumeItem{Wrote RMSNorm, \textbf{rotary embeddings}, SwiGLU, a KV cache and a non-crossing quantile head without a model library; \textbf{mixed-precision} training on one T4 GPU}\vspace{-1pt}
-\resumeItem{A \textbf{data-leakage audit} found benchmark test data in a public corpus and removed \textbf{801 of 447,229} series; 189 tests in CI}
+\resumeItem{Pretrained a \textbf{10.1M-parameter} decoder-only \textbf{transformer} from scratch on \textbf{443,258} series (77 datasets); on the frozen \textbf{GIFT-Eval} test split (97 configurations), zero-shot CRPS was \textbf{0.688$\times$} AutoARIMA, 95\% CI [0.624, 0.757]}\vspace{-1pt}
+\resumeItem{Implemented RMSNorm, \textbf{rotary embeddings}, SwiGLU, a KV cache and a non-crossing quantile head without a model library; \textbf{mixed-precision} training on a single T4 GPU}\vspace{-1pt}
+\resumeItem{Caught benchmark test data inside a public pretraining corpus with a \textbf{data-leakage audit}; removed \textbf{801 of 447,229} series}
 \resumeItemListEnd
 \vspace{1pt}
 }
@@ -231,8 +231,8 @@ Computer Science student building machine-learning systems from scratch in \text
 {\textbf{Aurvane (Agentic AI Security)} $|$ \emph{Python, Ed25519, MCP, JavaScript} $|$ \githubLink{https://github.com/shmorsi/aurvane} $|$ \href{https://shmorsi.github.io/aurvane/}{\textbf{\underline{Live Demo}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Trust layer between LLM agents and their tools: \textbf{Ed25519-signed mandates}, four checks per action, Allow/Deny approvals, narrower-only sub-agent mandates, hash-chained log; Python SDK and \textbf{MCP server}; 74 tests}\vspace{-1pt}\vspace{-1pt}
-\resumeItem{On the public \textbf{AgentDojo} benchmark (629 \textbf{prompt-injection} cases, worst-case agent, protocol fixed first), attacks that landed fell from \textbf{97.5\% to 13.0\%}; on my own 60 paired tasks, from 30/30 to 7/30 with 0 false alarms}
+\resumeItem{Built a security layer between \textbf{LLM agents} and their tools: \textbf{Ed25519-signed mandates}, four checks on every action, human approval for risky steps and a tamper-evident log; Python SDK and \textbf{MCP server}, 74 tests}\vspace{-1pt}\vspace{-1pt}
+\resumeItem{On the public \textbf{AgentDojo} benchmark (629 \textbf{prompt-injection} cases, worst-case agent, protocol fixed first), successful attacks fell from \textbf{97.5\% to 13.0\%}; on 60 paired tasks of my own, from 30/30 to 7/30 with 0 false alarms}
 \resumeItemListEnd
 \vspace{2pt}
 }
@@ -242,12 +242,13 @@ Computer Science student building machine-learning systems from scratch in \text
 {\textbf{\'EPICENTRE (PolyFinances Datathon 2026)} $|$ \emph{Python, FastAPI, Amazon Bedrock} $|$ \githubLink{https://github.com/shmorsi/poly-datathon-2026} $|$ \href{https://shmorsi.github.io/poly-datathon-2026/}{\textbf{\underline{Live Demo}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Team build: sees through ETFs to issuer holdings, splits \textbf{portfolio risk by position} and \textbf{replays a proposed order} against market history and the investor's loss limit; \textbf{Claude on Amazon Bedrock} (Guardrails, \textbf{tool use}) picks evidence the code calculated, and the server validates every pick}
+\resumeItem{With a team, built a portfolio and order preview for self-directed investors: \textbf{ETF look-through} to issuer holdings, \textbf{risk attribution by position}, and a \textbf{historical replay} of a proposed order against the investor's loss limit}\vspace{-1pt}
+\resumeItem{Integrated \textbf{Claude on Amazon Bedrock} (Guardrails, \textbf{tool use}) to explain each result from evidence the code computed}
 \resumeItemListEnd
 \vspace{1pt}
 }
 
-\ifcase\resumevariant \projectDPC\projectTSFM\projectAurvane\projectEpicentre \or \projectTSFM\projectAurvane\projectEpicentre\projectDPC \fi
+\ifcase\resumevariant \projectDPC\projectEpicentre\projectTSFM\projectAurvane \or \projectTSFM\projectAurvane\projectEpicentre\projectDPC \fi
 
 \resumeSubHeadingListEnd
 
@@ -259,7 +260,7 @@ Computer Science student building machine-learning systems from scratch in \text
 \begin{itemize}[leftmargin=0.15in, label={}]
 \small{\item{
 \skillLine{Machine Learning}{\textbf{PyTorch}, \textbf{Deep Learning}, \textbf{Transformers}, Time-Series Forecasting, \textbf{scikit-learn}, TensorFlow, QLoRA}
-\skillLine{Investing}{\textbf{Asset-Liability Management}, \textbf{LDI}, Fixed Income, \textbf{Portfolio Construction}, CVaR, Monte Carlo, Econometrics}
+\skillLine{Investing}{\textbf{Asset-Liability Management}, \textbf{LDI}, \textbf{Portfolio Construction}, \textbf{Risk Attribution}, CVaR, Event Studies}
 \skillLine{AI Agents}{\textbf{Agentic AI}, \textbf{LLM Agents}, \textbf{Tool Calling}, \textbf{MCP}, Prompt-Injection Defense, \textbf{LLM Evals}, Claude Code, Cursor}
 \skillLine{Languages}{\textbf{Python}, \textbf{SQL}, TypeScript, JavaScript, C++, Java, C, R, Bash}
 \skillLine{Data / Tools}{\textbf{Pandas}, \textbf{NumPy}, \textbf{FastAPI}, DuckDB, \textbf{Git}, \textbf{GitHub Actions (CI/CD)}, \textbf{pytest}, Playwright, Docker, Streamlit}

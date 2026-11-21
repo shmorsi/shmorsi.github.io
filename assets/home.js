@@ -38,11 +38,11 @@
     horizon:   { lon: -73.6, lat: -22, x: 0.5, y: 0, r: 0, horizon: 1, fx: { home: 1 }, spin: 0 },
     rise:      { lon: -40, lat: 18, x: 0.72, y: 0.5, r: 0.4, fx: {}, spin: 4 },
     dpc:       { lon: -97, lat: 36, x: 0.7, y: 0.5, r: 0.44, fx: { dpc: 1 }, spin: 0 },
-    pension:   { lon: -30, lat: 22, x: 0.72, y: 0.5, r: 0.3, fx: { futures: 1 }, spin: 2 },
+    pension:   { lon: -30, lat: 22, x: 0.27, y: 0.5, r: 0.3, fx: { futures: 1 }, spin: 2, flip: 1 },
     wsl:       { lon: -38, lat: 40, x: 0.7, y: 0.5, r: 0.46, fx: { rings: 1 }, spin: 0 },
-    tsfm:      { lon: 25, lat: 12, x: 0.7, y: 0.5, r: 0.42, fx: { scan: 1 }, spin: 0 },
+    tsfm:      { lon: 25, lat: 12, x: 0.27, y: 0.5, r: 0.4, fx: { scan: 1 }, spin: 0, flip: 1 },
     aurvane:   { lon: 95, lat: 22, x: 0.7, y: 0.5, r: 0.36, fx: { shield: 1 }, spin: 3 },
-    epicentre: { lon: -73.6, lat: 45.5, x: 0.7, y: 0.5, r: 0.56, fx: { ripple: 1 }, spin: 0 },
+    epicentre: { lon: -73.6, lat: 45.5, x: 0.28, y: 0.5, r: 0.52, fx: { ripple: 1 }, spin: 0, flip: 1 },
     drift:     { lon: 0, lat: 20, x: 0.82, y: 0.55, r: 0.32, fx: {}, spin: 5, dim: 0.45 },
     log:       { lon: -22, lat: 34, x: 0.8, y: 0.5, r: 0.34, fx: { arcs: 1 }, spin: 0, dim: 0.5 },
     home:      { lon: -73.6, lat: -22, x: 0.5, y: 0, r: 0, horizon: 1, fx: { home: 1 }, spin: 0 },
@@ -51,8 +51,11 @@
   /* ---------------------------------------------------------- the Earth */
   const canvas = $("[data-globe]");
   const earth = { ready: false, dots: null, n: 0 };
-  const view = { lon: -73.6, lat: -12, cx: 0, cy: 0, R: 0, dim: 1, fx: {}, spin: 0 };
-  const want = { lon: -73.6, lat: -12, cx: 0, cy: 0, R: 0, dim: 1, fx: {} };
+  /* Where the sun is, as seen by the reader: on the right for the missions (day on the right, city lights on
+     the left, under the words); behind the Earth's edge for the opening and the close, a dawn along the curve. */
+  const SUN = [0.86, 0.32, 0.1], SUN_L = [-0.86, 0.32, 0.1], DAWN = [0.42, 0.3, -0.86], NIGHT = [-0.9, 0.25, -0.35];
+  const view = { lon: -73.6, lat: -12, cx: 0, cy: 0, R: 0, dim: 1, fx: {}, spin: 0, sun: SUN.slice() };
+  const want = { lon: -73.6, lat: -12, cx: 0, cy: 0, R: 0, dim: 1, fx: {}, sun: SUN.slice() };
   let W = 0, H = 0, dpr = 1, gl = null, fxc = null, g = null, prog = null, back = null, buf = null, spinLon = 0;
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
 
@@ -60,7 +63,7 @@
     const m = Math.min(W, H);
     if (s.horizon) {
       const R = Math.max(W, H) * (wide() ? 0.95 : 1.5);
-      return { cx: W * (wide() ? 0.62 : 0.5), cy: H * (wide() ? 0.64 : 0.9) + R, R };
+      return { cx: W * (wide() ? 0.62 : 0.5), cy: H * (wide() ? 0.64 : 0.7) + R, R };
     }
     if (!wide()) return { cx: W * 0.5, cy: H * 0.3, R: m * s.r * 1.25 };
     return { cx: W * s.x, cy: H * s.y, R: m * s.r * 1.18 };
@@ -98,18 +101,58 @@
       precision mediump float; varying float vA; uniform vec3 K; uniform float D;
       void main(){ float r=length(gl_PointCoord-.5); float a=smoothstep(.5,.15,r)*vA*D; if(a<.01) discard; gl_FragColor=vec4(K*a,a); }`);
     back = link(`attribute vec2 a; void main(){ gl_Position=vec4(a,0.,1.); }`, `
-      precision mediump float; uniform vec2 C; uniform float S; uniform vec3 L; uniform float D;
+      #ifdef GL_FRAGMENT_PRECISION_HIGH
+      precision highp float;
+      #else
+      precision mediump float;
+      #endif
+      uniform vec2 C; uniform float S; uniform vec3 L; uniform float D; uniform mat3 M; uniform float T; uniform float U;
+      uniform sampler2D tDay, tNight, tWater;
+      /* clouds, made here from noise on the sphere (no picture needed): value noise in 3D, five octaves */
+      float hh(vec3 p){ p=fract(p*.3183099+.1); p*=17.; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+      float vn(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.-2.*f);
+        return mix(mix(mix(hh(i),hh(i+vec3(1,0,0)),f.x),mix(hh(i+vec3(0,1,0)),hh(i+vec3(1,1,0)),f.x),f.y),
+                   mix(mix(hh(i+vec3(0,0,1)),hh(i+vec3(1,0,1)),f.x),mix(hh(i+vec3(0,1,1)),hh(i+vec3(1,1,1)),f.x),f.y),f.z); }
+      float fbm(vec3 p){ float v=0., a=.5; for(int i=0;i<4;i++){ v+=a*vn(p); p=p*2.03+vec3(1.7,9.2,3.1); a*=.5; } return v; }
+      float fbm2(vec3 p){ return .5*vn(p)+.25*vn(p*2.03+vec3(1.7,9.2,3.1)); }
       void main(){
         vec2 d=(gl_FragCoord.xy-C)/S; float r=length(d);
         vec3 glow=vec3(.33,.6,1.);
         if(r<1.){
           vec3 n=vec3(d,sqrt(1.-r*r));
-          float lit=max(dot(n,L),0.);
-          vec3 body=mix(vec3(.004,.008,.02),vec3(.03,.06,.13),lit);
-          float rim=pow(1.-n.z,3.)*.9;
-          gl_FragColor=vec4((body+glow*rim*.55)*D,1.);
+          float ndl=dot(n,L);
+          vec3 base=mix(vec3(.004,.008,.02),vec3(.03,.06,.13),max(ndl,0.));
+          vec3 photo=base;
+          if(T>0.){
+            vec3 w=n*M;                                   /* back to the Earth's own frame */
+            float lat=asin(clamp(w.y,-1.,1.)), lon=atan(w.x,w.z);
+            vec2 uv=vec2(lon/6.2831853+.5,.5-lat/3.1415927);
+            vec3 cDay=texture2D(tDay,uv).rgb, cNight=texture2D(tNight,uv).rgb;
+            float water=texture2D(tWater,uv).r;
+            float day=smoothstep(-.1,.25,ndl);
+            /* clouds drift west to east; bands of weather follow the latitude a little */
+            vec3 q=w*2.6+vec3(U*.012,0.,U*.004);
+            float cl=fbm(q+fbm2(q*1.7)*.8);
+            cl=smoothstep(.46,.76,cl)*(.6+.4*abs(w.y))*.92;
+            float spec=pow(max(dot(n,normalize(L+vec3(0.,0.,1.))),0.),320.)*water*day*(1.-cl);
+            vec3 lit=cDay*(.04+1.05*max(ndl,0.))+vec3(1.,.92,.8)*spec*.2;
+            vec3 lights=cNight*vec3(1.,.8,.52)*1.9*(1.-day)*(1.-cl*.75);
+            vec3 surface=lit*day+lights+cDay*.018;
+            vec3 cloudCol=vec3(.92,.95,1.)*(.03+1.08*max(ndl,0.));
+            surface=mix(surface,cloudCol,cl*day+cl*.12*(1.-day));
+            /* the sunset band: an orange edge where day turns into night */
+            float band=exp(-pow(ndl/.075,2.));
+            surface+=vec3(1.,.45,.16)*band*.085*(1.-cl*.5);
+            photo=mix(base,surface,T);
+          }
+          float rim=pow(1.-n.z,2.6);
+          float dusk=exp(-pow(ndl/.18,2.));
+          vec3 atmo=(glow*(.18+1.1*smoothstep(-.35,.55,ndl))+vec3(1.,.5,.2)*dusk*.5)*rim;
+          gl_FragColor=vec4((photo+atmo*.62)*D,1.);
         } else {
-          float k=exp(-(r-1.)*14.)*.55+exp(-(r-1.)*4.)*.12;
+          vec2 u=normalize(d);
+          float side=.3+.7*smoothstep(-.5,.7,dot(vec3(u,0.),L));
+          float k=(exp(-(r-1.)*16.)*.6+exp(-(r-1.)*4.)*.12)*side;
           gl_FragColor=vec4(glow*k*D,k*D);
         }
       }`);
@@ -122,21 +165,61 @@
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    loadTextures();
     return true;
   }
 
-  function size() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth; H = window.innerHeight;
-    for (const c of [canvas, fxc]) { if (!c) continue; c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
-    if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
+  /* NASA's Blue Marble (day), Black Marble (city lights) and an ocean mask for the sun's glint. They arrive
+     after the page: until then, and if they never do, the Earth is its dots. */
+  const tex = { day: null, night: null, water: null, mix: 0, ready: false, at: 0 };
+  function loadTextures() {
+    const names = ["day", "night", "water"];
+    let left = names.length;
+    names.forEach((name, unit) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => {
+        const t = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0 + unit);
+        gl.bindTexture(gl.TEXTURE_2D, t);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        tex[name] = t;
+        if (--left === 0) { tex.ready = true; tex.at = performance.now(); if (still) { tex.mix = 1; redraw(); } }
+      };
+      img.src = `assets/earth/${name}.jpg`;
+    });
   }
 
-  // A light from the upper left, a little in front: the side facing the reader is day.
-  const LIGHT = (() => { const v = [-0.55, 0.55, 0.62]; const n = Math.hypot(...v); return v.map((x) => x / n); })();
+  /* The Earth's resolution: up to 2x on a desktop, 1.5x on a phone, and lower again if the frames run slow. */
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  let quality = 1, gdpr = 1;
+  function size() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    gdpr = Math.max(0.75, Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2) * quality);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.round(W * gdpr); canvas.height = Math.round(H * gdpr);
+    if (fxc) { fxc.width = Math.round(W * dpr); fxc.height = Math.round(H * dpr); }
+    if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  const times = [];
+  function pace(dt) {
+    if (still || quality <= 0.5) return;
+    times.push(dt);
+    if (times.length < 90) return;
+    const sorted = times.slice().sort((a, b) => a - b), median = sorted[45];
+    times.length = 0;
+    if (median > 0.024) { quality = Math.max(0.5, quality * 0.75); size(); }
+  }
+
 
   function drawGL(M, dim) {
-    const C = [view.cx * dpr, (H - view.cy) * dpr], S = view.R * dpr;
+    const C = [view.cx * gdpr, (H - view.cy) * gdpr], S = view.R * gdpr;
+    const cols = new Float32Array([M[0][0], M[1][0], M[2][0], M[0][1], M[1][1], M[2][1], M[0][2], M[1][2], M[2][2]]);
+    const sl = Math.hypot(...view.sun) || 1, sun = view.sun.map((x) => x / sl);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.useProgram(back);
@@ -145,22 +228,30 @@
     gl.enableVertexAttribArray(ab); gl.vertexAttribPointer(ab, 2, gl.FLOAT, false, 0, 0);
     gl.uniform2f(gl.getUniformLocation(back, "C"), C[0], C[1]);
     gl.uniform1f(gl.getUniformLocation(back, "S"), S);
-    gl.uniform3f(gl.getUniformLocation(back, "L"), LIGHT[0], LIGHT[1], LIGHT[2]);
     gl.uniform1f(gl.getUniformLocation(back, "D"), dim);
+    gl.uniformMatrix3fv(gl.getUniformLocation(back, "M"), false, cols);
+    gl.uniform3f(gl.getUniformLocation(back, "L"), sun[0], sun[1], sun[2]);
+    gl.uniform1f(gl.getUniformLocation(back, "T"), tex.mix);
+    gl.uniform1f(gl.getUniformLocation(back, "U"), still ? 0 : performance.now() / 1000);
+    ["tDay", "tNight", "tWater"].forEach((u, i) => {
+      gl.activeTexture(gl.TEXTURE0 + i);
+      gl.bindTexture(gl.TEXTURE_2D, [tex.day, tex.night, tex.water][i]);
+      gl.uniform1i(gl.getUniformLocation(back, u), i);
+    });
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.useProgram(prog);
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
     const a = gl.getAttribLocation(prog, "a");
     gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     // GLSL wants the matrix by columns
-    gl.uniformMatrix3fv(gl.getUniformLocation(prog, "M"), false, new Float32Array([M[0][0], M[1][0], M[2][0], M[0][1], M[1][1], M[2][1], M[0][2], M[1][2], M[2][2]]));
+    gl.uniformMatrix3fv(gl.getUniformLocation(prog, "M"), false, cols);
     gl.uniform2f(gl.getUniformLocation(prog, "C"), C[0], C[1]);
     gl.uniform1f(gl.getUniformLocation(prog, "S"), S);
     gl.uniform2f(gl.getUniformLocation(prog, "V"), canvas.width, canvas.height);
-    gl.uniform1f(gl.getUniformLocation(prog, "P"), clamp(view.R / 190, 1.1, 3.4) * dpr);
-    gl.uniform3f(gl.getUniformLocation(prog, "L"), LIGHT[0], LIGHT[1], LIGHT[2]);
+    gl.uniform1f(gl.getUniformLocation(prog, "P"), clamp(view.R / 190, 1.1, 3.4) * gdpr);
+    gl.uniform3f(gl.getUniformLocation(prog, "L"), sun[0], sun[1], sun[2]);
     gl.uniform3f(gl.getUniformLocation(prog, "K"), 0.86, 0.92, 1.0);
-    gl.uniform1f(gl.getUniformLocation(prog, "D"), dim);
+    gl.uniform1f(gl.getUniformLocation(prog, "D"), dim * (1 - tex.mix));  /* once the photograph is in, the dots are a faint data layer */
     gl.drawArrays(gl.POINTS, 0, earth.n);
   }
 
@@ -249,8 +340,21 @@
     }
     const f = view.fx;
     if (!gl && earth.ready) draw2D(M, view.dim);
-    // Montréal, home
-    if (f.home > 0.02) marker(M, MTL[0], MTL[1], "Montréal", f.home, t);
+    // Montréal, home, and a satellite crossing above the curve of the Earth
+    if (f.home > 0.02) {
+      marker(M, MTL[0], MTL[1], "Montréal", f.home, t);
+      const inc = 0.9, a0 = (still ? 0.4 : t * 0.045) % (Math.PI * 2);
+      const at = (a) => { const r = 1.035; const p = [Math.cos(a) * r, Math.sin(a) * Math.sin(inc) * r, Math.sin(a) * Math.cos(inc) * r]; return { x: view.cx + p[0] * view.R, y: view.cy - p[1] * view.R, hide: p[2] < 0 && Math.hypot(p[0], p[1]) < 1 }; };
+      const Mx = rotation(view.lat * 0.2, 0);
+      const sat = (a) => { const r = 1.035; const p0 = [Math.cos(a) * r, Math.sin(a) * Math.sin(inc) * r, Math.sin(a) * Math.cos(inc) * r]; const p = apply(Mx, p0); return { x: view.cx + p[0] * view.R, y: view.cy - p[1] * view.R, hide: p[2] < 0 && Math.hypot(p[0], p[1]) < 1 }; };
+      void at;
+      for (let k = 0; k < 40; k += 1) {
+        const p = sat(a0 - k * 0.0022);
+        if (p.hide || p.x < -20 || p.x > W + 20 || p.y < -20 || p.y > H + 20) continue;
+        g.fillStyle = `rgba(220,235,255,${f.home * (1 - k / 40) * (k ? 0.35 : 1)})`;
+        g.beginPath(); g.arc(p.x, p.y, k ? 1 : 1.8, 0, Math.PI * 2); g.fill();
+      }
+    }
     if (f.dpc > 0.02) marker(M, 39.5, -98.35, "30 US industries, 1960 to 2026", f.dpc, t);
     // World Shock Lab: rings leave the three announcers
     if (f.rings > 0.02) {
@@ -357,32 +461,89 @@
     want.cx = lerp(pa.cx, pb.cx, t); want.cy = lerp(pa.cy, pb.cy, t); want.R = lerp(pa.R, pb.R, t);
     want.dim = lerp(A.dim || 1, B.dim || 1, t) * (wide() || A.horizon || B.horizon ? 1 : 0.62);
     want.spin = lerp(A.spin, B.spin, t);
+    want.flip = wide() ? lerp(A.flip || 0, B.flip || 0, t) : 0;
+    want.hz = lerp(A.horizon ? 1 : 0, B.horizon ? 1 : 0, t);
+    const sun = (S) => (S.horizon ? DAWN : S.flip && wide() ? SUN_L : SUN);  // the night side always sits under the words
+    const sa = sun(A), sb = sun(B);
+    want.sun = [0, 1, 2].map((i) => lerp(sa[i], sb[i], t));
     const fx = {};
     for (const k of new Set([...Object.keys(A.fx), ...Object.keys(B.fx)])) fx[k] = (A.fx[k] || 0) * (1 - t) + (B.fx[k] || 0) * t;
     want.fx = fx;
   }
 
-  let last = performance.now(), first = true;
+  /* The opening shot: the camera starts over Montréal at night and pulls back to the curve of the Earth. */
+  let last = performance.now(), first = true, introFrom = 0;
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (tex.ready && now - introFrom > 2000) pace(dt);
     target();
-    const k = first || still ? 1 : 1 - Math.exp(-dt * 3.2);
-    first = false;
+    if (first) {
+      first = false;
+      if (still) Object.assign(view, { ...want, sun: want.sun.slice(), lon: want.lon, lat: want.lat });
+      else {
+        Object.assign(view, { lon: MTL[1], lat: MTL[0], cx: W * 0.5, cy: H * 0.5, R: Math.max(W, H) * 2.6, dim: 1, sun: NIGHT.slice() });
+        introFrom = now;
+      }
+    }
+    if (tex.ready) tex.mix = still ? 1 : clamp((now - tex.at) / 1400);
+    // hold the close shot until the photograph is in (or 2.4 s have passed), then pull back slowly
+    const held = !still && !tex.ready && now - introFrom < 2400;
+    const intro = !still && now - introFrom < 6500;
+    const rate = held ? 0 : intro ? 1.15 : 3.2;
+    const k = still ? 1 : 1 - Math.exp(-dt * rate);
     if (!still) spinLon = (spinLon + (want.spin || 0) * dt) % 360;
     pointer.x += (pointer.tx - pointer.x) * 0.05; pointer.y += (pointer.ty - pointer.y) * 0.05;
     const lonT = want.lon - spinLon + pointer.x * 6, latT = want.lat - pointer.y * 4;
     view.lon += ((((lonT - view.lon) + 540) % 360) - 180) * k;
     view.lat += (latT - view.lat) * k;
     for (const key of ["cx", "cy", "R", "dim"]) view[key] += (want[key] - view[key]) * k;
+    for (let i = 0; i < 3; i += 1) view.sun[i] += (want.sun[i] - view.sun[i]) * k * (intro ? 0.8 : 1);
     const fx = {};
     for (const key of new Set([...Object.keys(view.fx), ...Object.keys(want.fx)])) fx[key] = lerp(view.fx[key] || 0, want.fx[key] || 0, k);
     view.fx = fx;
+    view.flip = lerp(view.flip || 0, want.flip || 0, k);
+    view.hz = lerp(view.hz || 0, want.hz || 0, k);
     const M = rotation(view.lat, view.lon);
     if (gl && earth.ready) drawGL(M, view.dim);
     if (g) { g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, fxc.width, fxc.height); drawFx(M, now / 1000, window.scrollY); }
+    hud();
     if (!still && !document.hidden) requestAnimationFrame(frame);
   }
   const redraw = () => requestAnimationFrame((now) => { last = now; frame(now); });
+
+  /* ---------------------------------------------------------- the webcast strip: where the camera is, and the
+     timeline of the page with a node for each mission. The readouts describe the picture, not a real flight:
+     the altitude is the height a camera with a 50 degree view would need to see the Earth this size. */
+  const hudEl = $("[data-hud]"), veil = $(".veil");
+  const hudOut = hudEl ? {
+    name: $("[data-hud-name]", hudEl), code: $("[data-hud-code]", hudEl), lat: $("[data-hud-lat]", hudEl), lon: $("[data-hud-lon]", hudEl),
+    alt: $("[data-hud-alt]", hudEl), clock: $("[data-hud-clock]", hudEl), fill: $("[data-hud-fill]", hudEl),
+    nodes: $$("[data-node]", hudEl).map((a) => ({ a, el: $(a.getAttribute("href")) })),
+  } : null;
+  const born = performance.now();
+  const put = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
+  function hud() {
+    if (veil) { veil.style.setProperty("--flip", (view.flip || 0).toFixed(3)); veil.style.setProperty("--hz", (view.hz || 0).toFixed(3)); }
+    if (!hudOut) return;
+    const y = window.scrollY + H * 0.5;
+    const tops = hudOut.nodes.map((n) => (n.el ? n.el.getBoundingClientRect().top + window.scrollY : 0));
+    let i = 0;
+    while (i < tops.length - 1 && tops[i + 1] <= y) i += 1;
+    const frac = i < tops.length - 1 ? clamp((y - tops[i]) / Math.max(1, tops[i + 1] - tops[i])) : 0;
+    hudOut.fill.style.transform = `scaleX(${((i + frac) / (tops.length - 1)).toFixed(4)})`;
+    hudOut.nodes.forEach((n, k) => { n.a.classList.toggle("is-past", k <= i); n.a.classList.toggle("is-now", k === i); });
+    const cur = hudOut.nodes[i].a;
+    put(hudOut.code, cur.dataset.code || ""); put(hudOut.name, cur.dataset.name || "");
+    const la = view.lat, lo = ((((view.lon + spinLon) % 360) + 540) % 360) - 180;
+    put(hudOut.lat, `${Math.abs(la).toFixed(2)}° ${la >= 0 ? "N" : "S"}`);
+    put(hudOut.lon, `${Math.abs(lo).toFixed(2)}° ${lo >= 0 ? "E" : "W"}`);
+    const a = Math.atan(view.R / (H * 1.07)), alt = Math.max(0, (1 / Math.sin(a) - 1) * 6371);
+    put(hudOut.alt, `${Math.round(alt).toLocaleString("en-US")} km`);
+    const sec = Math.floor((performance.now() - born) / 1000);
+    put(hudOut.clock, `T+ ${String(Math.floor(sec / 3600)).padStart(2, "0")}:${String(Math.floor(sec / 60) % 60).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`);
+    const contact = $("#contact .facts");  // step aside for the contact details at the end
+    hudEl.classList.toggle("is-on", window.scrollY > H * 0.55 && !(contact && contact.getBoundingClientRect().top < H - 40));
+  }
 
   if (canvas) {
     fxc = document.createElement("canvas");
@@ -491,6 +652,31 @@
   window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   onScroll();
 
+  /* ---------------------------------------------------------- smooth scroll (Lenis, assets/vendor), with a wheel
+     that glides; touch keeps the phone's own scrolling. Not under reduced motion. */
+  let lenis = null;
+  if (!still && window.Lenis) {
+    try {
+      lenis = new window.Lenis({ lerp: 0.085, smoothWheel: true });
+      const lr = (t) => { lenis.raf(t); requestAnimationFrame(lr); };
+      requestAnimationFrame(lr);
+    } catch (e) { lenis = null; }
+  }
+  const go = (target) => {
+    if (lenis) lenis.scrollTo(target, { offset: target === 0 ? 0 : -72, duration: 1.6 });
+    else if (target === 0) window.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" });
+    else target.scrollIntoView({ behavior: still ? "auto" : "smooth" });
+  };
+  $$('a[href^="#"]').forEach((a) => a.addEventListener("click", (ev) => {
+    const id = a.getAttribute("href");
+    if (id === "#main" || id.length < 2) return;
+    const el = $(id);
+    if (!el) return;
+    ev.preventDefault();
+    go(id === "#top" ? 0 : el);
+    history.replaceState(null, "", id);
+  }));
+
   /* ---------------------------------------------------------- copy the email, back to top */
   const toast = $("[data-toast]");
   let toastTimer = 0;
@@ -498,5 +684,4 @@
   $$("[data-copy]").forEach((b) => b.addEventListener("click", async () => {
     try { await navigator.clipboard.writeText(b.dataset.copy); say("Email copied"); } catch (e) { say(`Copy failed. The address is ${b.dataset.copy}`); }
   }));
-  $$("[data-top]").forEach((a) => a.addEventListener("click", (ev) => { ev.preventDefault(); window.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" }); }));
 })();

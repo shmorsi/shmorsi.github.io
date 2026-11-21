@@ -1661,3 +1661,8 @@ body::before {
   background: radial-gradient(150% 62% at 50% 128%, #04080f 58%, rgba(84, 153, 255, 0.34) 60%, rgba(84, 153, 255, 0.08) 62.5%, rgba(84, 153, 255, 0) 67%);
 }
 :root[data-theme="light"] body::before { display: none; }
+
+/* ---- Page-to-page: a short fade between this site's pages, as on the home page. ---- */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.55s; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }

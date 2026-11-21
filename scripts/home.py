@@ -112,7 +112,7 @@ def mission(P: dict, pid: str, page: str, i: int) -> str:
         extra = (f'\n              <p class="m-live">Next live forecasts, Fed and Bank of Canada, {bind(P, pid, "stats.nextDecision.display")}: '
                  f'<b data-countdown="{e(when)}T14:00:00-05:00" data-short>published before the decision</b></p>')
     return f"""
-        <article class="mission" id="p-{pid}" data-scene="{scene}">
+        <article class="mission{" is-flip" if i % 2 else ""}" id="p-{pid}" data-scene="{scene}">
           <div class="wrap mission-in">
             <div class="m-copy" data-reveal>
               <p class="m-tag">Mission {e(p["number"])}<span>{e(p["kicker"])}</span></p>
@@ -130,13 +130,13 @@ def mission(P: dict, pid: str, page: str, i: int) -> str:
         </article>"""
 
 
-def extra_mission(x: dict) -> str:
+def extra_mission(x: dict, i: int) -> str:
     scene, caption = GLOBE[x["id"]]
     links = [(link["label"], link["href"], True) for link in x["links"]]
     first = x["links"][0]["href"]
     tags = ", ".join(x["tags"])
     return f"""
-        <article class="mission" id="p-{x["id"]}" data-scene="{scene}">
+        <article class="mission{" is-flip" if i % 2 else ""}" id="p-{x["id"]}" data-scene="{scene}">
           <div class="wrap mission-in">
             <div class="m-copy" data-reveal>
               <p class="m-tag">Mission {e(x["number"])}<span>{e(x["kicker"])}</span><em class="new">New</em></p>
@@ -153,6 +153,21 @@ def extra_mission(x: dict) -> str:
             </div>
           </div>
         </article>"""
+
+
+def hud(P: dict, order: list[str], more: list[dict]) -> str:
+    """The webcast strip along the foot of the screen: the mission in view, the camera's place, and the page as a timeline."""
+    nodes = [("#top", "Launch", "Sherif Morsi", "Launch")]
+    nodes += [(f"#p-{pid}", P[pid]["number"], P[pid]["title"], f"Mission {P[pid]['number']}") for pid in order]
+    nodes += [(f"#p-{x['id']}", x["number"], x["title"], f"Mission {x['number']}") for x in more]
+    nodes += [("#experience", "Log", "Flight log", "Experience"), ("#contact", "Contact", "Let's talk", "Contact")]
+    items = "".join(f'<li><a href="{h}" data-node data-code="{e(code)}" data-name="{e(name)}"><i></i><span>{e(short)}</span></a></li>'
+                    for h, short, name, code in nodes)
+    return f"""  <nav class="hud" data-hud aria-label="The page as a launch timeline">
+    <p class="hud-now" aria-hidden="true"><span data-hud-code>Launch</span><b data-hud-name>Sherif Morsi</b></p>
+    <div class="hud-line"><span class="hud-track" aria-hidden="true"><i data-hud-fill></i></span><ol>{items}</ol></div>
+    <p class="hud-tel" aria-hidden="true"><span>Lat<b data-hud-lat>45.50° N</b></span><span>Lon<b data-hud-lon>73.57° W</b></span><span>Alt<b data-hud-alt>0 km</b></span><span><b data-hud-clock>T+ 00:00:00</b></span></p>
+  </nav>"""
 
 
 RULES = [
@@ -179,7 +194,7 @@ def page(DATA: dict, P: dict, order: list[str], links: dict) -> str:
     titles = ", ".join([g["title"] for g in DATA["groups"]] + [x["title"] for x in more])
     desc = (f"Sherif Morsi builds AI for long-term investing: portfolios, pensions, forecasts and AI agents, "
             f"scored on tests fixed in advance. Projects: {titles}.")
-    missions = "".join(mission(P, pid, links[pid], i) for i, pid in enumerate(order)) + "".join(extra_mission(x) for x in more)
+    missions = "".join(mission(P, pid, links[pid], i) for i, pid in enumerate(order)) + "".join(extra_mission(x, len(order) + j) for j, x in enumerate(more))
     stats = "".join(f'<li data-reveal>{bind(P, pid, f"stats.{k}.display", "b", "count")}<span>{e(label)}</span></li>' for pid, k, label in STATS)
     rules = "".join(f'<li data-reveal><h3>{e(t)}</h3><p>{e(d)}</p></li>' for t, d in RULES)
     nav = [("Missions", "#work"), ("Approach", "#approach"), ("Flight log", "#experience"), ("Contact", "#contact")]
@@ -220,6 +235,7 @@ def page(DATA: dict, P: dict, order: list[str], links: dict) -> str:
   <link rel="preload" href="assets/earth.bin" as="fetch" crossorigin>
   <link rel="stylesheet" href="assets/home.css?v={v}">
   <script>document.documentElement.classList.replace("no-js","js")</script>
+  <script src="assets/vendor/lenis.min.js" defer></script>
   <script src="assets/home.js?v={v}" defer></script>
   <script type="application/ld+json">
   {{
@@ -240,6 +256,7 @@ def page(DATA: dict, P: dict, order: list[str], links: dict) -> str:
   <a class="skip" href="#main">Skip to content</a>
   <canvas class="globe" data-globe aria-hidden="true"></canvas>
   <div class="veil" aria-hidden="true"></div>
+{hud(P, order, more)}
   <header class="top">
     <div class="wrap top-in">
       <a class="brand" href="./" aria-label="Sherif Morsi, home">Sherif Morsi</a>
@@ -254,7 +271,7 @@ def page(DATA: dict, P: dict, order: list[str], links: dict) -> str:
         <p class="status" data-reveal><span class="dot" aria-hidden="true"></span>Open to internships from January 2027</p>
         <h1 id="hero-title" data-split>Sherif Morsi</h1>
         <p class="lede" data-reveal>{e(tagline)}</p>
-        <p class="meta" data-reveal>Computer Science at Concordia University, Montréal. For pension funds, asset managers and AI teams, anywhere in Canada, for 4 to 16 months.</p>
+        <p class="meta" data-reveal>Third-year Computer Science at Concordia University, Montréal. Looking for a 4 to 16 month internship from January 2027 with a pension fund, asset manager or AI team, anywhere in Canada.</p>
         <div class="actions" data-reveal>
           <a class="btn btn-solid" href="{RESUME}" download>Download resume</a>
           <a class="btn" href="#work">See the missions</a>
@@ -351,7 +368,7 @@ def page(DATA: dict, P: dict, order: list[str], links: dict) -> str:
 
   <footer class="foot">
     <div class="wrap foot-in">
-      <p>Sherif Morsi, 2026. Every figure is read from <a href="data/projects.json">one data file</a> that names its source. Coastlines: Natural Earth.</p>
+      <p>Sherif Morsi, 2026. Every figure is read from <a href="data/projects.json">one data file</a> that names its source. Earth: NASA Blue Marble and Black Marble imagery, Natural Earth coastlines.</p>
       <p><a href="voyage.html">The long way round</a><a href="#top" data-top>Back to top</a></p>
     </div>
   </footer>

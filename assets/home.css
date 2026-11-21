@@ -40,8 +40,11 @@ button { font: inherit; color: inherit; }
 .globe { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100lvh; z-index: 0; pointer-events: none; }
 .js .globe { opacity: 0; transition: opacity 2.4s var(--ease) 0.2s; }
 .js.is-loaded .globe { opacity: 1; }
-.veil { position: fixed; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.55) 34%, rgba(0, 0, 0, 0) 62%); }
+.veil { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+/* the shade sits under the words: on the left, or on the right for the missions that swap sides (--flip, from home.js) */
+.veil::before, .veil::after { content: ""; position: absolute; inset: 0; }
+.veil::before { background: linear-gradient(90deg, rgba(0, 0, 0, 0.84) 0%, rgba(0, 0, 0, 0.55) 34%, rgba(0, 0, 0, 0) 62%); opacity: calc(1 - var(--flip, 0)); }
+.veil::after { background: linear-gradient(270deg, rgba(0, 0, 0, 0.84) 0%, rgba(0, 0, 0, 0.55) 34%, rgba(0, 0, 0, 0) 62%); opacity: var(--flip, 0); }
 main, .foot { position: relative; z-index: 2; }
 
 /* ------------------------------------------------------------ type */
@@ -224,7 +227,9 @@ h2 { font-size: clamp(2.5rem, 6.4vw, 5.25rem); line-height: 0.95; }
   .stats-in { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 24px; }
   .rules { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 32px; }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .veil { background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.62) 45%, rgba(0, 0, 0, 0.82) 100%); }
+  .veil::before { background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.62) 45%, rgba(0, 0, 0, 0.82) 100%); opacity: calc(1 - 0.85 * var(--hz, 0)); }
+  .hero-foot .countdown { text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9); }
+  .veil::after { display: none; }
 }
 @media (max-width: 640px) {
   .top-in { height: 64px; }
@@ -247,4 +252,54 @@ h2 { font-size: clamp(2.5rem, 6.4vw, 5.25rem); line-height: 0.95; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition-duration: 0.001ms !important; transition-delay: 0s !important; }
+}
+
+/* ------------------------------------------------------------ missions that swap sides */
+@media (min-width: 1001px) {
+  .mission.is-flip .m-copy { margin-left: auto; }
+  .mission { padding-bottom: 140px; }
+  .contact { padding-bottom: 140px; }
+}
+
+/* ------------------------------------------------------------ the webcast strip */
+.hud {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; display: grid; grid-template-columns: minmax(200px, 1fr) minmax(0, 2.2fr) auto;
+  align-items: end; gap: 32px; padding: 34px var(--gutter) 14px; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.8) 60%);
+  opacity: 0; transform: translateY(24px); pointer-events: none; transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+.hud.is-on { opacity: 1; transform: none; pointer-events: auto; }
+.hud p { margin: 0; }
+.hud-now span { display: block; color: var(--accent); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; }
+.hud-now b { display: block; margin-top: 6px; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud-line { position: relative; padding-bottom: 20px; }
+.hud-track { position: absolute; left: 7px; right: 7px; top: 6px; height: 1px; background: var(--line-strong); }
+.hud-line .hud-track i { position: absolute; inset: 0; display: block; width: auto; height: auto; border: 0; border-radius: 0; background: var(--ink); transform-origin: left; transform: scaleX(0); }
+.hud-line ol { position: relative; display: flex; justify-content: space-between; }
+.hud-line li { position: relative; width: 14px; }
+.hud-line a { display: block; width: 14px; height: 14px; text-decoration: none; }
+.hud-line a i { display: block; width: 13px; height: 13px; border-radius: 50%; border: 1px solid var(--line-strong); background: #000; transition: background-color 0.4s, border-color 0.4s, box-shadow 0.4s; }
+.hud-line a span { position: absolute; top: 22px; left: 50%; transform: translateX(-50%); white-space: nowrap; color: var(--dim); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; transition: color 0.3s; }
+.hud-line a.is-past i { background: var(--ink); border-color: var(--ink); }
+.hud-line a.is-now i { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 5px rgba(142, 197, 255, 0.22), 0 0 18px rgba(142, 197, 255, 0.7); }
+.hud-line a.is-now span, .hud-line a:hover span, .hud-line a:focus-visible span { color: var(--ink); }
+.hud-tel { display: flex; justify-content: flex-end; gap: 20px; color: var(--dim); font-size: 0.66rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; white-space: nowrap; }
+.hud-tel b { display: block; margin-top: 6px; color: var(--ink); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+@media (max-width: 1000px), (max-height: 640px) { .hud { display: none; } }
+@media (max-width: 1240px) { .hud-tel span:last-child { display: none; } }
+
+/* ------------------------------------------------------------ smooth scroll (Lenis) and page-to-page fades */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: clip; }
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.55s; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+
+/* ------------------------------------------------------------ the smallest phones: the opening fits one screen */
+@media (max-width: 400px) {
+  .hero { padding-top: 84px; }
+  .hero h1 { font-size: 2.95rem; margin: 14px 0 16px; }
+  .lede { font-size: 1.1rem; }
+  .meta { margin: 12px 0 22px; font-size: 0.95rem; line-height: 1.5; }
 }
