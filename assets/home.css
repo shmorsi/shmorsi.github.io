@@ -303,3 +303,15 @@ html.lenis, html.lenis body { height: auto; }
   .lede { font-size: 1.1rem; }
   .meta { margin: 12px 0 22px; font-size: 0.95rem; line-height: 1.5; }
 }
+
+/* ------------------------------------------------------------ the Earth in hand */
+html.can-grab, html.can-grab body { cursor: grab; }
+html.is-grabbing, html.is-grabbing body { cursor: grabbing; user-select: none; }
+.grab-hint { display: none; margin-left: auto; margin-right: 44px; padding-bottom: 46px; color: var(--dim); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; }
+@media (hover: hover) and (pointer: fine) and (min-width: 1001px) and (min-height: 701px) { .grab-hint { display: block; } }
+
+/* ------------------------------------------------------------ titles that rise from behind a mask */
+.split .wd { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+.split .wi { display: inline-block; transform: translateY(108%); transition: transform 1.1s var(--ease); transition-delay: calc(var(--i) * 55ms); }
+.is-in .split .wi, .split.is-in .wi { transform: none; }
+.js h2.split[data-reveal] { opacity: 1; filter: none; transform: none; }

@@ -279,6 +279,7 @@ def page(DATA: dict, P: dict, order: list[str], links: dict) -> str:
       </div>
       <div class="wrap hero-foot">
         <p class="countdown" data-countdown="2027-01-01T00:00:00-05:00"><span class="cd-label">Available in</span><span class="cd-time" data-cd-time>January 2027</span></p>
+        <p class="grab-hint" aria-hidden="true">Drag the Earth to turn it</p>
         <p class="scroll-cue" aria-hidden="true">Scroll</p>
       </div>
     </section>
