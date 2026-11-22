@@ -139,7 +139,7 @@
 \ifcase\resumevariant
 Computer Science student building \textbf{AI for long-term investing}: \textbf{pension asset-liability} models, \textbf{PyTorch} portfolio and forecasting models written from scratch, and safety layers for \textbf{AI agents}, each tested out of sample against rules fixed in advance.
 \or
-Computer Science student building machine-learning systems from scratch in \textbf{PyTorch}: a \textbf{time-series foundation model}, a security layer for \textbf{LLM agents}, and \textbf{differentiable simulators} for long-term investing, each tested out of sample against rules fixed in advance.
+Computer Science student building machine-learning systems from scratch in \textbf{PyTorch}: a \textbf{time-series foundation model}, a security layer for \textbf{LLM agents}, \textbf{RAG} with cited answers, and \textbf{differentiable simulators} for long-term investing, each tested out of sample against rules fixed in advance.
 \fi
 }
 
@@ -209,7 +209,8 @@ Computer Science student building machine-learning systems from scratch in \text
 \resumeItem{\href{https://shmorsi.github.io/projects/pension-lab.html}{\textbf{\underline{Pension Lab}}} \textbf{(asset-liability management).} Modelled a 90\%-funded plan with 60 years of \textbf{inflation-indexed liabilities}; costed 60/40, \mbox{\textbf{liability-driven (LDI)}} and \mbox{glide-path} policies by contributions and \textbf{CVaR} over 10,000 \textbf{Monte Carlo} scenarios}\vspace{-1pt}
 \resumeItem{Trained a funding policy through the simulator (\textbf{pre-registered}) that \textbf{halved simulated cost} (\$5.0 vs \$9.9 per \$100 promised); showed it only matched the glide path on 34 real 20-year periods and traced the gap to the simulator}\vspace{-1pt}
 \resumeItem{\href{https://shmorsi.github.io/shock-lab/}{\textbf{\underline{World Shock Lab}}} \textbf{(macro event studies,} \href{https://github.com/shmorsi/world-shock-lab}{\textbf{\underline{code}}}\textbf{).} Measured how Fed, Bank of Canada and OPEC surprises move \textbf{53} global assets (10 bp Fed surprise: TSX \textbf{$-$1.10\%}); replicated \textbf{11 of 13} published findings; forecasts published before each decision}\vspace{-1pt}
-\resumeItem{\textbf{Pre-registered} ML test on 168 held-out events: a neural net did not beat linear; quantile boosting cut only 5\% tail loss}
+\resumeItem{\textbf{Pre-registered} ML test on 168 held-out events: a neural net did not beat linear; quantile boosting cut only 5\% tail loss}\vspace{-1pt}
+\resumeItem{Built \textbf{RAG} over \textbf{438} Fed and Bank of Canada statements: \textbf{BM25} fused with embeddings in a \textbf{Qdrant vector database}, a \textbf{LangChain} retriever, and \textbf{Claude} answers that must cite their sources; pre-registered test: top-5 hit rate \textbf{47.9\% to 62.5\%}}
 \resumeItemListEnd
 \vspace{1pt}
 }
@@ -261,7 +262,7 @@ Computer Science student building machine-learning systems from scratch in \text
 \small{\item{
 \skillLine{Machine Learning}{\textbf{PyTorch}, \textbf{Deep Learning}, \textbf{Transformers}, Time-Series Forecasting, \textbf{scikit-learn}, TensorFlow, QLoRA}
 \skillLine{Investing}{\textbf{Asset-Liability Management}, \textbf{LDI}, \textbf{Portfolio Construction}, \textbf{Risk Attribution}, CVaR, Event Studies}
-\skillLine{AI Agents}{\textbf{Agentic AI}, \textbf{LLM Agents}, \textbf{Tool Calling}, \textbf{MCP}, Prompt-Injection Defense, \textbf{LLM Evals}, Claude Code, Cursor}
+\skillLine{AI / LLMs}{\textbf{RAG}, \textbf{Vector DBs (Qdrant)}, \textbf{LangChain}, NLP, \textbf{LLM Agents}, \textbf{Tool Calling}, \textbf{MCP}, \textbf{LLM Evals}, Claude Code}
 \skillLine{Languages}{\textbf{Python}, \textbf{SQL}, TypeScript, JavaScript, C++, Java, C, R, Bash}
 \skillLine{Data / Tools}{\textbf{Pandas}, \textbf{NumPy}, \textbf{FastAPI}, DuckDB, \textbf{Git}, \textbf{GitHub Actions (CI/CD)}, \textbf{pytest}, Playwright, Docker, Streamlit}
 }}
