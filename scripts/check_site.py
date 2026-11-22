@@ -435,11 +435,14 @@ else:
         errors.append("aurvane/index.html does not quote the copied benchmark summary (sync the page and the summaries from the same aurvane commit)")
     # The old URL stays alive as a tiny redirect; nothing else may carry the old name.
     old = ROOT / "glass" / "index.html"
+    # The Shock Lab's Ask view ships a language model's word-piece vocabulary: a list of
+    # every common English word, not a mention of any project. It is the only file exempt.
+    vocab = ROOT / "shock-lab" / "data" / "ask_vocab.json"
     if not old.is_file() or "../aurvane/" not in old.read_text():
         errors.append("glass/index.html must redirect to ../aurvane/")
     for path in ROOT.rglob("*"):
         if path.is_file() and path.suffix in {".html", ".js", ".json", ".css", ".xml", ".md"} and ".git" not in path.parts \
-                and path != old and path.name != "check_site.py" and re.search(r"\bglass\b", path.read_text(errors="ignore"), re.I):
+                and path not in (old, vocab) and path.name != "check_site.py" and re.search(r"\bglass\b", path.read_text(errors="ignore"), re.I):
             errors.append(f"{path.relative_to(ROOT)} still uses the project's old name")
 
 # Deep Portfolio Constructor: every figure comes from the project's committed export, and the limits stay stated.
@@ -482,7 +485,8 @@ for project in DATA["projects"]:
 for path in ROOT.rglob("*"):
     if not path.is_file() or ".git" in path.parts or path.suffix not in {".html", ".js", ".json", ".css", ".xml", ".md"}:
         continue
-    if path.name == "check_site.py" or path.is_relative_to(ROOT / "aurvane"):
+    if path.name == "check_site.py" or path.is_relative_to(ROOT / "aurvane") \
+            or path == ROOT / "shock-lab" / "data" / "ask_vocab.json":  # a word list (see above)
         continue
     if re.search(r"\borbit\b|\batlas\b", path.read_text(errors="ignore"), re.I):
         errors.append(f"{path.relative_to(ROOT)} still names a retired project (Orbit or ATLAS)")

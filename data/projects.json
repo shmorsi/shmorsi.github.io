@@ -2041,7 +2041,7 @@
       "badge": "Live site",
       "kicker": "Macro shocks and machine learning",
       "title": "World Shock Lab",
-      "summary": "Event studies of Federal Reserve, Bank of Canada, and OPEC surprises across global assets, with a pre-registered test of whether machine learning adds anything, and forecasts published before each decision.",
+      "summary": "Event studies of Federal Reserve, Bank of Canada, and OPEC surprises across global assets, with a pre-registered test of whether machine learning adds anything, and forecasts published before each decision, and a search over every Fed and Bank of Canada statement since 2000 that answers with citations.",
       "caveat": "Machine learning did not beat the linear model on the average move in either pre-registered study. Quantile boosting won only on 5% tail pinball loss. None of 80 regime tests survived false-discovery control.",
       "image": {
         "src": "assets/img/world-shock-lab-scenario.webp",
@@ -2053,6 +2053,8 @@
         "Python",
         "PyTorch",
         "statsmodels",
+        "RAG",
+        "Qdrant",
         "React",
         "TypeScript"
       ],
@@ -2235,10 +2237,10 @@
         },
         "tests": {
           "label": "Automated Python tests in CI",
-          "display": "189",
-          "count": 168,
+          "display": "225",
+          "count": 225,
           "decimals": 0,
-          "source": "pytest -m 'not data' at world-shock-lab main c0d14ee (2026-11-11): 189 passed, 9 deselected, locally and in CI. The earlier figure, 168, was a static count at cb7a00c (2026-10-23)."
+          "source": "pytest -m 'not data' at world-shock-lab 5cd6fd0 (branch feature/practical-newton-f1keur, 2026-11-22): 225 passed, 9 deselected. It was 189 at main c0d14ee (2026-11-11); the 36 new tests cover Ask the decisions (tests/test_rag.py)."
         },
         "rerunMinutes": {
           "label": "Full rerun time",
@@ -2269,6 +2271,45 @@
           "label": "Next forecasted decisions, Fed and BoC",
           "display": "2026-12-09",
           "source": "world-shock-lab config/live.yaml calendar: fomc and boc 2026-12-09 (BoC 09:45 America/Toronto, FOMC 14:00 America/New_York). Forecasts publish 10 days before."
+        },
+        "ragStatements": {
+          "label": "Policy statements searchable",
+          "display": "438",
+          "count": 438,
+          "decimals": 0,
+          "source": "world-shock-lab data/rag/statements.jsonl and docs/RAG.md: 211 Bank of Canada rate announcements and 227 FOMC statements, 2000-02-02 to 2026-10-28."
+        },
+        "ragQuestions": {
+          "label": "Test questions, fixed in advance",
+          "display": "48",
+          "count": 48,
+          "decimals": 0,
+          "source": "world-shock-lab config/rag_questions.yaml (24 Fed, 24 Bank of Canada), tagged rag-v1 with config/rag_protocol.yaml before any retriever was written."
+        },
+        "ragHybrid": {
+          "label": "Right statement in top 5, keyword + transformer",
+          "display": "62.5%",
+          "source": "world-shock-lab results/rag/test.json (protocol rag-v1, 48 test questions, scored once): summary.hybrid.hit@5 = 0.625."
+        },
+        "ragBm25": {
+          "label": "Right statement in top 5, keyword only",
+          "display": "47.9%",
+          "source": "world-shock-lab results/rag/test.json (protocol rag-v1, 48 test questions, scored once): summary.bm25.hit@5 = 0.4791666666666667."
+        },
+        "ragGain": {
+          "label": "Gain from adding embeddings",
+          "display": "+14.6 points",
+          "source": "world-shock-lab results/rag/test.json (protocol rag-v1, 48 test questions, scored once): primary.difference = 0.14583333333333334, verdict helps."
+        },
+        "ragGainCi": {
+          "label": "90% interval on the gain",
+          "display": "+4.2 to +25.0",
+          "source": "world-shock-lab results/rag/test.json (protocol rag-v1, 48 test questions, scored once): primary.lo = 0.041666666666666664, primary.hi = 0.25 (paired bootstrap, 10,000 resamples)."
+        },
+        "ragSite": {
+          "label": "Right statement in top 5, in the browser",
+          "display": "50.0%",
+          "source": "world-shock-lab results/rag/test.json (protocol rag-v1, 48 test questions, scored once): summary.hybrid_static.hit@5 = 0.5; site_vs_bm25.difference = 0.020833333333333332, interval -0.041666666666666664 to 0.08333333333333333, verdict no detectable difference."
         },
         "liveDecisions": {
           "label": "Decisions scored so far",
@@ -2398,6 +2439,54 @@
             ]
           ],
           "source": "results/mlstudy/final.json (protocol ml-study-v1, git d0dc395c530d37d225381b3bd7391ee54f83c223, generated 20261020T183639Z) on main at merge commit 638bdb6 (https://github.com/shmorsi/world-shock-lab/commit/638bdb6357bc2c9f627ac4a6569a04995982b961), merged from https://github.com/shmorsi/world-shock-lab/pull/1 on 2026-10-20. File verdicts: no evidence the temporal CNN adds value on the mean; quantile gradient boosting adds value on the 5% tail by pinball loss. Not a calibration claim, and not a comparison to a published model."
+        },
+        "rag": {
+          "caption": "Ask the decisions: share of the 48 test questions with a right statement in the top 1, 5 and 10. Fixed in advance (tag rag-v1) and scored once.",
+          "headers": [
+            "Retriever",
+            "Top 1",
+            "Top 5",
+            "Top 10",
+            "Runs where"
+          ],
+          "rows": [
+            [
+              "Keyword (BM25)",
+              "18.8%",
+              "47.9%",
+              "60.4%",
+              "Python and browser"
+            ],
+            [
+              "Static embeddings",
+              "16.7%",
+              "31.2%",
+              "39.6%",
+              "Python and browser"
+            ],
+            [
+              "Transformer embeddings (bge-small, in Qdrant)",
+              "29.2%",
+              "47.9%",
+              "60.4%",
+              "Python"
+            ],
+            [
+              "Keyword + static, fused",
+              "22.9%",
+              "50.0%",
+              "58.3%",
+              "Browser (the lab's Ask view)"
+            ],
+            [
+              "Keyword + transformer, fused",
+              "35.4%",
+              "62.5%",
+              "72.9%",
+              "Python"
+            ]
+          ],
+          "source": "world-shock-lab results/rag/test.json, summary: hit@1, hit@5 and hit@10 for bm25, static, transformer, hybrid_static and hybrid; docs/RAG.md."
         },
         "liveScores": {
           "caption": "Each decision's forecasts, scored once every five-day outcome was published. A forecast is one outcome (the Canadian 2-year yield, the Canadian dollar, Canadian banks) at one horizon (one day, five days).",
