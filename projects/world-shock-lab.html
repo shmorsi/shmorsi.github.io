@@ -30,9 +30,9 @@
   <link rel="icon" href="../assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
   <link rel="preload" href="../assets/fonts/barlow-600.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="../assets/site.css?v=fe1f47620d">
+  <link rel="stylesheet" href="../assets/site.css?v=9630ba1f11">
   <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
-  <script src="../assets/site.js?v=fe1f47620d" defer></script>
+  <script src="../assets/site.js?v=9630ba1f11" defer></script>
 </head>
 <body data-root="../" data-metrics="../data/projects.json">
   <a class="skip" href="#main">Skip to content</a>
@@ -122,6 +122,7 @@
           <a href="../shock-lab/#/models">Models</a>
           <a href="../shock-lab/#/track">Track record</a>
           <a href="../shock-lab/#/method">Methodology</a>
+          <a href="../shock-lab/#/ask">Ask the decisions</a>
         </nav>
       </section>
       <section class="cs-section" aria-labelledby="s-problem">
@@ -173,6 +174,17 @@
           <div class="table-wrap" tabindex="0" role="region" aria-label="ml-study-v1 comparison" data-table="world-shock-lab.tables.mlStudy"></div>
           <p>Quantile gradient boosting cut 5% pinball loss to <span data-bind="world-shock-lab.stats.pinballQgbm.display">1.446</span>, versus <span data-bind="world-shock-lab.stats.pinballGauss.display">1.558</span> for the Gaussian linear baseline. The difference is <span data-bind="world-shock-lab.stats.pinballGap.display">−0.112</span>, with a 90% interval of <span data-bind="world-shock-lab.stats.pinballCi.display">−0.228 to −0.010</span>. The file's verdict is that this model adds value on the 5% tail. That is the pre-registered pinball loss, not a calibration claim.</p>
           <p>The temporal CNN's scaled mean error is <span data-bind="world-shock-lab.stats.tcnMae.display">1.157</span>, against <span data-bind="world-shock-lab.stats.lpMae.display">1.142</span> for the linear projection. The difference is <span data-bind="world-shock-lab.stats.tcnGap.display">+0.015</span>, with a 90% interval of <span data-bind="world-shock-lab.stats.tcnCi.display">−0.006 to +0.037</span>. That interval includes zero, so the temporal CNN did not beat the linear model on the mean.</p>
+        </div>
+      </section>
+      <section class="cs-section" aria-labelledby="s-ask">
+        <h2 id="s-ask">Ask the decisions</h2>
+        <div class="prose">
+          <p class="big">Ask a question about any Fed or Bank of Canada decision and get the statement that answers it, with the bank's own link.</p>
+          <p>The lab's event lists come from the banks' press releases, so their text is a ready-made library: <span data-bind="world-shock-lab.stats.ragStatements.display">438</span> policy statements since 2000. This is <button type="button" class="term" data-term="rag">retrieval-augmented generation</button>: find the right passages first, then answer only from them. Keyword search (BM25) is fused with embeddings, so a question finds a statement that says the same thing in other words. In Python the embeddings come from a small transformer, with the vectors in a Qdrant database. A static model, light enough to run with no server, powers the version on this site.</p>
+          <p>Answers cite the paragraph they use. With an API key, Claude writes the answer from the retrieved passages, and two checks run on it: it must cite a passage, and every number in it must appear in a cited passage or in the lab's market data for that day. An answer that fails either check is withheld and the passages are shown instead. The search is also a LangChain retriever, so it drops into other pipelines.</p>
+          <p>As with the rest of the lab, the test came first. <span data-bind="world-shock-lab.stats.ragQuestions.display">48</span> test questions, their answers and the rule for "embeddings help" were tagged in git before any search code existed, and the test was scored once. Keyword search alone finds a right statement in its top five for <span data-bind="world-shock-lab.stats.ragBm25.display">47.9%</span> of questions. Adding transformer embeddings raises that to <span data-bind="world-shock-lab.stats.ragHybrid.display">62.5%</span>, a gain of <span data-bind="world-shock-lab.stats.ragGain.display">+14.6 points</span> with a 90% interval of <span data-bind="world-shock-lab.stats.ragGainCi.display">+4.2 to +25.0</span>: embeddings help, by the rule fixed in advance. The lighter model on this site scores <span data-bind="world-shock-lab.stats.ragSite.display">50.0%</span>, no detectable improvement over keywords alone.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Retrieval comparison" data-table="world-shock-lab.tables.rag"></div>
+          <p>Most misses ask for the first time something happened. Search finds statements about rate cuts, not the first cut, because that takes reasoning over dates. The questions were written by an AI assistant reading the statements and checked by no one else, which may favour keyword search. <a href="../shock-lab/#/ask">Try it in the lab</a>, or read <a href="https://github.com/shmorsi/world-shock-lab/blob/main/docs/RAG.md" target="_blank" rel="noopener noreferrer">the write-up</a>.</p>
         </div>
       </section>
       <section class="cs-section" aria-labelledby="s-miss">
