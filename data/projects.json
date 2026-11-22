@@ -2237,10 +2237,10 @@
         },
         "tests": {
           "label": "Automated Python tests in CI",
-          "display": "189",
-          "count": 168,
+          "display": "225",
+          "count": 225,
           "decimals": 0,
-          "source": "pytest -m 'not data' at world-shock-lab main c0d14ee (2026-11-11): 189 passed, 9 deselected, locally and in CI. The earlier figure, 168, was a static count at cb7a00c (2026-10-23)."
+          "source": "pytest -m 'not data' at world-shock-lab 5cd6fd0 (branch feature/practical-newton-f1keur, 2026-11-22): 225 passed, 9 deselected. It was 189 at main c0d14ee (2026-11-11); the 36 new tests cover Ask the decisions (tests/test_rag.py)."
         },
         "rerunMinutes": {
           "label": "Full rerun time",
