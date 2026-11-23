@@ -173,7 +173,7 @@ Computer Science student building machine-learning systems from scratch in \text
 \resumeItemListStart
 \resumeItem{Trained and evaluated \textbf{PyTorch} models on wireless network telemetry to forecast \textbf{5G energy demand}}\vspace{-1pt}
 \resumeItem{Developed \textbf{data and ML pipelines} for 5G energy telemetry to support automated network management and optimization}\vspace{-1pt}
-\resumeItem{Trained in \textbf{agentic AI} for intent-based 5G network slicing (Amazon Bedrock); presented findings to cross-functional data science and engineering teams and led the project proposal and requirements review}
+\resumeItem{Trained in \textbf{agentic AI} for 5G network slicing (Amazon Bedrock); presented to data science and engineering teams and led the project proposal}
 \resumeItemListEnd
 \vspace{2pt}
 
@@ -204,13 +204,24 @@ Computer Science student building machine-learning systems from scratch in \text
 {\textbf{Deep Portfolio Constructor (AI for Long-Term Investing)} $|$ \emph{Python, PyTorch} $|$ \githubLink{https://github.com/shmorsi/deep-portfolio-constructor} $|$ \href{https://shmorsi.github.io/projects/deep-portfolio-constructor.html}{\textbf{\underline{Project Page}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{Built a \textbf{transformer} that allocates a long-only portfolio across 30 US industries and learns how much to trade, trained end to end in PyTorch on \textbf{wealth growth after trading costs} through a \textbf{differentiable simulator}}\vspace{-1pt}\vspace{-1pt}
-\resumeItem{Ran a \textbf{pre-registered walk-forward backtest} (1960--2026): \$1 grew to \textbf{\$1,368} vs \$929 for the market (+0.58\%/yr, t~=~1.40, not significant), against 5 classical baselines incl. risk parity and Kelly, with 3 ablations, 5 seeds, 152 tests}\vspace{-1pt}
+\resumeItem{Built a \textbf{transformer} that allocates across 30 US industries and learns how much to trade, trained on after-cost \textbf{wealth growth} through a \textbf{differentiable simulator}}\vspace{-1pt}
+\resumeItem{Ran a \textbf{pre-registered walk-forward backtest} (1960--2026): \$1 grew to \textbf{\$1,368} vs \$929 for the market (+0.58\%/yr, t~=~1.40, not significant), against 5 classical baselines incl. risk parity and Kelly, with 3 ablations, 5 seeds, 190 tests}\vspace{-1pt}
+\ifnum\resumevariant=0
 \resumeItem{\href{https://shmorsi.github.io/projects/pension-lab.html}{\textbf{\underline{Pension Lab}}} \textbf{(asset-liability management).} Modelled a 90\%-funded plan with 60 years of \textbf{inflation-indexed liabilities}; costed 60/40, \mbox{\textbf{liability-driven (LDI)}} and \mbox{glide-path} policies by contributions and \textbf{CVaR} over 10,000 \textbf{Monte Carlo} scenarios}\vspace{-1pt}
-\resumeItem{Trained a funding policy through the simulator (\textbf{pre-registered}) that \textbf{halved simulated cost} (\$5.0 vs \$9.9 per \$100 promised); showed it only matched the glide path on 34 real 20-year periods and traced the gap to the simulator}\vspace{-1pt}
-\resumeItem{\href{https://shmorsi.github.io/shock-lab/}{\textbf{\underline{World Shock Lab}}} \textbf{(macro event studies,} \href{https://github.com/shmorsi/world-shock-lab}{\textbf{\underline{code}}}\textbf{).} Measured how Fed, Bank of Canada and OPEC surprises move \textbf{53} global assets (10 bp Fed surprise: TSX \textbf{$-$1.10\%}); replicated \textbf{11 of 13} published findings; forecasts published before each decision}\vspace{-1pt}
-\resumeItem{\textbf{Pre-registered} ML test on 168 held-out events: a neural net did not beat linear; quantile boosting cut only 5\% tail loss}\vspace{-1pt}
-\resumeItem{Built \textbf{RAG} over \textbf{438} Fed and Bank of Canada statements: \textbf{BM25} fused with embeddings in a \textbf{Qdrant vector database}, a \textbf{LangChain} retriever, and \textbf{Claude} answers that must cite their sources; pre-registered test: top-5 hit rate \textbf{47.9\% to 62.5\%}}
+\resumeItem{Trained a funding policy through the simulator (\textbf{pre-registered}) that \textbf{halved simulated cost} (\$5.0 vs \$9.9 per \$100); on 34 real 20-year periods it only matched the glide path, and I traced the gap to the simulator}\vspace{-1pt}
+\else
+\resumeItem{\href{https://shmorsi.github.io/projects/pension-lab.html}{\textbf{\underline{Pension Lab}}}: a funding policy trained through a differentiable \textbf{asset-liability} simulator \textbf{halved simulated cost}, yet only matched the glide path on 34 real periods}\vspace{-1pt}
+\fi
+\ifnum\resumevariant=0
+\resumeItem{\textbf{Institutional toolkit.} \textbf{Factor risk model}, \textbf{Black-Litterman}, a \textbf{tracking-error budget} (1970--2026 IR 0.43), \textbf{VaR backtests} (Kupiec), \textbf{Brinson attribution in SQL}; \textbf{LDI} liquidity stress (full hedge 1.83$\times$ levered) and \textbf{private-markets pacing}}\vspace{-1pt}
+\resumeItem{\textbf{Derivatives} (Greeks, SABR, curve bootstrap; index straddles sold at the VIX and delta-hedged earned 0.87\%/month since 1990), an \textbf{anomaly zoo} (15 anomalies, 87\% post-publication decay) and \textbf{Excel} pension and \textbf{LBO} models verified against Python}\vspace{-1pt}
+\else
+\resumeItem{Built and unit-tested a \textbf{factor risk model}, \textbf{Black-Litterman}, \textbf{Brinson attribution in SQL}, \textbf{derivatives pricing} (Greeks, SABR, curve bootstrap) and \textbf{Excel} LBO and pension models verified against Python}\vspace{-1pt}
+\fi
+\resumeItem{\href{https://shmorsi.github.io/shock-lab/}{\textbf{\underline{World Shock Lab}}} \textbf{(event studies,} \href{https://github.com/shmorsi/world-shock-lab}{\textbf{\underline{code}}}\textbf{).} Fed, BoC and OPEC surprises across \textbf{53} assets (10 bp Fed: TSX \textbf{$-$1.10\%}); \textbf{11 of 13} findings replicated; \textbf{pre-registered} ML test: no gain over linear}\vspace{-1pt}
+
+\resumeItem{\textbf{RAG} over 438 statements (BM25 + \textbf{Qdrant}, \textbf{LangChain}, cited \textbf{Claude} answers): top-5 hit rate 47.9\% $\to$ 62.5\%}\vspace{-1pt}
+\resumeItem{Fine-tuned \textbf{roberta-base with LoRA} (0.7\% of weights, on a CPU) to read central-bank stance: \textbf{pre-registered} test macro-F1 \textbf{0.66} vs 0.56 for TF-IDF; on 206 Bank of Canada statements it tracks the next decision ($\rho$ = 0.33)}
 \resumeItemListEnd
 \vspace{1pt}
 }
@@ -221,8 +232,11 @@ Computer Science student building machine-learning systems from scratch in \text
 \vspace{-2pt}
 \resumeItemListStart
 \resumeItem{Pretrained a \textbf{10.1M-parameter} decoder-only \textbf{transformer} from scratch on \textbf{443,258} series (77 datasets); on the frozen \textbf{GIFT-Eval} test split (97 configurations), zero-shot CRPS was \textbf{0.688$\times$} AutoARIMA, 95\% CI [0.624, 0.757]}\vspace{-1pt}
-\resumeItem{Implemented RMSNorm, \textbf{rotary embeddings}, SwiGLU, a KV cache and a non-crossing quantile head without a model library; \textbf{mixed-precision} training on a single T4 GPU}\vspace{-1pt}
-\resumeItem{Caught benchmark test data inside a public pretraining corpus with a \textbf{data-leakage audit}; removed \textbf{801 of 447,229} series}
+\resumeItem{Implemented RMSNorm, \textbf{RoPE}, SwiGLU and a KV cache from scratch; a \textbf{data-leakage audit} removed 801 of 447,229 series}\vspace{-1pt}
+\ifnum\resumevariant=1
+\resumeItem{Served it with \textbf{FastAPI}, \textbf{ONNX Runtime} and \textbf{Docker} (CI calls the running container): parity 2e-6, int8 halves latency (2.4 $\to$ 1.2 ms) at no accuracy cost; \textbf{Prometheus} metrics, \textbf{drift monitoring}, \textbf{MLflow} registry}\vspace{-1pt}
+\fi
+
 \resumeItemListEnd
 \vspace{1pt}
 }
@@ -233,7 +247,7 @@ Computer Science student building machine-learning systems from scratch in \text
 \vspace{-2pt}
 \resumeItemListStart
 \resumeItem{Built a security layer between \textbf{LLM agents} and their tools: \textbf{Ed25519-signed mandates}, four checks on every action, human approval for risky steps and a tamper-evident log; Python SDK and \textbf{MCP server}, 74 tests}\vspace{-1pt}\vspace{-1pt}
-\resumeItem{On the public \textbf{AgentDojo} benchmark (629 \textbf{prompt-injection} cases, worst-case agent, protocol fixed first), successful attacks fell from \textbf{97.5\% to 13.0\%}; on 60 paired tasks of my own, from 30/30 to 7/30 with 0 false alarms}
+\resumeItem{On the public \textbf{AgentDojo} benchmark (629 \textbf{prompt-injection} cases, protocol fixed first), successful attacks fell from \textbf{97.5\% to 13.0\%}; own suite: 30/30 $\to$ 7/30, 0 false alarms}
 \resumeItemListEnd
 \vspace{2pt}
 }
@@ -243,8 +257,7 @@ Computer Science student building machine-learning systems from scratch in \text
 {\textbf{\'EPICENTRE (PolyFinances Datathon 2026)} $|$ \emph{Python, FastAPI, Amazon Bedrock} $|$ \githubLink{https://github.com/shmorsi/poly-datathon-2026} $|$ \href{https://shmorsi.github.io/poly-datathon-2026/}{\textbf{\underline{Live Demo}}}}{2026}
 \vspace{-2pt}
 \resumeItemListStart
-\resumeItem{With a team, built a portfolio and order preview for self-directed investors: \textbf{ETF look-through} to issuer holdings, \textbf{risk attribution by position}, and a \textbf{historical replay} of a proposed order against the investor's loss limit}\vspace{-1pt}
-\resumeItem{Integrated \textbf{Claude on Amazon Bedrock} (Guardrails, \textbf{tool use}) to explain each result from evidence the code computed}
+\resumeItem{With a team: \textbf{ETF look-through}, \textbf{risk attribution by position} and an order replay against a loss limit; \textbf{Claude on Bedrock} (Guardrails, \textbf{tool use}) explains computed evidence}
 \resumeItemListEnd
 \vspace{1pt}
 }
@@ -260,11 +273,11 @@ Computer Science student building machine-learning systems from scratch in \text
 \vspace{-4pt}
 \begin{itemize}[leftmargin=0.15in, label={}]
 \small{\item{
-\skillLine{Machine Learning}{\textbf{PyTorch}, \textbf{Deep Learning}, \textbf{Transformers}, Time-Series Forecasting, \textbf{scikit-learn}, TensorFlow, QLoRA}
-\skillLine{Investing}{\textbf{Asset-Liability Management}, \textbf{LDI}, \textbf{Portfolio Construction}, \textbf{Risk Attribution}, CVaR, Event Studies}
-\skillLine{AI / LLMs}{\textbf{RAG}, \textbf{Vector DBs (Qdrant)}, \textbf{LangChain}, NLP, \textbf{LLM Agents}, \textbf{Tool Calling}, \textbf{MCP}, \textbf{LLM Evals}, Claude Code}
+\skillLine{Machine Learning}{\textbf{PyTorch}, \textbf{Transformers}, \textbf{LoRA (PEFT)}, Hugging Face, Time-Series Forecasting, \textbf{scikit-learn}}
+\skillLine{Investing}{\textbf{ALM / LDI}, \textbf{Factor Risk Models}, \textbf{Black-Litterman}, Brinson Attribution, Key-Rate Duration, CVaR}
+\skillLine{AI / LLMs}{\textbf{RAG}, \textbf{Qdrant}, \textbf{LangChain}, \textbf{LLM Agents}, \textbf{Tool Calling}, \textbf{MCP}, \textbf{LLM Evals}, Guardrails}
 \skillLine{Languages}{\textbf{Python}, \textbf{SQL}, TypeScript, JavaScript, C++, Java, C, R, Bash}
-\skillLine{Data / Tools}{\textbf{Pandas}, \textbf{NumPy}, \textbf{FastAPI}, DuckDB, \textbf{Git}, \textbf{GitHub Actions (CI/CD)}, \textbf{pytest}, Playwright, Docker, Streamlit}
+\skillLine{Data / MLOps}{\textbf{Pandas}, \textbf{DuckDB}, \textbf{FastAPI}, \textbf{Docker}, \textbf{ONNX Runtime}, \textbf{Git}, \textbf{GitHub Actions}, pytest, AWS}
 }}
 \end{itemize}
 

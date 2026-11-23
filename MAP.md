@@ -7,7 +7,7 @@ One page to keep track of the whole thing: what lives where, what happens by its
 | Repository | What it is | Where it shows on the site | What the site reads from it |
 |---|---|---|---|
 | `shmorsi.github.io` | The website itself | Every page | Its own `data/projects.json`, pages and scripts |
-| `deep-portfolio-constructor` | The flagship: three studies of AI for long-term investing | Portfolio page, Pension page, and the risk section of the forecasting page | `reports/site_wealth.json`, `reports/pension/site_pension.json`, `reports/risk/site_risk.json` |
+| `deep-portfolio-constructor` | The flagship: three studies of AI for long-term investing, plus the quant and institutional toolkit (risk models, attribution in SQL, VaR backtests, derivatives and rates, LDI liquidity, private-markets pacing, the anomaly zoo, Excel models) | Portfolio page, Pension page, and the risk section of the forecasting page | `reports/site_wealth.json`, `reports/pension/site_pension.json`, `reports/risk/site_risk.json` |
 | `tsfm-from-scratch` | The forecasting model built from scratch | Forecasting (TSFM) page | The numbers its page cites, checked against `results/analysis/headline.json` |
 | `world-shock-lab` | Central-bank shocks, live forecasts, and Ask the decisions (search over every Fed and Bank of Canada statement) | Shock Lab page and the app at `/shock-lab/` (Ask is `#/ask`) | The built app (`web/dist`, which carries the search files `data/ask*`) and the score files in `live/scores/`; the Ask figures on the page cite `results/rag/test.json` |
 | `aurvane` | The trust layer for AI agents | Aurvane page at `/aurvane/` | Its built page `ui/site/index.html` and two benchmark summaries |
@@ -38,10 +38,15 @@ One page to keep track of the whole thing: what lives where, what happens by its
 | Review and merge pull requests | Each repository | When the checks are green |
 | Add the `FRED_API_KEY` secret | `world-shock-lab` → Settings → Secrets and variables → Actions | Before November 29 (the December 9 forecasts publish from then) |
 | Add the `ANTHROPIC_API_KEY` secret and run "real-model benchmark" | `aurvane` → Settings → Secrets, then Actions | Any time; capped at 5 USD |
+| Push the `stance-v1` tag (`git push origin stance-v1` in `world-shock-lab`): it marks the moment the policy-stance test was fixed; `wsl stance evaluate` checks for it | `world-shock-lab` | Once, before merging its pull request |
 | Push the `rag-v1` tag (`git push origin rag-v1` in `world-shock-lab`): it marks the moment the Ask the decisions test was fixed, and `wsl rag evaluate --split test` checks for it | `world-shock-lab` | Once, before merging its pull request |
 | Let the daily sync open its pull request | Website repository → Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests" | Once |
 | Run the strong forecasting model on the two market studies | Colab, with the weights on your Drive | Any time |
 | Profile bio, pinned repositories, repository descriptions | GitHub profile and each repository's "About" | Once |
+
+## Work waiting on the `claude/portfolio-ml-ai-skills-review-nec2hh` branches
+
+Open a pull request from that branch in each of `deep-portfolio-constructor`, `world-shock-lab`, `tsfm-from-scratch` and this repository, review, and merge; then run `python3 scripts/sync_all.py` here. The home page's "Quant and institutional toolkit" row cites `deep-portfolio-constructor/reports/derivatives/summary.json`, which reaches `main` with that merge.
 
 ## Branches
 

@@ -40,6 +40,7 @@ GLOBE = {
     "world-shock-lab": ("wsl", "Rings leave Washington, Ottawa and Vienna, where the Fed, the Bank of Canada and OPEC announce."),
     "tsfm": ("tsfm", "The sweep stands for the model reading series from 77 datasets. An illustration."),
     "aurvane": ("aurvane", "A shell for the four checks every agent action has to pass. An illustration."),
+    "quant-toolkit": ("dpc", "The Earth turns to the United States: the volatility study trades the US stock market every month since 1990."),
     "epicentre": ("epicentre", "Montréal, where the PolyFinances Datathon ran, and the shock that spreads from one holding."),
 }
 
@@ -133,15 +134,16 @@ def mission(P: dict, pid: str, page: str, i: int) -> str:
 
 def extra_mission(x: dict, i: int) -> str:
     scene, caption = GLOBE[x["id"]]
-    links = [(link["label"], link["href"], True) for link in x["links"]]
+    links = [(link["label"], link["href"], bool(link.get("external", True))) for link in x["links"]]
     first = x["links"][0]["href"]
+    first_ext = ' target="_blank" rel="noopener noreferrer"' if links[0][2] else ""
     tags = ", ".join(x["tags"])
     return f"""
         <article class="mission{" is-flip" if i % 2 else ""}" id="p-{x["id"]}" data-scene="{scene}">
           <div class="wrap mission-in">
             <div class="m-copy" data-reveal>
               <p class="m-tag">Mission {e(x["number"])}<span>{e(x["kicker"])}</span><em class="new">New</em></p>
-              <h3><a href="{e(first)}" target="_blank" rel="noopener noreferrer">{e(x["title"])}</a></h3>
+              <h3><a href="{e(first)}"{first_ext}>{e(x["title"])}</a></h3>
               <p class="m-purpose">{e(x["purpose"])}</p>
               <div class="m-head">
                 <p class="m-fig">{e(x["headline"]["display"])}</p>
