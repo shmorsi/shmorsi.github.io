@@ -3,47 +3,47 @@
   "institutional": {
    "repository": "deep-portfolio-constructor",
    "path": "reports/institutional/summary.json",
-   "commit": "b922e54"
+   "commit": "d10f3c7"
   },
   "derivatives": {
    "repository": "deep-portfolio-constructor",
    "path": "reports/derivatives/summary.json",
-   "commit": "b922e54"
+   "commit": "d10f3c7"
   },
   "anomalies": {
    "repository": "deep-portfolio-constructor",
    "path": "reports/anomalies/summary.json",
-   "commit": "b922e54"
+   "commit": "d10f3c7"
   },
   "excel": {
    "repository": "deep-portfolio-constructor",
    "path": "excel/verification.json",
-   "commit": "b922e54"
+   "commit": "d10f3c7"
   },
   "stance_dev": {
    "repository": "world-shock-lab",
    "path": "results/stance/dev.json",
-   "commit": "886515b"
+   "commit": "0e93ee5"
   },
   "stance_test": {
    "repository": "world-shock-lab",
    "path": "results/stance/test.json",
-   "commit": "886515b"
+   "commit": "0e93ee5"
   },
   "stance_external": {
    "repository": "world-shock-lab",
    "path": "results/stance/external.json",
-   "commit": "886515b"
+   "commit": "0e93ee5"
   },
   "serve_export": {
    "repository": "tsfm-from-scratch",
    "path": "results/serve/export.json",
-   "commit": "1c1b398"
+   "commit": "e8bc109"
   },
   "serve_bench": {
    "repository": "tsfm-from-scratch",
    "path": "results/serve/bench_cpu_1thread.json",
-   "commit": "1c1b398"
+   "commit": "e8bc109"
   }
  },
  "institutional": {

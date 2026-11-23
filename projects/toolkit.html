@@ -62,7 +62,7 @@
             <li><strong>Brinson-Fachler attribution, Carino-linked.</strong> 0.93% a year from allocation, 0.43% from selection. The same calculation in SQL (DuckDB) agrees with pandas to 4e-15.</li>
           </ul>
           <figure class="figure-block"><img src="../assets/img/toolkit/active.png" alt="Portfolio growth relative to the benchmark since 1970, and the rolling bias statistic of the risk forecasts." loading="lazy" style="width:100%;height:auto;border-radius:6px;background:#fff"><figcaption class="caveat">Left: portfolio divided by benchmark. Right: the rolling 36-month bias statistic.</figcaption></figure>
-          <p class="caveat">Source: <a class="text-link" href="https://github.com/shmorsi/deep-portfolio-constructor/blob/main/reports/institutional/summary.json" target="_blank" rel="noopener noreferrer">reports/institutional/summary.json</a> (deep-portfolio-constructor @ <code>b922e54</code>)</p>
+          <p class="caveat">Source: <a class="text-link" href="https://github.com/shmorsi/deep-portfolio-constructor/blob/main/reports/institutional/summary.json" target="_blank" rel="noopener noreferrer">reports/institutional/summary.json</a> (deep-portfolio-constructor @ <code>d10f3c7</code>)</p>
         </div>
       </section>
       <section class="cs-section" aria-labelledby="s-var">
@@ -82,7 +82,7 @@
             <li>Hull's Example 15.6: call 4.7594 (book 4.76). Early-exercise premium of an American put: 0.208.</li>
           </ul>
           <figure class="figure-block"><img src="../assets/img/toolkit/vrp.png" alt="Monthly profit and loss of a delta-hedged short straddle on the US stock market since 1990, and its cumulative sum." loading="lazy" style="width:100%;height:auto;border-radius:6px;background:#fff"><figcaption class="caveat">Left: P&amp;L by month, as a share of the index. Right: cumulative P&amp;L.</figcaption></figure>
-          <p class="caveat">Source: <a class="text-link" href="https://github.com/shmorsi/deep-portfolio-constructor/blob/main/reports/derivatives/summary.json" target="_blank" rel="noopener noreferrer">reports/derivatives/summary.json</a> (deep-portfolio-constructor @ <code>b922e54</code>)</p>
+          <p class="caveat">Source: <a class="text-link" href="https://github.com/shmorsi/deep-portfolio-constructor/blob/main/reports/derivatives/summary.json" target="_blank" rel="noopener noreferrer">reports/derivatives/summary.json</a> (deep-portfolio-constructor @ <code>d10f3c7</code>)</p>
         </div>
       </section>
       <section class="cs-section" aria-labelledby="s-ldi">
@@ -105,7 +105,7 @@
             <li><strong>Excel, with live formulas.</strong> An LBO with a senior loan, cash sweep and private-credit tranche (2.45× and 19.6%; leverage 5.5× to 2.6×), and a 20-year pension funding model. LibreOffice recalculates both and they match Python to 5e-13.
               <a class="text-link" href="https://github.com/shmorsi/deep-portfolio-constructor/raw/main/excel/lbo_private_credit.xlsx">LBO workbook</a> · <a class="text-link" href="https://github.com/shmorsi/deep-portfolio-constructor/raw/main/excel/pension_funding_model.xlsx">Pension workbook</a></li>
           </ul>
-          <p class="caveat">Source: <a class="text-link" href="https://github.com/shmorsi/deep-portfolio-constructor/blob/main/excel/verification.json" target="_blank" rel="noopener noreferrer">excel/verification.json</a> (deep-portfolio-constructor @ <code>b922e54</code>)</p>
+          <p class="caveat">Source: <a class="text-link" href="https://github.com/shmorsi/deep-portfolio-constructor/blob/main/excel/verification.json" target="_blank" rel="noopener noreferrer">excel/verification.json</a> (deep-portfolio-constructor @ <code>d10f3c7</code>)</p>
         </div>
       </section>
       <section class="cs-section" aria-labelledby="s-anomalies">
@@ -114,7 +114,7 @@
           <p class="big">Fifteen published equity anomalies, 1963-07 to 2026-09: 4 clear t = 1.96, 1 clears 3.0, and returns fell from 6.3% to 1.3% a year after the papers appeared.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="Combining the anomalies out of sample"><table><caption>Combining the anomalies out of sample</caption><thead><tr><th scope="col">Strategy</th><th scope="col">Sharpe</th><th scope="col">Since 2000</th><th scope="col">Against equal weight</th></tr></thead><tbody><tr><td>Equal weight</td><td>0.39</td><td>0.26</td><td>the benchmark</td></tr><tr><td>Factor momentum</td><td>0.53</td><td>0.37</td><td>no detectable difference</td></tr><tr><td>Shrinkage mean-variance</td><td>0.86</td><td>0.34</td><td>better</td></tr><tr><td>Gradient boosting</td><td>0.45</td><td>0.26</td><td>no detectable difference</td></tr></tbody></table></div>
           <figure class="figure-block"><img src="../assets/img/toolkit/anomalies.png" alt="Out-of-sample growth of four ways to hold fifteen anomalies since 1973, on a log scale." loading="lazy" style="width:100%;height:auto;border-radius:6px;background:#fff"><figcaption class="caveat">Each month from 1973, using only the past.</figcaption></figure>
-          <p class="caveat">Momentum's Newey-West t: 4.56. Source: <a class="text-link" href="https://github.com/shmorsi/deep-portfolio-constructor/blob/main/reports/anomalies/summary.json" target="_blank" rel="noopener noreferrer">reports/anomalies/summary.json</a> (deep-portfolio-constructor @ <code>b922e54</code>)</p>
+          <p class="caveat">Momentum's Newey-West t: 4.56. Source: <a class="text-link" href="https://github.com/shmorsi/deep-portfolio-constructor/blob/main/reports/anomalies/summary.json" target="_blank" rel="noopener noreferrer">reports/anomalies/summary.json</a> (deep-portfolio-constructor @ <code>d10f3c7</code>)</p>
         </div>
       </section>
       <section class="cs-section" aria-labelledby="s-stance">
@@ -123,7 +123,7 @@
           <p class="big">roberta-base with LoRA adapters (0.71% of its parameters trained, on a CPU) reads central-bank sentences as dovish, hawkish or neutral.</p>
           <div class="table-wrap" tabindex="0" role="region" aria-label="Test split, scored once under a protocol tagged in git before training"><table><caption>Test split, scored once under a protocol tagged in git before training</caption><thead><tr><th scope="col">Model</th><th scope="col">Macro-F1</th><th scope="col">Accuracy</th></tr></thead><tbody><tr><td>Majority class</td><td>0.222</td><td>49.8%</td></tr><tr><td>TF-IDF + logistic regression</td><td>0.561</td><td>59.3%</td></tr><tr><td>roberta-base + LoRA</td><td>0.663</td><td>68.3%</td></tr></tbody></table></div>
           <p>LoRA minus TF-IDF: +0.102 (90% CI +0.060 to +0.145): helps. Out of domain, on 206 Bank of Canada statements, the classifier's stance correlates with the next decision at 0.33 (90% CI 0.21 to 0.44), though little of that survives once today's decision is known.</p>
-          <p class="caveat">Data: Shah, Paturi and Chava (ACL 2023). Source: <a class="text-link" href="https://github.com/shmorsi/world-shock-lab/blob/main/results/stance/test.json" target="_blank" rel="noopener noreferrer">results/stance/test.json</a> (world-shock-lab @ <code>886515b</code>)</p>
+          <p class="caveat">Data: Shah, Paturi and Chava (ACL 2023). Source: <a class="text-link" href="https://github.com/shmorsi/world-shock-lab/blob/main/results/stance/test.json" target="_blank" rel="noopener noreferrer">results/stance/test.json</a> (world-shock-lab @ <code>0e93ee5</code>)</p>
         </div>
       </section>
       <section class="cs-section" aria-labelledby="s-serving">
@@ -134,7 +134,7 @@
             <li><strong>Service.</strong> FastAPI with ONNX Runtime in a two-stage Docker image that CI builds and calls; Kubernetes manifests with probes and an autoscaler; Prometheus metrics and input-drift monitoring by population stability index; an MLflow run and model registry.</li>
             <li><strong>Latency</strong> (one thread, one series): PyTorch 2.4 ms, ONNX 1.9 ms, int8 1.2 ms; int8's loss is 0.995× fp32's on 256 held-out series.</li>
           </ul>
-          <p class="caveat">Source: <a class="text-link" href="https://github.com/shmorsi/tsfm-from-scratch/blob/main/results/serve/bench_cpu_1thread.json" target="_blank" rel="noopener noreferrer">results/serve/bench_cpu_1thread.json</a> (tsfm-from-scratch @ <code>1c1b398</code>)</p>
+          <p class="caveat">Source: <a class="text-link" href="https://github.com/shmorsi/tsfm-from-scratch/blob/main/results/serve/bench_cpu_1thread.json" target="_blank" rel="noopener noreferrer">results/serve/bench_cpu_1thread.json</a> (tsfm-from-scratch @ <code>e8bc109</code>)</p>
         </div>
       </section>
       <section class="cs-section" aria-labelledby="s-limits">

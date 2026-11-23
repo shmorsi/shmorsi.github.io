@@ -655,7 +655,7 @@
         },
         "tests": {
           "label": "Automated tests",
-          "display": "106",
+          "display": "144",
           "source": "deep-portfolio-constructor reports/site_wealth.json [tests], from reports/results/wealth/*.parquet"
         },
         "dataCorr": {
