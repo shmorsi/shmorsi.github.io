@@ -3499,6 +3499,41 @@
           "external": true
         }
       ]
+    },
+    {
+      "id": "quant-toolkit",
+      "number": "05",
+      "title": "Quant and institutional toolkit",
+      "kicker": "Capital markets, risk and private markets",
+      "purpose": "The machinery around a portfolio, built and tested on public data: a factor risk model with Black-Litterman and a tracking-error budget, attribution in SQL, VaR backtests, derivatives and rates pricing, LDI liquidity stress, private-markets pacing, an anomaly zoo, and Excel models checked cell by cell against Python.",
+      "headline": {
+        "display": "+0.87%",
+        "label": "A month, earned by selling a one-month straddle on the US stock market at the VIX and delta-hedging it daily, 1990-01 to 2026-08 (Newey-West t 12.7)",
+        "qualifier": "Positive in 83% of months, with the losses packed into a few crashes (2000-12, 2020-03, 2008-09). The VIX sits above at-the-money volatility, so this overstates the premium somewhat. Not pre-registered: a tested toolkit run once on public data.",
+        "source": "deep-portfolio-constructor reports/derivatives/summary.json (vrp)"
+      },
+      "tags": [
+        "Python",
+        "cvxpy",
+        "SciPy",
+        "DuckDB SQL",
+        "Excel",
+        "pytest"
+      ],
+      "links": [
+        {
+          "label": "Code",
+          "href": "https://github.com/shmorsi/deep-portfolio-constructor/tree/main/src/dpc",
+          "kind": "repo",
+          "external": true
+        },
+        {
+          "label": "Results",
+          "href": "https://github.com/shmorsi/deep-portfolio-constructor/blob/main/reports/derivatives/results.md",
+          "kind": "more",
+          "external": true
+        }
+      ]
     }
   ]
 }

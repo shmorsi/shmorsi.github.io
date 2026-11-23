@@ -40,6 +40,7 @@ GLOBE = {
     "world-shock-lab": ("wsl", "Rings leave Washington, Ottawa and Vienna, where the Fed, the Bank of Canada and OPEC announce."),
     "tsfm": ("tsfm", "The sweep stands for the model reading series from 77 datasets. An illustration."),
     "aurvane": ("aurvane", "A shell for the four checks every agent action has to pass. An illustration."),
+    "quant-toolkit": ("dpc", "The Earth turns to the United States: the volatility study trades the US stock market every month since 1990."),
     "epicentre": ("epicentre", "Montréal, where the PolyFinances Datathon ran, and the shock that spreads from one holding."),
 }
 
