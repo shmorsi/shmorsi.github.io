@@ -269,6 +269,8 @@ def main() -> int:
 
     if not problems:
         say("\n## Build and check")
+        if not run("build_toolkit_page.py", "--src", str(src)):   # the toolkit page, from the projects' result files
+            return finish()
         for script in ("build_home.py", "build_dpc_page.py", "build_pension_page.py", "sync_chrome.py", "check_site.py"):
             if not run(script):
                 break

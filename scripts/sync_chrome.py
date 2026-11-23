@@ -182,7 +182,8 @@ def projectize(html: str, pid: str) -> str:
 
 # page -> (prefix to the site root, its own path, is the home page). index.html is not here: scripts/home.py writes the
 # whole home page, header and footer included, on its own stylesheet and script (assets/home.css, assets/home.js).
-PAGES = {"voyage.html": ("", "voyage.html", False)}  # the long way round: a page beside the home page, linked from it
+PAGES = {"voyage.html": ("", "voyage.html", False),  # the long way round: a page beside the home page, linked from it
+         "projects/toolkit.html": ("../", "projects/toolkit.html", False)}  # built by build_toolkit_page.py from the projects' result files
 PAGES.update({path + ("index.html" if path.endswith("/") else ""): ("../", path, False) for pid, path in PATH_OF.items()})
 
 

@@ -3522,15 +3522,14 @@
       ],
       "links": [
         {
+          "label": "Read the page",
+          "href": "projects/toolkit.html",
+          "kind": "site"
+        },
+        {
           "label": "Code",
           "href": "https://github.com/shmorsi/deep-portfolio-constructor/tree/main/src/dpc",
           "kind": "repo",
-          "external": true
-        },
-        {
-          "label": "Results",
-          "href": "https://github.com/shmorsi/deep-portfolio-constructor/blob/main/reports/derivatives/results.md",
-          "kind": "more",
           "external": true
         }
       ]
